@@ -3,15 +3,16 @@ package asdf
 import scala.collection.mutable.MutableList
 import util.ToStringHelper._
 import util.Util._
+import util.Util
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
-  private val dependencies: MutableList[Signal[_]] = MutableList()
-  def addObserver(obs: Signal[_]) {
+  protected[asdf] val dependencies: MutableList[Signal[_]] = MutableList()
+  def addDependant(obs: Signal[_]) {
     dependencies += obs
   }
 
-  def level : Int;
-  
+  def level: Int;
+
   private class ObserverHandler(name: String, op: A => Unit) {
     def notify(value: A) = op(value)
     override def toString = name
@@ -30,26 +31,18 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
-  private var _dirty = false
-  def isDirty = _dirty
-
-  protected def dirty {
-    if (!_dirty) {
-      _dirty = true
-      dependencies.foreach(_.notifyDirty())
-    }
-  }
-
   def value = currentValue
-  protected def newValueAndClean(value: A) {
-    if (!_dirty) throw new IllegalStateException("Must be dirty before setting a value!");
-    _dirty = false;
-    if (nullSafeEqual(currentValue, value)) {
-      dependencies.foreach(_.notifyClean(false))
+
+  protected def newValue : A
+  
+  def updateValue(): Boolean = {
+    val newValue = this.newValue
+    if (Util.nullSafeEqual(currentValue, newValue)) {
+      return false;
     } else {
-      currentValue = value;
-      observers.foreach(_.notify(value))
-      dependencies.foreach(_.notifyClean(true))
+      currentValue = newValue;
+      observers.foreach {_.notify(newValue)}
+      return true;
     }
   }
 
