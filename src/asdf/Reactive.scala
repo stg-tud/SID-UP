@@ -3,7 +3,7 @@ package asdf
 import scala.collection.mutable.MutableList
 import util.ToStringHelper._
 import util.Util._
-import util.Util
+import util.ThreadPool
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
   protected[asdf] val dependencies: MutableList[Signal[_]] = MutableList()
@@ -31,20 +31,23 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
-  def sourceDependencies : Iterable[Var[_]]
+  def sourceDependencies: Iterable[Var[_]]
 
   def value = currentValue
 
-  protected def newValue: A
-
-  def updateValue(): Boolean = {
-    val newValue = this.newValue
-    if (Util.nullSafeEqual(currentValue, newValue)) {
-      return false;
-    } else {
+  protected def updateValue(pool: ThreadPool, source: Var[_], newValue: A) {
+    val changed = !nullSafeEqual(currentValue, newValue);
+    if (changed) {
       currentValue = newValue;
       observers.foreach { _.notify(newValue) }
-      return true;
+    }
+    notifyDependencies(pool, source, changed)
+  }
+  protected def notifyDependencies(pool: ThreadPool, source: asdf.Var[_], changed: Boolean): Unit = {
+    dependencies.foreach { x =>
+      pool.execute {
+        x.notifyUpdate(pool, source, changed)
+      }
     }
   }
 

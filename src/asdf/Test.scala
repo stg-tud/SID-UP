@@ -4,7 +4,9 @@ import Reactive.autoSignalToValue
 
 object Test extends App {
   def log(name : String) {
-    println("Evaluating Signal "+name);
+    println("Starting evaluation of Signal "+name);
+    Thread.sleep(500);
+    println("Finished evaluation of Signal "+name);
   }
   
   val s = Var("S", 1);
@@ -34,13 +36,17 @@ object Test extends App {
   println("-------------")
   println
 
+  println("updating source...");
   s.set(2);
+  println("updating source returned.");
   
   println
   println("-------------")
   println
   
+  println("updating source...");
   s.set(4);
+  println("updating source returned.");
 
 //  println(s.toElaborateString);
 
