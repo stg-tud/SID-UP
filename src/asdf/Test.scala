@@ -3,23 +3,51 @@ package asdf
 import Reactive.autoSignalToValue
 
 object Test extends App {
-  val bottom = Var("bottom", 1);
-  val left = Signal("left[bottom+1]", bottom) { bottom + 1 };
-  val right = Signal("right[bottom+2]", bottom) { bottom + 2 }
-  val top = Signal("top[2*bottom+3]", left, right) { left + right }
+  def log(name : String) {
+    println("Evaluating Signal "+name);
+  }
+  
+  val s = Var("S", 1);
+  val a1 = Signal("A1", s) { log("A1"); s % 2};
+  val a2 = Signal("A2", s) { log("A2"); s + 1};
+  val a3 = Signal("A3", s) { log("A3"); s + 1};
+  // this sums up to b1 = s % 2 + 1
+  val b1 = Signal("B1", a1) { log("B1"); a1 + 1};
+  // this sums up to b2 = 2 * s + 2
+  val b2 = Signal("B2", a2, a3) { log("B2"); a2 + a3};
+  // this sums up to c = s % 2 + 3 * s + 4
+  val c = Signal("C", b1, a2, b2) { log("C"); b1 + a2 + b2};
 
-  track(bottom);
-  track(top);
+  println
+  println("-------------")
+  println
+  
+  track(s);
+  track(a1);
+  track(a2);
+  track(a3);
+  track(b1);
+  track(b2);
+  track(c);
 
-  bottom.set(3);
-  bottom.set(3);
+  println
+  println("-------------")
+  println
 
-  println(bottom);
+  s.set(2);
+  
+  println
+  println("-------------")
+  println
+  
+  s.set(4);
+
+//  println(s.toElaborateString);
 
   def track(signal: Reactive[_]) {
-    println("tracking " + signal.name + " = " + signal.value);
+    println("Now Tracking: " + signal.name + " = " + signal.value);
     signal.observe {
-      println("changed: " + signal.name + " = " + signal.value);
+      println("Value Changed: " + signal.name + " = " + signal.value);
     }
   }
 }

@@ -9,6 +9,7 @@ class Var[A](name : String, currentValue : A) extends Reactive[A](name, currentV
     new Propagator().run(this);
   }
   val level = 0;
+  val sourceDependencies = Iterable[Var[_]](this)
 }
 
 object Var {

@@ -31,22 +31,25 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
+  def sourceDependencies : Iterable[Var[_]]
+
   def value = currentValue
 
-  protected def newValue : A
-  
+  protected def newValue: A
+
   def updateValue(): Boolean = {
     val newValue = this.newValue
     if (Util.nullSafeEqual(currentValue, newValue)) {
       return false;
     } else {
       currentValue = newValue;
-      observers.foreach {_.notify(newValue)}
+      observers.foreach { _.notify(newValue) }
       return true;
     }
   }
 
-  override def toString: String = {
+  override def toString = name;
+  def toElaborateString: String = {
     return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
   }
   def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
