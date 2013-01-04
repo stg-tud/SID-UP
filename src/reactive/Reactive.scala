@@ -1,17 +1,18 @@
-package asdf
+package reactive
 
 import scala.collection.mutable.MutableList
 import util.ToStringHelper._
 import util.Util._
 import util.ThreadPool
+import java.util.UUID
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
-  protected[asdf] val dependencies: MutableList[Signal[_]] = MutableList()
-  def addDependant(obs: Signal[_]) {
+  protected[reactive] val dependencies: MutableList[Signal[_]] = MutableList()
+  protected[reactive] def addDependant(obs: Signal[_]) {
     dependencies += obs
   }
 
-  def level: Int;
+  protected[reactive] def level: Int;
 
   private class ObserverHandler(name: String, op: A => Unit) {
     def notify(value: A) = op(value)
@@ -31,11 +32,11 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
-  def sourceDependencies: Iterable[Var[_]]
+  def sourceDependencies: Iterable[UUID]
 
   def value = currentValue
 
-  protected def updateValue(pool: ThreadPool, source: Var[_], newValue: A) {
+  protected[this] def updateValue(pool: ThreadPool, source: UUID, newValue: A) {
     val changed = !nullSafeEqual(currentValue, newValue);
     if (changed) {
       currentValue = newValue;
@@ -43,7 +44,7 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     }
     notifyDependencies(pool, source, changed)
   }
-  protected def notifyDependencies(pool: ThreadPool, source: asdf.Var[_], changed: Boolean): Unit = {
+  protected[this] def notifyDependencies(pool: ThreadPool, source: UUID, changed: Boolean): Unit = {
     dependencies.foreach { x =>
       pool.execute {
         x.notifyUpdate(pool, source, changed)

@@ -1,6 +1,9 @@
 package asdf
 
-import Reactive.autoSignalToValue
+import reactive.Reactive.autoSignalToValue
+import reactive.Var
+import reactive.Signal
+import reactive.Reactive
 
 object Test extends App {
   def log(name : String) {
