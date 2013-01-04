@@ -2,7 +2,7 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies:_*) {
+class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
   private var updateLog = mutable.Map[UUID, Tuple2[Int, Boolean]]()
 
   protected[reactive] override def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean) {
@@ -14,13 +14,9 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
           (incomingEdgesPerSource.get(source).get - 1, valueChanged)
       }
 
-      if(eventState._1 == 0) {
+      if (eventState._1 == 0) {
         updateLog -= event;
-	      if (eventState._2) {
-	        updateValue(source, event, op);
-	      } else {
-	        notifyDependencies(source, event, false);
-	      }
+        updateValue(source, event, if (eventState._2) op else value);
       } else {
         updateLog += (event -> eventState)
       }

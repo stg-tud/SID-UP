@@ -13,20 +13,40 @@ import reactive.DependantReactive
 import java.util.UUID
 
 object ResourceAllocationExample extends App {
+  makeClient(new ServerFactory {
+    override def connectToServer(requests: Reactive[Int]) = {
+      fakeNetwork(makeServer(fakeNetwork(requests)))
+    }
+  })
+  
+  def fakeNetwork[A](input: Reactive[A]) = new DependantReactive[A]("NetworkDelay:" + input.name, input.value, input) {
+    override def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean) {
+      val value = input.value
+      spawn {
+        Thread.sleep(500)
+        updateValue(source, event, value)
+      }
+    }
+  }
+
+
   def newFrame(title: String) = {
     val frame = new JFrame(title);
     frame.setLayout(new GridLayout(0, 2));
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame
   }
-  def showFrame(frame: JFrame) {
+
+  def showFrame(frame: JFrame, sidewaysMoveFactor: Int) {
     frame.pack();
     frame.setLocationRelativeTo(null);
+    val centered = frame.getLocation();
+    frame.setLocation(centered.getX().toInt + sidewaysMoveFactor * frame.getWidth() / 2, centered.getY().toInt)
     frame.setVisible(true);
   }
 
   def makeServer(clientRequests: Reactive[Int]): Reactive[Int] = {
-    val resourcesInput = new ReactiveSpinner(5)
+    val resourcesInput = new ReactiveSpinner(44)
     val committed = Signal(clientRequests, resourcesInput.value) {
       math.min(clientRequests, resourcesInput.value);
     }
@@ -42,40 +62,31 @@ object ResourceAllocationExample extends App {
     frame.add(new JLabel("Committed resources:"));
     frame.add(new ReactiveLabel(committed).asComponent)
 
-    showFrame(frame);
+    showFrame(frame, -1);
 
     committed
   }
 
-  def fakeNetwork[A](input: Reactive[A]) = new DependantReactive[A]("NetworkDelay:" + input.name, input.value, input) {
-    override def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean) {
-      val value = input.value
-      spawn {
-        Thread.sleep(500)
-        if (valueChanged) {
-          updateValue(source, event, value)
-        } else {
-          notifyDependencies(source, event, valueChanged)
-        }
-      }
-    }
+  trait ServerFactory {
+    def connectToServer(requests: Reactive[Int]): Reactive[Int]
   }
+  def makeClient(serverFactory: ServerFactory) = {
+    val requested = new ReactiveSpinner(4);
+    val committedResources = serverFactory.connectToServer(requested.value);
 
-  val requested = new ReactiveSpinner(4);
-  val committedResources = fakeNetwork(makeServer(fakeNetwork(requested.value)))
+    val frame = newFrame("Client");
 
-  val frame = newFrame("Client");
+    frame.add(new JLabel("Requested resources:"));
+    frame.add(requested.asComponent)
 
-  frame.add(new JLabel("Requested resources:"));
-  frame.add(requested.asComponent)
+    frame.add(new JLabel("Committed resources:"));
+    frame.add(new ReactiveLabel(committedResources).asComponent)
 
-  frame.add(new JLabel("Committed resources:"));
-  frame.add(new ReactiveLabel(committedResources).asComponent)
+    frame.add(new JLabel("Resource deficit:"));
+    frame.add(new ReactiveLabel(Signal(requested.value, committedResources) {
+      math.max(0, requested.value - committedResources);
+    }).asComponent)
 
-  frame.add(new JLabel("Resource deficit:"));
-  frame.add(new ReactiveLabel(Signal(requested.value, committedResources) {
-    math.max(0, requested.value - committedResources);
-  }).asComponent)
-
-  showFrame(frame);
+    showFrame(frame, 1);
+  }
 }
