@@ -1,45 +1,28 @@
 package reactive
-import scala.collection.mutable.MutableList
-import util.ThreadPool
+import scala.collection.mutable
 import java.util.UUID
 
-class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op) {
-  dependencies.foreach { _.addDependant(this) }
-  val level = dependencies.foldLeft(0)((max, signal) => math.max(max, signal.level + 1))
-  private val incomingEdgesPerSource = dependencies.foldLeft(Map[UUID, Int]()) { (map, signal) =>
-    signal.sourceDependencies.foldLeft(map) { (map, source) =>
-      map + (source -> (map.get(source) match {
-        case Some(x) => x + 1
-        case None => 1
-      }))
-    }
-  }
-  val sourceDependencies = incomingEdgesPerSource.keys
+class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies:_*) {
+  private var updateLog = mutable.Map[UUID, Tuple2[Int, Boolean]]()
 
-
-  @volatile private var pendingUpdates = 0;
-  @volatile private var anyDependencyChanged = false;
-
-  private val lock = new Object();
-
-  def notifyUpdate(pool : ThreadPool, source: UUID, valueChanged: Boolean) {
-    if (lock.synchronized {
-      anyDependencyChanged |= valueChanged
-      if (pendingUpdates == 0) {
-        pendingUpdates = incomingEdgesPerSource.get(source).get - 1
-      } else {
-        pendingUpdates -= 1;
+  protected[reactive] override def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean) {
+    updateLog.synchronized {
+      val eventState = updateLog.get(event) match {
+        case Some((pendingUpdates, anyDependencyChangedSoFar)) =>
+          (pendingUpdates - 1, anyDependencyChangedSoFar || valueChanged)
+        case None =>
+          (incomingEdgesPerSource.get(source).get - 1, valueChanged)
       }
-      pendingUpdates == 0
-    }) {
-      // assuming there are not multiple source events running in parallel,
-      // this block will only be executed by the last notification and ca
-      // thus read and write the volatile fields without a semaphore
-      if (anyDependencyChanged) {
-        anyDependencyChanged = false;
-        updateValue(pool, source, op);
+
+      if(eventState._1 == 0) {
+        updateLog -= event;
+	      if (eventState._2) {
+	        updateValue(source, event, op);
+	      } else {
+	        notifyDependencies(source, event, false);
+	      }
       } else {
-        notifyDependencies(pool, source, false);
+        updateLog += (event -> eventState)
       }
     }
   }

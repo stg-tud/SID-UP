@@ -41,7 +41,9 @@ object Test extends App {
 
   println("updating source...");
   s.set(2);
-  println("updating source returned.");
+  println("waiting for propagation to complete...");
+  Thread.sleep(3000);
+  println("waiting period completed.");
   
   println
   println("-------------")
@@ -49,7 +51,7 @@ object Test extends App {
   
   println("updating source...");
   s.set(4);
-  println("updating source returned.");
+  println("main thread end.");
 
 //  println(s.toElaborateString);
 

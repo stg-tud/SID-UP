@@ -1,18 +1,18 @@
 package reactive
 
 import scala.collection.mutable.MutableList
+import scala.concurrent.ops.spawn
 import util.ToStringHelper._
 import util.Util._
-import util.ThreadPool
 import java.util.UUID
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
-  protected[reactive] val dependencies: MutableList[Signal[_]] = MutableList()
-  protected[reactive] def addDependant(obs: Signal[_]) {
+  protected[reactive] val dependencies: MutableList[DependantReactive[_]] = MutableList()
+  def addDependant(obs: DependantReactive[_]) {
     dependencies += obs
   }
-
-  protected[reactive] def level: Int;
+  def sourceDependencies: Iterable[UUID]
+  //  protected[reactive] def level: Int;
 
   private class ObserverHandler(name: String, op: A => Unit) {
     def notify(value: A) = op(value)
@@ -32,22 +32,20 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
-  def sourceDependencies: Iterable[UUID]
-
   def value = currentValue
 
-  protected[this] def updateValue(pool: ThreadPool, source: UUID, newValue: A) {
+  protected[this] def updateValue(source: UUID, event: UUID, newValue: A) {
     val changed = !nullSafeEqual(currentValue, newValue);
     if (changed) {
       currentValue = newValue;
       observers.foreach { _.notify(newValue) }
     }
-    notifyDependencies(pool, source, changed)
+    notifyDependencies(source, event, changed)
   }
-  protected[this] def notifyDependencies(pool: ThreadPool, source: UUID, changed: Boolean): Unit = {
+  protected[this] def notifyDependencies(source: UUID, event: UUID, changed: Boolean): Unit = {
     dependencies.foreach { x =>
-      pool.execute {
-        x.notifyUpdate(pool, source, changed)
+      spawn {
+        x.notifyUpdate(source, event, changed)
       }
     }
   }
@@ -59,7 +57,7 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
     indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
     if (done.add(this)) {
-      builder.append(" name=\"").append(name).append("\" level=\"").append(level).append("\">\n");
+      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
       listTag(builder, depth + 1, "observers", observers) {
         x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
       }
