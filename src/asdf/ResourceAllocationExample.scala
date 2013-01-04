@@ -11,6 +11,8 @@ import reactive.Reactive
 import javax.swing.WindowConstants
 import reactive.DependantReactive
 import java.util.UUID
+import reactive.Event
+import util.SerializationSafe
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
@@ -18,17 +20,16 @@ object ResourceAllocationExample extends App {
       fakeNetwork(makeServer(fakeNetwork(requests)))
     }
   })
-  
-  def fakeNetwork[A](input: Reactive[A]) = new DependantReactive[A]("NetworkDelay:" + input.name, input.value, input) {
-    override def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean) {
+
+  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new DependantReactive[A]("NetworkDelayed[" + input.name + "]", input.value, input) {
+    override def notifyUpdate(event: Event, valueChanged: Boolean) {
       val value = input.value
       spawn {
         Thread.sleep(500)
-        updateValue(source, event, value)
+        updateValue(event, value)
       }
     }
   }
-
 
   def newFrame(title: String) = {
     val frame = new JFrame(title);

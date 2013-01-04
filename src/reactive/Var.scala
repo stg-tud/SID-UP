@@ -5,7 +5,7 @@ class Var[A](name : String, currentValue : A) extends Reactive[A](name, currentV
   val uuid = UUID.randomUUID();
 
   def set(value : A) = {
-    updateValue(this.uuid, UUID.randomUUID(), value);
+    updateValue(Event(this), value);
   }
 //  override val level = 0;
   override val sourceDependencies = Iterable[UUID](this.uuid)

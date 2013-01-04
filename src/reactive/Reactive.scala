@@ -34,18 +34,18 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
 
   def value = currentValue
 
-  protected[this] def updateValue(source: UUID, event: UUID, newValue: A) {
+  protected[this] def updateValue(event: Event, newValue: A) {
     val changed = !nullSafeEqual(currentValue, newValue);
     if (changed) {
       currentValue = newValue;
       observers.foreach { _.notify(newValue) }
     }
-    notifyDependencies(source, event, changed)
+    notifyDependencies(event, changed)
   }
-  protected[this] def notifyDependencies(source: UUID, event: UUID, changed: Boolean): Unit = {
+  protected[this] def notifyDependencies(event : Event, changed: Boolean): Unit = {
     dependencies.foreach { x =>
       spawn {
-        x.notifyUpdate(source, event, changed)
+        x.notifyUpdate(event, changed)
       }
     }
   }

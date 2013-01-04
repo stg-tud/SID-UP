@@ -16,5 +16,5 @@ abstract class DependantReactive[A](name : String, initialValue : A, dependencie
   }
   override val sourceDependencies = incomingEdgesPerSource.keys
 
-  protected[reactive] def notifyUpdate(source: UUID, event: UUID, valueChanged: Boolean);
+  protected[reactive] def notifyUpdate(event: Event, valueChanged: Boolean);
 }
