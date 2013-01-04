@@ -11,11 +11,15 @@ class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = fals
   private val checkbox = new JCheckBox(text.value);
   checkbox.setSelected(initiallySelected);
   text.observe { value =>
-    checkbox.setText(value)
+    AWTThreadSafe {
+      checkbox.setText(value)
+    }
   }
   checkbox.setEnabled(enabled.value)
   enabled.observe { value =>
-    checkbox.setEnabled(value)
+    AWTThreadSafe {
+      checkbox.setEnabled(value)
+    }
   }
 
   val _selected = Var(checkbox.isSelected())
@@ -24,8 +28,8 @@ class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = fals
       _selected.set(checkbox.isSelected())
     }
   })
-  val value : Reactive[Boolean] = _selected
-  
+  val value: Reactive[Boolean] = _selected
+
   val asComponent: JComponent = checkbox
-  def setValue(value : Boolean) = checkbox.setSelected(value)
+  def setValue(value: Boolean) = checkbox.setSelected(value)
 }

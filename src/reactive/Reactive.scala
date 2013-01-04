@@ -5,6 +5,11 @@ import scala.concurrent.ops.spawn
 import util.ToStringHelper._
 import util.Util._
 import java.util.UUID
+import scala.concurrent.ThreadPoolRunner
+import scala.actors.threadpool.Executor
+import scala.actors.scheduler.ExecutorScheduler
+import scala.actors.threadpool.Executors
+import scala.actors.threadpool.ExecutorService
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
   protected[reactive] val dependencies: MutableList[DependantReactive[_]] = MutableList()
@@ -32,6 +37,8 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     observers += new ObserverHandler(name, obs);
   }
 
+  def dirty : Reactive[Boolean]
+  
   def value = currentValue
 
   protected[this] def updateValue(event: Event, newValue: A) {
@@ -42,11 +49,9 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     }
     notifyDependencies(event, changed)
   }
-  protected[this] def notifyDependencies(event : Event, changed: Boolean): Unit = {
+  protected[this] def notifyDependencies(event: Event, changed: Boolean): Unit = {
     dependencies.foreach { x =>
-      spawn {
-        x.notifyUpdate(event, changed)
-      }
+      Reactive.executeNotifyPooled(x, event, changed)
     }
   }
 
@@ -73,4 +78,32 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
 
 object Reactive {
   implicit def autoSignalToValue[A](signal: Reactive[A]): A = signal.value
+
+  private val lock = new Object();
+  private var pool: ExecutorService = null;
+  def setThreadPoolSize(size: Int) {
+    lock.synchronized {
+      if (pool != null) {
+        pool.shutdown()
+      }
+      if (size > 0) {
+        pool = Executors.newFixedThreadPool(size)
+      } else {
+        pool = null
+      }
+    }
+  }
+  private def executeNotifyPooled(dependent: DependantReactive[_], event: Event, changed: Boolean) {
+    lock.synchronized {
+      if (pool == null) {
+        dependent.notifyUpdate(event, changed)
+      } else {
+        pool.execute(new Runnable {
+          override def run() {
+            dependent.notifyUpdate(event, changed)
+          }
+        })
+      }
+    }
+  }
 }

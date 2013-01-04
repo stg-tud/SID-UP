@@ -12,6 +12,8 @@ object Test extends App {
     println("Finished evaluation of Signal "+name);
   }
   
+  Reactive.setThreadPoolSize(4);
+  
   val s = Var("S", 1);
   val a1 = Signal("A1", s) { log("A1"); s % 2};
   val a2 = Signal("A2", s) { log("A2"); s + 1};
@@ -51,7 +53,10 @@ object Test extends App {
   
   println("updating source...");
   s.set(4);
-  println("main thread end.");
+  println("waiting for propagation to complete...");
+  Thread.sleep(3000);
+  println("waiting period completed, terminating thread pool.");
+  Reactive.setThreadPoolSize(0);
 
 //  println(s.toElaborateString);
 

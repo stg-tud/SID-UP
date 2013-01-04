@@ -4,6 +4,8 @@ import java.util.UUID
 class Var[A](name : String, currentValue : A) extends Reactive[A](name, currentValue) {
   val uuid = UUID.randomUUID();
 
+  override lazy val dirty : Reactive[Boolean] = Var(false);
+  
   def set(value : A) = {
     updateValue(Event(this), value);
   }

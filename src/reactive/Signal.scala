@@ -3,25 +3,50 @@ import scala.collection.mutable
 import java.util.UUID
 
 class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
+  /**
+   * for which event are how many update notifications still missing and
+   * has any of the dependencies that did notify already changed the value?
+   */
   private var updateLog = mutable.Map[Event, Tuple2[Int, Boolean]]()
+  /**
+   * this variable reflects the number of total entries in {@link #updateLog}
+   * with the Boolean value of the value tuple set to <code>true</code>
+   */
+  private var numUpdatesWithChangedDependency = 0;
+
+  private val _dirty = Var(name + ".dirty", false);
+  override val dirty: Reactive[Boolean] = _dirty;
 
   protected[reactive] override def notifyUpdate(event: Event, valueChanged: Boolean) {
     updateLog.synchronized {
-      val eventState = updateLog.get(event) match {
+      updateLog.get(event) match {
         case Some((pendingUpdates, anyDependencyChangedSoFar)) =>
-          (pendingUpdates - 1, anyDependencyChangedSoFar || valueChanged)
+          if (!anyDependencyChangedSoFar && valueChanged) numUpdatesWithChangedDependency += 1;
+          update(pendingUpdates - 1, anyDependencyChangedSoFar || valueChanged)
         case None =>
-          (incomingEdgesPerSource.get(event.source).get - 1, valueChanged)
+          if (valueChanged) numUpdatesWithChangedDependency += 1;
+          update(incomingEdgesPerSource.get(event.source).get - 1, valueChanged)
       }
-
-      if (eventState._1 == 0) {
+    } match {
+      case Some((event, valueChanged)) =>
+        updateValue(event, if (valueChanged) op else value);
+      case None =>
+    }
+    
+    def update(pendingUpdates: Int, valueChanged: Boolean) = {
+      if (pendingUpdates == 0) {
         updateLog -= event;
-        updateValue(event, if (eventState._2) op else value);
+        if (valueChanged) numUpdatesWithChangedDependency -= 1;
+        _dirty.set(numUpdatesWithChangedDependency > 0)
+        Some((event, valueChanged))
       } else {
-        updateLog += (event -> eventState)
+        updateLog += (event -> (pendingUpdates, valueChanged))
+        _dirty.set(true)
+        None
       }
     }
   }
+
 }
 
 object Signal {
