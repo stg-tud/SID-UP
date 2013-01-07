@@ -18,7 +18,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
   override def dirty: Reactive[Boolean] = {
     if (_dirty == null) {
       updateLog.synchronized {
-        if (dirty == null) {
+        if (_dirty == null) {
           _dirty = Var(name + ".dirty", numUpdatesWithChangedDependency > 0)
         }
       }
