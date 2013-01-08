@@ -1,7 +1,7 @@
 package reactive
 import java.util.UUID
 
-class Event (val source : UUID, val predecessor : UUID) extends Serializable {
+class Event(val sourcesAndPredecessors: Map[UUID, UUID]) extends Serializable {
   val uuid = UUID.randomUUID();
 
   override def equals(other: Any) = {
@@ -13,13 +13,13 @@ class Event (val source : UUID, val predecessor : UUID) extends Serializable {
   override def hashCode() = {
     31 + uuid.hashCode();
   }
-//  def isComparable(other: Event) = {
-//    other.source.equals(source)
-//  }
-//  /**
-//   * note: only meaningful iff {@link #isComparable(Event)}
-//   */
-//  def happenedBefore(other: Event) = {
-//    uuid.timestamp() < other.uuid.timestamp()
-//  }
+  //  def isComparable(other: Event) = {
+  //    other.source.equals(source)
+  //  }
+  //  /**
+  //   * note: only meaningful iff {@link #isComparable(Event)}
+  //   */
+  //  def happenedBefore(other: Event) = {
+  //    uuid.timestamp() < other.uuid.timestamp()
+  //  }
 }

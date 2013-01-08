@@ -49,7 +49,7 @@ object ResourceAllocationExample extends App {
 
   def makeServer(clientRequests: Reactive[Int]): Reactive[Int] = {
     val resourcesInput = new ReactiveSpinner(44)
-    val committed = Signal(clientRequests, resourcesInput.value) {
+    val committed = Signal("committed", clientRequests, resourcesInput.value) {
       math.min(clientRequests, resourcesInput.value);
     }
 
@@ -85,7 +85,7 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(committedResources).asComponent)
 
     frame.add(new JLabel("Resource deficit:"));
-    frame.add(new ReactiveLabel(Signal(requested.value, committedResources) {
+    frame.add(new ReactiveLabel(Signal("deficit", requested.value, committedResources) {
       math.max(0, requested.value - committedResources);
     }).asComponent)
 

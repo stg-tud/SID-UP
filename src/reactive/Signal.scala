@@ -14,13 +14,13 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
    * the direct predecessor event of that last event can be propagated next,
    * all other completed events are used to {@link #suspendedCalculations}
    */
-  private val lastEvents = mutable.Set[UUID]()
+  private val lastEvents = mutable.Map[UUID, UUID]()
   /**
-   * map of happened-before-event.uui to suspended updates for which all
-   * expected notifications have been received, but the happened-before
-   * event has not completed yet
+   * map of happened-before-event.uuid to suspended updates for which all
+   * expected notifications have been received, but one or more happened-before
+   * relations have not completed yet
    */
-  private val suspendedCalculations = mutable.Map[UUID, Tuple2[Event, Boolean]]()
+  private val suspendedCalculations = mutable.Map[UUID, Tuple3[mutable.Set[UUID], Event, Boolean]]()
   /**
    * this variable reflects the number of total entries in {@link #updateLog}
    * and {@link #suspendedCalculations} with the Boolean value of the value
@@ -50,12 +50,24 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       def getUpdateData(pendingUpdates: Int, valueChanged: Boolean) = {
         if (pendingUpdates == 0) {
           updateLog -= event;
-          if (event.predecessor == null || lastEvents.remove(event.predecessor)) {
+          val requiredPredecessors = mutable.Set[UUID]()
+          event.sourcesAndPredecessors.foreach { case (source, predecessor) =>
+            if(predecessor != null && incomingEdgesPerSource.contains(source)) {
+              lastEvents.get(source) match {
+                case Some(lastEvent) if(predecessor.equals(lastEvent)) => // predecessor requirement already fulfilled
+                case _ => requiredPredecessors += predecessor // record predecessor requirement
+              }
+            } 
+          }
+          if (requiredPredecessors.isEmpty) {
             // event has no predecessor or event is next in line: process
             Some((event, valueChanged))
           } else {
             // event has predecessor other than last processed event: defer to prevent out-of-order update
-            suspendedCalculations += (event.predecessor -> (event, valueChanged))
+            val suspendedCalculation = (requiredPredecessors, event, valueChanged);
+            requiredPredecessors.foreach { predecessor =>
+            	suspendedCalculations += (predecessor -> suspendedCalculation)
+            }
             None
           }
         } else {
@@ -71,7 +83,8 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
           getUpdateData(pendingUpdates - 1, anyDependencyChangedSoFar || notifierValueChanged)
         case None =>
           if (notifierValueChanged) numUpdatesWithChangedDependency += 1;
-          getUpdateData(incomingEdgesPerSource.get(event.source).get.size - 1, notifierValueChanged)
+          val expectedEdges = event.sourcesAndPredecessors.keys.foldLeft(Set[Reactive[_]]()) { (accu, source) => accu ++ incomingEdgesPerSource.get(source).get }
+          getUpdateData(expectedEdges.size - 1, notifierValueChanged)
       }
     }
     while (updateData.isDefined) {
@@ -79,7 +92,9 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       updateLog.synchronized {
         if (valueChanged) numUpdatesWithChangedDependency -= 1;
         if (_dirty != null) _dirty.set(numUpdatesWithChangedDependency > 0)
-        lastEvents += event.uuid
+        event.sourcesAndPredecessors.keys.foreach { source =>
+          lastEvents += (source -> event.uuid)
+        }
       }
       // somewhat important: the actual evaluation and notification of
       // observers and dependencies happens outside of synchronization.
@@ -88,7 +103,17 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       // changed again already.
       updateValue(event, if (valueChanged) Reactive.during(event) { op } else value);
       updateData = updateLog.synchronized {
-        suspendedCalculations.remove(event.uuid)
+        suspendedCalculations.get(event.uuid) match {
+          case Some((missingPredecessors, event, valueChanged)) =>
+            missingPredecessors -= event.uuid
+            if(missingPredecessors.isEmpty) {
+              suspendedCalculations -= event.uuid
+              Some(event, valueChanged)
+            } else {
+              None
+            }
+          case None => None
+        }
       }
     }
   }
