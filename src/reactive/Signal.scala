@@ -14,7 +14,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
    * the direct predecessor event of that last event can be propagated next,
    * all other completed events are used to {@link #suspendedCalculations}
    */
-  private val lastEvents = mutable.Map[UUID, UUID]()
+  private val lastEvents = mutable.Set[UUID]()
   /**
    * map of happened-before-event.uui to suspended updates for which all
    * expected notifications have been received, but the happened-before
@@ -33,7 +33,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
    */
   private var numUpdatesWithChangedDependency = 0;
 
-  private var _dirty: Var[Boolean] = null;
+  @volatile private var _dirty: Var[Boolean] = null;
   override def dirty: Reactive[Boolean] = {
     if (_dirty == null) {
       updateLog.synchronized {
@@ -50,8 +50,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       def getUpdateData(pendingUpdates: Int, valueChanged: Boolean) = {
         if (pendingUpdates == 0) {
           updateLog -= event;
-          val lastEventOfSource = lastEvents.get(event.source)
-          if (event.predecessor == null || (lastEventOfSource.isDefined && event.predecessor.equals(lastEventOfSource.get))) {
+          if (event.predecessor == null || lastEvents.remove(event.predecessor)) {
             // event has no predecessor or event is next in line: process
             Some((event, valueChanged))
           } else {
@@ -72,7 +71,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
           getUpdateData(pendingUpdates - 1, anyDependencyChangedSoFar || notifierValueChanged)
         case None =>
           if (notifierValueChanged) numUpdatesWithChangedDependency += 1;
-          getUpdateData(incomingEdgesPerSource.get(event.source).get - 1, notifierValueChanged)
+          getUpdateData(incomingEdgesPerSource.get(event.source).get.size - 1, notifierValueChanged)
       }
     }
     while (updateData.isDefined) {
@@ -80,8 +79,13 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       updateLog.synchronized {
         if (valueChanged) numUpdatesWithChangedDependency -= 1;
         if (_dirty != null) _dirty.set(numUpdatesWithChangedDependency > 0)
-        lastEvents += (event.source -> event.uuid)
+        lastEvents += event.uuid
       }
+      // somewhat important: the actual evaluation and notification of
+      // observers and dependencies happens outside of synchronization.
+      // This especially means that it is possible for observers
+      // to be notified of a new value while the value actually has
+      // changed again already.
       updateValue(event, if (valueChanged) Reactive.during(event) { op } else value);
       updateData = updateLog.synchronized {
         suspendedCalculations.remove(event.uuid)

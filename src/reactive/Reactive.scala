@@ -40,14 +40,6 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
 
   def dirty: Reactive[Boolean]
 
-  // TODO: For a real distributed setting, releasing events
-  // must be done only under agreement of all machines
-  // instead of local-machine-only weak references.
-  // Otherwise, a cached value can be deleted, but then the
-  // event gets re-instantiated by a second remote invocation
-  // which will then fail to find the cached value, default
-  // to using the current value and thus cause a glitch for
-  // that event.
   private val valHistory = mutable.WeakHashMap[Event, A]();
   def value = {
     valHistory.get(Reactive.threadEvent.get()) match {
@@ -99,9 +91,10 @@ object Reactive {
     }
   }
   def during[A](event: Event)(op: => A) = {
+    val old = threadEvent.get();
     threadEvent.set(event);
     val result = op;
-    threadEvent.remove();
+    threadEvent.set(old);
     result;
   }
 
