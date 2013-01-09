@@ -3,6 +3,7 @@ import scala.collection.mutable
 import java.util.UUID
 
 class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
+  private val debug = false;
   /**
    * map of for which event how many update notifications are still missing
    * and whether or not any of the dependencies that did already send a
@@ -51,23 +52,29 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
         if (pendingUpdates == 0) {
           updateLog -= event;
           val requiredPredecessors = mutable.Set[UUID]()
-          event.sourcesAndPredecessors.foreach { case (source, predecessor) =>
-            if(predecessor != null && incomingEdgesPerSource.contains(source)) {
-              lastEvents.get(source) match {
-                case Some(lastEvent) if(predecessor.equals(lastEvent)) => // predecessor requirement already fulfilled
-                case _ => requiredPredecessors += predecessor // record predecessor requirement
+          event.sourcesAndPredecessors.foreach {
+            case (source, predecessor) =>
+              if (predecessor != null && incomingEdgesPerSource.contains(source)) {
+                lastEvents.get(source) match {
+                  case Some(lastEvent) if (predecessor.equals(lastEvent)) =>
+                  // predecessor requirement already fulfilled, so don't record it
+                  case _ =>
+                    // predecessor not available or different than required => record requirement
+                    requiredPredecessors += predecessor
+                }
               }
-            } 
           }
           if (requiredPredecessors.isEmpty) {
             // event has no predecessor or event is next in line: process
             Some((event, valueChanged))
           } else {
+            if (debug) println("suspending evaluation for event " + event + " due to missing predecessors " + requiredPredecessors)
             // event has predecessor other than last processed event: defer to prevent out-of-order update
             val suspendedCalculation = (requiredPredecessors, event, valueChanged);
             requiredPredecessors.foreach { predecessor =>
-            	suspendedCalculations += (predecessor -> suspendedCalculation)
+              suspendedCalculations += (predecessor -> suspendedCalculation)
             }
+            if (debug) println("suspended calculations now: " + suspendedCalculations);
             None
           }
         } else {
@@ -101,18 +108,32 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
       // This especially means that it is possible for observers
       // to be notified of a new value while the value actually has
       // changed again already.
-      updateValue(event, if (valueChanged) Reactive.during(event) { op } else value);
+      if (debug) print("evaluating " + event + ": ")
+      updateValue(event, if (valueChanged) {
+        val newValue = Reactive.during(event) { op };
+        if (debug) println("calculated new value " + newValue);
+        newValue;
+      } else {
+        if (debug) println("no dependency changed, not recalculating value");
+        value
+      });
       updateData = updateLog.synchronized {
         suspendedCalculations.get(event.uuid) match {
-          case Some((missingPredecessors, event, valueChanged)) =>
+          case Some((missingPredecessors, followUpEvent, valueChanged)) =>
+            if (debug) print("updating suspended calculation of " + followUpEvent + " waiting for " + missingPredecessors + " -> ");
             missingPredecessors -= event.uuid
-            if(missingPredecessors.isEmpty) {
+            if (missingPredecessors.isEmpty) {
+              if (debug) println("no predecessors left, scheduling immediate execution.");
               suspendedCalculations -= event.uuid
-              Some(event, valueChanged)
+              if (debug) println("suspended calculations now: " + suspendedCalculations);
+              Some(followUpEvent, valueChanged)
             } else {
+              if (debug) println("now waiting for " + missingPredecessors);
               None
             }
-          case None => None
+          case None =>
+            if (debug) println("no further suspended calculations exist that depend on " + event);
+            None
         }
       }
     }

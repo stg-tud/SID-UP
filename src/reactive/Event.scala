@@ -13,6 +13,9 @@ class Event(val sourcesAndPredecessors: Map[UUID, UUID]) extends Serializable {
   override def hashCode() = {
     31 + uuid.hashCode();
   }
+  override def toString() = {
+    "Event("+uuid+", source->predecessor:"+sourcesAndPredecessors+")"
+  }
   //  def isComparable(other: Event) = {
   //    other.source.equals(source)
   //  }

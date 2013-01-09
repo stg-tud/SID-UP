@@ -49,9 +49,9 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   }
 
   protected[this] def updateValue(event: Event, newValue: A) {
+    valHistory += (event -> newValue)
     val changed = !nullSafeEqual(currentValue, newValue);
     if (changed) {
-      valHistory += (event -> newValue)
       currentValue = newValue;
       observers.foreach { _.notify(newValue) }
     }
