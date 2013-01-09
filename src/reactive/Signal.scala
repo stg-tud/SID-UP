@@ -3,25 +3,44 @@ import scala.collection.mutable
 import java.util.UUID
 
 class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
-  private val debug = false;
+  private val debug = true;
+
   /**
    * map of for which event how many update notifications are still missing
    * and whether or not any of the dependencies that did already send a
    * notification has actually changed it's value
    */
-  private val updateLog = mutable.Map[Event, Tuple2[Int, Boolean]]()
+  private val updateLog = mutable.Map[Event, (Int, Boolean)]()
   /**
    * map of source.uuid to event.uuid of last event that was completed. Only
    * the direct predecessor event of that last event can be propagated next,
    * all other completed events are used to {@link #suspendedCalculations}
    */
   private val lastEvents = mutable.Map[UUID, UUID]()
+  private val incomingEdgesPerSource = mutable.Map[UUID, Set[Reactive[_]]]();
+
+  dependencies.foreach { dependency =>
+    dependency.sourceDependencies.foreach {
+      case (source, event) =>
+        lastEvents.get(source) match {
+          case Some(x) => if (!x.equals(event)) throw new IllegalStateException("Cannot create new signal while events are in transit!");
+          case None => lastEvents += (source -> event)
+        }
+
+        incomingEdgesPerSource += (source -> (incomingEdgesPerSource.get(source) match {
+          case Some(x) => x + dependency
+          case None => Set(dependency)
+        }));
+    }
+  }
+
+  override def sourceDependencies = lastEvents.toMap
   /**
    * map of happened-before-event.uuid to suspended updates for which all
    * expected notifications have been received, but one or more happened-before
    * relations have not completed yet
    */
-  private val suspendedCalculations = mutable.Map[UUID, Tuple3[mutable.Set[UUID], Event, Boolean]]()
+  private val suspendedCalculations = mutable.Map[UUID, List[(mutable.Set[UUID], Event, Boolean)]]()
   /**
    * this variable reflects the number of total entries in {@link #updateLog}
    * and {@link #suspendedCalculations} with the Boolean value of the value
@@ -54,7 +73,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
           val requiredPredecessors = mutable.Set[UUID]()
           event.sourcesAndPredecessors.foreach {
             case (source, predecessor) =>
-              if (predecessor != null && incomingEdgesPerSource.contains(source)) {
+              if (lastEvents.contains(source)) {
                 lastEvents.get(source) match {
                   case Some(lastEvent) if (predecessor.equals(lastEvent)) =>
                   // predecessor requirement already fulfilled, so don't record it
@@ -72,7 +91,10 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
             // event has predecessor other than last processed event: defer to prevent out-of-order update
             val suspendedCalculation = (requiredPredecessors, event, valueChanged);
             requiredPredecessors.foreach { predecessor =>
-              suspendedCalculations += (predecessor -> suspendedCalculation)
+              suspendedCalculations += (predecessor -> (suspendedCalculations.get(predecessor) match {
+                case Some(x) => suspendedCalculation :: x
+                case _ => List(suspendedCalculation)
+              }))
             }
             if (debug) println("suspended calculations now: " + suspendedCalculations);
             None
@@ -96,6 +118,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
     }
     while (updateData.isDefined) {
       val (event: Event, valueChanged: Boolean) = updateData.get
+      updateData = None;
       updateLog.synchronized {
         if (valueChanged) numUpdatesWithChangedDependency -= 1;
         if (_dirty != null) _dirty.set(numUpdatesWithChangedDependency > 0)
@@ -117,23 +140,26 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
         if (debug) println("no dependency changed, not recalculating value");
         value
       });
-      updateData = updateLog.synchronized {
-        suspendedCalculations.get(event.uuid) match {
-          case Some((missingPredecessors, followUpEvent, valueChanged)) =>
-            if (debug) print("updating suspended calculation of " + followUpEvent + " waiting for " + missingPredecessors + " -> ");
-            missingPredecessors -= event.uuid
-            if (missingPredecessors.isEmpty) {
-              if (debug) println("no predecessors left, scheduling immediate execution.");
-              suspendedCalculations -= event.uuid
-              if (debug) println("suspended calculations now: " + suspendedCalculations);
-              Some(followUpEvent, valueChanged)
-            } else {
-              if (debug) println("now waiting for " + missingPredecessors);
-              None
+      updateLog.synchronized {
+        suspendedCalculations.remove(event.uuid) match {
+          case Some(list) =>
+            list.foreach {
+              case (missingPredecessors, followUpEvent, valueChanged) =>
+                if (debug) print("updating suspended calculation of " + followUpEvent + " waiting for " + missingPredecessors + " -> ");
+                missingPredecessors.remove(event.uuid)
+                if (missingPredecessors.isEmpty) {
+                  if (debug) println("no predecessors left, scheduling immediate execution.");
+                  updateData match {
+                    case Some(x) => throw new AssertionError("processing one event triggered processing of multiple successors, this should not be possible.");
+                    case None => updateData = Some(followUpEvent, valueChanged)
+                  }
+                } else {
+                  if (debug) println("now waiting for " + missingPredecessors);
+                }
             }
+            if (debug) println("suspended calculations now: " + suspendedCalculations);
           case None =>
-            if (debug) println("no further suspended calculations exist that depend on " + event);
-            None
+            if (debug) println("no suspended calculations depending on " + event.uuid);
         }
       }
     }

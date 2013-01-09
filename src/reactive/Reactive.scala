@@ -12,12 +12,12 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 
-abstract class Reactive[A](val name: String, private var currentValue: A) {
+abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents : Set[Event]) {
   protected[reactive] val dependencies: mutable.MutableList[DependantReactive[_]] = mutable.MutableList()
   def addDependant(obs: DependantReactive[_]) {
     dependencies += obs
   }
-  def sourceDependencies: Iterable[UUID]
+  def sourceDependencies: Map[UUID, UUID]
   //  protected[reactive] def level: Int;
 
   private class ObserverHandler(name: String, op: A => Unit) {
@@ -41,10 +41,15 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   def dirty: Reactive[Boolean]
 
   private val valHistory = mutable.WeakHashMap[Event, A]();
+  initialKnownEvents.foreach { event =>
+    valHistory += (event -> currentValue)
+  }
+  def knownEvents = valHistory.keys;
+  
   def value = {
     valHistory.get(Reactive.threadEvent.get()) match {
-      case Some(x) => x
-      case None => currentValue
+      case Some(x) => print("("+name+": known event, retrieving old value "+x+") "); x
+      case None => print("("+name+": unknown event, using current value "+currentValue+") "); currentValue
     }
   }
 

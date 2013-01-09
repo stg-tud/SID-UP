@@ -7,12 +7,12 @@ class ReactiveLog[A](reactive: Reactive[A]) {
   reactive.observe { value => _values += value }
 
   def values = _values.toList
-  def assert(expected: List[A]) {
-    val msg = "Expected: " + expected + ", actual: " + values
-    if (expected.equals(values)) {
-      println(msg); ;
+  def assert(expected: A*) {
+    val msg = "expected: " + expected.toList + ", actual: " + values
+    if (expected.toList.equals(values)) {
+      println("[OK] "+msg); ;
     } else {
-      throw new RuntimeException(msg);
+      throw new RuntimeException("[Assertion Violation] "+msg);
     }
   }
 }

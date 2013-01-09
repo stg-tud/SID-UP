@@ -1,28 +1,32 @@
 package reactive
 import java.util.UUID
+import scala.collection.mutable
+import scala.collection.mutable.SynchronizedMap
 
-class Var[A](name: String, currentValue: A) extends Reactive[A](name, currentValue) {
+class Var[A](name: String, initialValue: A, initialEvent : Event) extends Reactive[A](name, initialValue, Set(new Event(Map()))) {
   val uuid = UUID.randomUUID();
-  private var lastEvent: UUID = null;
   override lazy val dirty: Reactive[Boolean] = Var(false);
 
-  private val lock = new Object()
-  def set(value: A) = {
-    updateValue(newEvent, value);
+  protected[reactive] var lastEvent = knownEvents.head.uuid
+  protected[reactive] val lock = new Object()
+
+  private val transaction = new Transaction();
+  def set(value: A) {
+    transaction.set(this, value);
+    transaction.commit();
   }
 
-  private def newEvent = {
-    lock.synchronized {
-      val event = new Event(Map(uuid -> lastEvent));
-      lastEvent = event.uuid;
-      event
-    }
+  protected[reactive] def set(value: A, event: Event) : Event = {
+    lastEvent = event.uuid;
+    updateValue(event, value);
+    event
   }
+
   //  override val level = 0;
-  override val sourceDependencies = Iterable[UUID](this.uuid)
+  override def sourceDependencies = Map(uuid -> lastEvent);
 }
 
 object Var {
-  def apply[A](name: String, value: A): Var[A] = new Var(name, value)
+  def apply[A](name: String, value: A): Var[A] = new Var(name, value, new Event(Map()))
   def apply[A](value: A): Var[A] = apply("AnonVar", value)
 }
