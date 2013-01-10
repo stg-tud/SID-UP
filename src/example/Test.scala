@@ -1,4 +1,4 @@
-package asdf
+package example
 
 import reactive.Reactive.autoSignalToValue
 import reactive.Var

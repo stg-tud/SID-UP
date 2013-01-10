@@ -1,4 +1,4 @@
-package asdf
+package example
 import scala.concurrent.ops.spawn
 import javax.swing.JFrame
 import reactive.Var
@@ -9,10 +9,10 @@ import ui.ReactiveLabel
 import reactive.Signal
 import reactive.Reactive
 import javax.swing.WindowConstants
-import reactive.DependantReactive
 import java.util.UUID
 import reactive.Event
 import util.SerializationSafe
+import reactive.ReactiveDependant
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
@@ -21,7 +21,7 @@ object ResourceAllocationExample extends App {
     }
   })
 
-  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new DependantReactive[A]("NetworkDelayed[" + input.name + "]", input.value, input) {
+  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new Reactive[A]("NetworkDelayed[" + input.name + "]", input.value, input.knownEvents) with ReactiveDependant {
     override lazy val dirty: Reactive[Boolean] = Var(false);
     override def sourceDependencies = input.sourceDependencies 
     override def notifyUpdate(event: Event, valueChanged: Boolean) {

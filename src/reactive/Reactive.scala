@@ -12,9 +12,9 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 
-abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents: Set[Event]) {
-  protected[reactive] val dependencies: mutable.MutableList[DependantReactive[_]] = mutable.MutableList()
-  def addDependant(obs: DependantReactive[_]) {
+abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents: Iterable[Event]) {
+  protected[reactive] val dependencies: mutable.MutableList[ReactiveDependant] = mutable.MutableList()
+  def addDependant(obs: ReactiveDependant) {
     dependencies += obs
   }
   def sourceDependencies: Map[UUID, UUID]
@@ -25,7 +25,6 @@ abstract class Reactive[A](val name: String, private var currentValue: A, initia
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, A] with mutable.SynchronizedMap[Event, A];
-  println("initial events: " + initialKnownEvents);
   initialKnownEvents.foreach { event =>
     valHistory += (event -> null.asInstanceOf[A])
   }
@@ -71,26 +70,26 @@ abstract class Reactive[A](val name: String, private var currentValue: A, initia
   def dirty: Reactive[Boolean]
 
   // ====== Printing stuff ======
-
-  override def toString = name;
-  def toElaborateString: String = {
-    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
-  }
-  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
-    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
-    if (done.add(this)) {
-      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
-      listTag(builder, depth + 1, "observers", observers) {
-        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
-      }
-      listTag(builder, depth + 1, "dependencies", dependencies) {
-        _.toString(builder, depth + 2, done);
-      }
-    } else {
-      builder.append(" backref=\"").append(name).append("\"/>\n");
-    }
-    return builder;
-  }
+//
+//  override def toString = name;
+//  def toElaborateString: String = {
+//    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
+//  }
+//  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
+//    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
+//    if (done.add(this)) {
+//      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
+//      listTag(builder, depth + 1, "observers", observers) {
+//        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
+//      }
+//      listTag(builder, depth + 1, "dependencies", dependencies) {
+//        _.toString(builder, depth + 2, done);
+//      }
+//    } else {
+//      builder.append(" backref=\"").append(name).append("\"/>\n");
+//    }
+//    return builder;
+//  }
 }
 
 object Reactive {
@@ -123,7 +122,7 @@ object Reactive {
       }
     }
   }
-  private def executeNotifyPooled(dependent: DependantReactive[_], event: Event, changed: Boolean) {
+  private def executeNotifyPooled(dependent: ReactiveDependant, event: Event, changed: Boolean) {
     lock.synchronized {
       if (pool == null) {
         dependent.notifyUpdate(event, changed)

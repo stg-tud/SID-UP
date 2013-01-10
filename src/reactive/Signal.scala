@@ -2,7 +2,7 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
+class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op, dependencies.foldLeft(Set[Event]()) {(set, dependency) => set ++ dependency.knownEvents}) with ReactiveDependant {
   private val debug = false;
 
   /**
@@ -20,6 +20,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Depe
   private val incomingEdgesPerSource = mutable.Map[UUID, Set[Reactive[_]]]();
 
   dependencies.foreach { dependency =>
+    dependency.addDependant(this);
     dependency.sourceDependencies.foreach {
       case (source, event) =>
         lastEvents.get(source) match {

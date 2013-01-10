@@ -2,7 +2,6 @@ package test
 
 import reactive.Var
 import reactive.Reactive
-import reactive.DependantReactive
 import reactive.Event
 import scala.collection.mutable
 import reactive.Signal
