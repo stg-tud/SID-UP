@@ -3,7 +3,7 @@ import scala.collection.mutable
 import java.util.UUID
 
 class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends DependantReactive[A](name, op, dependencies: _*) {
-  private val debug = true;
+  private val debug = false;
 
   /**
    * map of for which event how many update notifications are still missing

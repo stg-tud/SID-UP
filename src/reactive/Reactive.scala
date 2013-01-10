@@ -12,13 +12,43 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 
-abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents : Set[Event]) {
+abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents: Set[Event]) {
   protected[reactive] val dependencies: mutable.MutableList[DependantReactive[_]] = mutable.MutableList()
   def addDependant(obs: DependantReactive[_]) {
     dependencies += obs
   }
   def sourceDependencies: Map[UUID, UUID]
   //  protected[reactive] def level: Int;
+
+  // TODO: instead of using a WeakHashMap, references on events should be counted explicitly.
+  // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
+  // each map's size. That is however a bunch of work, especially considering there can exist
+  // multiple instances of the "same" event through back and forth network transfers
+  private val valHistory = new mutable.WeakHashMap[Event, A] with mutable.SynchronizedMap[Event, A];
+  println("initial events: " + initialKnownEvents);
+  initialKnownEvents.foreach { event =>
+    valHistory += (event -> null.asInstanceOf[A])
+  }
+  def knownEvents = valHistory.keys;
+
+  def value = valHistory.get(Reactive.threadEvent.get()).getOrElse(currentValue);
+
+  protected[this] def updateValue(event: Event, newValue: A) {
+    valHistory += (event -> newValue)
+    val changed = !nullSafeEqual(currentValue, newValue);
+    if (changed) {
+      currentValue = newValue;
+      observers.foreach { _.notify(newValue) }
+    }
+    notifyDependencies(event, changed)
+  }
+  protected[this] def notifyDependencies(event: Event, changed: Boolean): Unit = {
+    dependencies.foreach { x =>
+      Reactive.executeNotifyPooled(x, event, changed)
+    }
+  }
+
+  // ====== Observing stuff ======
 
   private class ObserverHandler(name: String, op: A => Unit) {
     def notify(value: A) = op(value)
@@ -40,33 +70,7 @@ abstract class Reactive[A](val name: String, private var currentValue: A, initia
 
   def dirty: Reactive[Boolean]
 
-  private val valHistory = mutable.WeakHashMap[Event, A]();
-  initialKnownEvents.foreach { event =>
-    valHistory += (event -> currentValue)
-  }
-  def knownEvents = valHistory.keys;
-  
-  def value = {
-    valHistory.get(Reactive.threadEvent.get()) match {
-      case Some(x) => print("("+name+": known event, retrieving old value "+x+") "); x
-      case None => print("("+name+": unknown event, using current value "+currentValue+") "); currentValue
-    }
-  }
-
-  protected[this] def updateValue(event: Event, newValue: A) {
-    valHistory += (event -> newValue)
-    val changed = !nullSafeEqual(currentValue, newValue);
-    if (changed) {
-      currentValue = newValue;
-      observers.foreach { _.notify(newValue) }
-    }
-    notifyDependencies(event, changed)
-  }
-  protected[this] def notifyDependencies(event: Event, changed: Boolean): Unit = {
-    dependencies.foreach { x =>
-      Reactive.executeNotifyPooled(x, event, changed)
-    }
-  }
+  // ====== Printing stuff ======
 
   override def toString = name;
   def toElaborateString: String = {
