@@ -4,29 +4,20 @@ import reactive.Reactive
 import reactive.Event
 import reactive.Var
 import java.rmi.server.UnicastRemoteObject
+import java.util.UUID
 
-class RemoteDependantReactive[A: SerializationSafe](remote: RemoteReactive[A]) extends UnicastRemoteObject with RemoteDependant[A] {
-
-  class RemoteVar[A](remote : RemoteReactive[A]) extends Reactive[A]("remote" + remote.name, remote.value) {
-    override lazy val dirty: Reactive[Boolean] = Var(false);
-    def sourceDependencies = remote.sourceDependencies
-    def notifyEvent(event: Event) {
+class RemoteDependantReactive[A: SerializationSafe](establishConnectionData: EstablishConnectionData[A]) extends Reactive[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
+  val remoteConnection = new UnicastRemoteObject with RemoteDependant[A] {
+    override def notifyEvent(event: Event) {
       updateValue(event, value);
     }
-    def notifyUpdate(event: Event, newValue: A) {
+    override def notifyUpdate(event: Event, newValue: A) {
       updateValue(event, newValue);
     }
   }
 
-  val remoteVar = new RemoteVar[A](remote);
-  val reactive : Reactive[A] = remoteVar
-  
-  remote.addDependant(this);
-  def notifyEvent(event: Event) {
-    remoteVar.notifyEvent(event);
-  }
-  def notifyUpdate(event: Event, newValue: A) {
-    remoteVar.notifyUpdate(event, newValue);
-  }
-
+  establishConnectionData.remote.addDependant(remoteConnection);
+  override lazy val dirty: Reactive[Boolean] = Var(false);
+  // TODO: should have order preservation and source dependency updates?
+  override def sourceDependencies = establishConnectionData.sourceDependencies
 }

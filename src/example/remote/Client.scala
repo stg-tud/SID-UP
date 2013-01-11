@@ -4,9 +4,8 @@ import java.rmi.Naming
 import example.ResourceAllocationExample
 import example.ResourceAllocationExample.ServerFactory
 import reactive.Reactive
-import remote.RemoteReactiveImpl
-import remote.RemoteDependantReactive
 import javax.swing.JOptionPane
+import remote.RemoteReactive._
 
 object Client extends App {
   Reactive.setThreadPoolSize(2);
@@ -15,7 +14,7 @@ object Client extends App {
     val remote = Naming.lookup("//" + host + "/remoteServer").asInstanceOf[RemoteServer];
     ResourceAllocationExample.makeClient(new ServerFactory {
       def connectToServer(requests: Reactive[Int]) = {
-        new RemoteDependantReactive(remote.connectToServer(new RemoteReactiveImpl(requests))).reactive
+        receive(remote.connectToServer(send(requests)))
       }
     })
   }

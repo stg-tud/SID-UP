@@ -5,20 +5,20 @@ import reactive.Reactive
 import remote.RemoteReactive
 import remote.RemoteDependant
 import example.ResourceAllocationExample
-import remote.RemoteDependantReactive
-import remote.RemoteReactiveImpl
 import java.rmi.Naming
 import java.rmi.registry.LocateRegistry
 import java.rmi.registry.Registry
+import remote.EstablishConnectionData
+import remote.RemoteReactive._
 
 object Server extends App {
   Reactive.setThreadPoolSize(2);
   @remote trait RemoteServer {
-    def connectToServer(requests: RemoteReactive[Int]): RemoteReactive[Int];
+    def connectToServer(requests: EstablishConnectionData[Int]): EstablishConnectionData[Int];
   }
   class RemoteServerImpl extends UnicastRemoteObject with RemoteServer {
-    def connectToServer(requests: RemoteReactive[Int]): RemoteReactive[Int] = {
-      new RemoteReactiveImpl(ResourceAllocationExample.makeServer(new RemoteDependantReactive(requests).reactive))
+    def connectToServer(requests: EstablishConnectionData[Int]): EstablishConnectionData[Int] = {
+      send(ResourceAllocationExample.makeServer(receive(requests)))
     }
   }
   

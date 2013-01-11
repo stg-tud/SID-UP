@@ -8,22 +8,21 @@ import util.SerializationSafe
 import java.util.UUID
 
 class RemoteReactiveImpl[A : SerializationSafe](local: Reactive[A]) extends UnicastRemoteObject with RemoteReactive[A] with ReactiveDependant {
-  def name = local.name;
-  def value = local.value;
-  def sourceDependencies = Map[UUID, UUID]() ++ local.sourceDependencies;
   
   private val remotes = MutableList[RemoteDependant[A]]()
-  def addDependant(remote: RemoteDependant[A]) {
+  override def addDependant(remote: RemoteDependant[A]) {
     remotes += remote
   }
   
   local.addDependant(this);
-  def notifyUpdate(event: Event, valueChanged: Boolean) {
+  override def notifyUpdate(event: Event, valueChanged: Boolean) {
     if(valueChanged) {
-      val theValue = value
+      val theValue = local.value
       remotes.foreach{ _.notifyUpdate(event, theValue) }
     } else {
       remotes.foreach{ _.notifyEvent(event) }
     }
   }
+  
+  def makeConnectionData = new EstablishConnectionData(this, local.name, local.value, Map[UUID, UUID]() ++ local.sourceDependencies)
 }
