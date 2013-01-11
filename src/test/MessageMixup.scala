@@ -6,7 +6,7 @@ import reactive.Var
 import reactive.Event
 import reactive.ReactiveDependant
 
-class MessageMixup[A](input: Reactive[A]) extends Reactive[A]("NetworkMixer[" + input.name + "]", input.value, input.knownEvents) with ReactiveDependant {
+class MessageMixup[A](input: Reactive[A]) extends Reactive[A]("NetworkMixer[" + input.name + "]", input.value) with ReactiveDependant {
   input.addDependant(this);
   val messages = mutable.MutableList[Tuple2[Event, A]]()
   override lazy val dirty: Reactive[Boolean] = Var(false);

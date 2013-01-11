@@ -12,7 +12,7 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 
-abstract class Reactive[A](val name: String, private var currentValue: A, initialKnownEvents: Iterable[Event]) {
+abstract class Reactive[A](val name: String, private var currentValue: A) {
   protected[reactive] val dependencies: mutable.MutableList[ReactiveDependant] = mutable.MutableList()
   def addDependant(obs: ReactiveDependant) {
     dependencies += obs
@@ -25,10 +25,6 @@ abstract class Reactive[A](val name: String, private var currentValue: A, initia
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, A] with mutable.SynchronizedMap[Event, A];
-  initialKnownEvents.foreach { event =>
-    valHistory += (event -> null.asInstanceOf[A])
-  }
-  def knownEvents = valHistory.keys;
 
   def value = valHistory.get(Reactive.threadEvent.get()).getOrElse(currentValue);
 

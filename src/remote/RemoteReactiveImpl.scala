@@ -10,7 +10,6 @@ import java.util.UUID
 class RemoteReactiveImpl[A : SerializationSafe](local: Reactive[A]) extends UnicastRemoteObject with RemoteReactive[A] with ReactiveDependant {
   def name = local.name;
   def value = local.value;
-  def knownEvents = Set[Event]() ++ local.knownEvents;
   def sourceDependencies = Map[UUID, UUID]() ++ local.sourceDependencies;
   
   private val remotes = MutableList[RemoteDependant[A]]()

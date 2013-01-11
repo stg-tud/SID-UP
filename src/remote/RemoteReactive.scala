@@ -6,6 +6,5 @@ import reactive.Event
   def name : String
   def value : A
   def sourceDependencies : Map[UUID, UUID]
-  def knownEvents : Iterable[Event]
   def addDependant(obs: RemoteDependant[A])
 }

@@ -2,7 +2,7 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op, dependencies.foldLeft(Set[Event]()) {(set, dependency) => set ++ dependency.knownEvents}) with ReactiveDependant {
+class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op) with ReactiveDependant {
   private val debug = false;
 
   /**

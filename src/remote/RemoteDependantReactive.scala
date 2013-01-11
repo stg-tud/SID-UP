@@ -7,7 +7,7 @@ import java.rmi.server.UnicastRemoteObject
 
 class RemoteDependantReactive[A: SerializationSafe](remote: RemoteReactive[A]) extends UnicastRemoteObject with RemoteDependant[A] {
 
-  class RemoteVar[A](remote : RemoteReactive[A]) extends Reactive[A]("remote" + remote.name, remote.value, remote.knownEvents) {
+  class RemoteVar[A](remote : RemoteReactive[A]) extends Reactive[A]("remote" + remote.name, remote.value) {
     override lazy val dirty: Reactive[Boolean] = Var(false);
     def sourceDependencies = remote.sourceDependencies
     def notifyEvent(event: Event) {
