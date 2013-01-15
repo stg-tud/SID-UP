@@ -11,7 +11,7 @@ class Var[A](name: String, initialValue: A, initialEvent : Event) extends Reacti
   protected[reactive] val lock = new Object()
 
   private val transaction = new Transaction();
-  def set(value: A) {
+  def set(value: A) = {
     transaction.set(this, value);
     transaction.commit();
   }

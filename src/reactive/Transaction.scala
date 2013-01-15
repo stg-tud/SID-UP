@@ -27,9 +27,10 @@ class Transaction {
     values -= box;
   }
 
-  def commit() {
-    commitWhenAllLocked(boxes.toList, Map())
+  def commit() = {
+    val event = commitWhenAllLocked(boxes.toList, Map())
     reset()
+    event
   }
 
   private def commitWhenAllLocked(boxes: List[Var[_]], lastEvents: Map[UUID, UUID]): Event = {

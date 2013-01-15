@@ -22,6 +22,7 @@ object ResourceAllocationExample extends App {
   })
 
   def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new Reactive[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant {
+    input.addDependant(this);
     override lazy val dirty: Reactive[Boolean] = Var(false);
     override def sourceDependencies = input.sourceDependencies 
     override def notifyUpdate(event: Event, valueChanged: Boolean) {

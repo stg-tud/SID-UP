@@ -24,17 +24,37 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
-  private val valHistory = new mutable.WeakHashMap[Event, A] with mutable.SynchronizedMap[Event, A];
+  private val valHistory = new mutable.WeakHashMap[Event, A]();
 
-  def value = valHistory.get(Reactive.threadEvent.get()).getOrElse(currentValue);
+  def value = {
+    val currentEvent = Reactive.threadEvent.get();
+    valHistory.synchronized { valHistory.get(currentEvent) }.getOrElse(currentValue);
+  }
+
+  def await(event: Event) = {
+    if((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
+      throw new IllegalArgumentException("illegal wait: "+event+" will not update this reactive.");
+    }
+    valHistory.synchronized {
+      var value = valHistory.get(event);
+      while (value.isEmpty) {
+        valHistory.wait();
+        value = valHistory.get(event);
+      }
+      value
+    }.get
+  }
 
   protected[this] def updateValue(event: Event, newValue: A) {
-    valHistory += (event -> newValue)
     val changed = !nullSafeEqual(currentValue, newValue);
-    if (changed) {
-      currentValue = newValue;
-      observers.foreach { _.notify(newValue) }
+    currentValue = newValue;
+
+    valHistory.synchronized {
+      valHistory += (event -> newValue)
+      valHistory.notifyAll();
     }
+
+    if (changed) observers.foreach { _.notify(newValue) }
     notifyDependencies(event, changed)
   }
   protected[this] def notifyDependencies(event: Event, changed: Boolean): Unit = {
@@ -66,26 +86,26 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   def dirty: Reactive[Boolean]
 
   // ====== Printing stuff ======
-//
-//  override def toString = name;
-//  def toElaborateString: String = {
-//    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
-//  }
-//  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
-//    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
-//    if (done.add(this)) {
-//      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
-//      listTag(builder, depth + 1, "observers", observers) {
-//        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
-//      }
-//      listTag(builder, depth + 1, "dependencies", dependencies) {
-//        _.toString(builder, depth + 2, done);
-//      }
-//    } else {
-//      builder.append(" backref=\"").append(name).append("\"/>\n");
-//    }
-//    return builder;
-//  }
+  //
+  //  override def toString = name;
+  //  def toElaborateString: String = {
+  //    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
+  //  }
+  //  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
+  //    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
+  //    if (done.add(this)) {
+  //      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
+  //      listTag(builder, depth + 1, "observers", observers) {
+  //        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
+  //      }
+  //      listTag(builder, depth + 1, "dependencies", dependencies) {
+  //        _.toString(builder, depth + 2, done);
+  //      }
+  //    } else {
+  //      builder.append(" backref=\"").append(name).append("\"/>\n");
+  //    }
+  //    return builder;
+  //  }
 }
 
 object Reactive {
@@ -106,6 +126,17 @@ object Reactive {
 
   private val lock = new Object();
   private var pool: ExecutorService = null;
+  def withThreadPoolSize[A](size : Int)(op : => A) : A = {
+    lock.synchronized {
+      if(pool != null) throw new IllegalStateException("Someone else is already using the thread pool!");
+      setThreadPoolSize(size);
+    }
+    try {
+      op;
+    } finally {
+      setThreadPoolSize(0);
+    }
+  }
   def setThreadPoolSize(size: Int) {
     lock.synchronized {
       if (pool != null) {
