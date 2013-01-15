@@ -31,9 +31,12 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
     valHistory.synchronized { valHistory.get(currentEvent) }.getOrElse(currentValue);
   }
 
+  /**
+   * suspends the current thread until this reactive has completed processing the given event.
+   */
   def await(event: Event) = {
-    if((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
-      throw new IllegalArgumentException("illegal wait: "+event+" will not update this reactive.");
+    if ((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
+      throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
     valHistory.synchronized {
       var value = valHistory.get(event);
@@ -46,21 +49,17 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
   }
 
   protected[this] def updateValue(event: Event, newValue: A) {
-    val changed = !nullSafeEqual(currentValue, newValue);
-    currentValue = newValue;
+    val changed = valHistory.synchronized {
+      val changed = !nullSafeEqual(currentValue, newValue);
+      currentValue = newValue;
 
-    valHistory.synchronized {
       valHistory += (event -> newValue)
       valHistory.notifyAll();
+      changed
     }
 
     if (changed) observers.foreach { _.notify(newValue) }
-    notifyDependencies(event, changed)
-  }
-  protected[this] def notifyDependencies(event: Event, changed: Boolean): Unit = {
-    dependencies.foreach { x =>
-      Reactive.executeNotifyPooled(x, event, changed)
-    }
+    Reactive.executeNotifyPooled(dependencies, event, changed)
   }
 
   // ====== Observing stuff ======
@@ -117,18 +116,20 @@ object Reactive {
   def during[A](event: Event)(op: => A) = {
     val old = threadEvent.get();
     threadEvent.set(event);
-    val result = op;
-    threadEvent.set(old);
-    result;
+    try {
+      op
+    } finally {
+      threadEvent.set(old);
+    }
   }
 
   implicit def autoSignalToValue[A](signal: Reactive[A]): A = signal.value
 
   private val lock = new Object();
   private var pool: ExecutorService = null;
-  def withThreadPoolSize[A](size : Int)(op : => A) : A = {
+  def withThreadPoolSize[A](size: Int)(op: => A): A = {
     lock.synchronized {
-      if(pool != null) throw new IllegalStateException("Someone else is already using the thread pool!");
+      if (pool != null) throw new IllegalStateException("Someone else is already using the thread pool!");
       setThreadPoolSize(size);
     }
     try {
@@ -137,6 +138,9 @@ object Reactive {
       setThreadPoolSize(0);
     }
   }
+  /**
+   * use with care, somebody else might be using his own pool already. Supply 0 to shut down the current pool.
+   */
   def setThreadPoolSize(size: Int) {
     lock.synchronized {
       if (pool != null) {
@@ -149,16 +153,18 @@ object Reactive {
       }
     }
   }
-  private def executeNotifyPooled(dependent: ReactiveDependant, event: Event, changed: Boolean) {
+  private def executeNotifyPooled(dependencies: mutable.MutableList[ReactiveDependant], event: Event, changed: Boolean) {
     lock.synchronized {
       if (pool == null) {
-        dependent.notifyUpdate(event, changed)
+        dependencies.foreach { _.notifyUpdate(event, changed) }
       } else {
-        pool.execute(new Runnable {
-          override def run() {
-            dependent.notifyUpdate(event, changed)
-          }
-        })
+        dependencies.foreach { x =>
+          pool.execute(new Runnable {
+            override def run() {
+              x.notifyUpdate(event, changed)
+            }
+          })
+        }
       }
     }
   }
