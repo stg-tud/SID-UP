@@ -18,21 +18,9 @@ class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue),
   val asComponent: JComponent = spinner
 } with ReactiveInput[Int] with ReactiveCommitable {
   protected val observeWhileVisible = List(
-    new ReactiveAndObserverPair(min, { value: Int =>
-      AWTThreadSafe {
-        model.setMinimum(value)
-      }
-    }),
-    new ReactiveAndObserverPair(max, { value: Int =>
-      AWTThreadSafe {
-        model.setMaximum(value)
-      }
-    }),
-    new ReactiveAndObserverPair(step, { value: Int =>
-      AWTThreadSafe {
-        model.setStepSize(value)
-      }
-    }));
+    observeInEDT(min) { model.setMinimum(_) },
+    observeInEDT(max) { model.setMaximum(_) },
+    observeInEDT(step) { model.setStepSize(_) });
 
   private val _value = Var(model.getValue().asInstanceOf[Int])
   model.addChangeListener(new ChangeListener {

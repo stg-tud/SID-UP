@@ -17,15 +17,19 @@ trait ReactiveComponent {
     }
   }
 
+  protected def observeInEDT[A](reactive: Reactive[A])(op: A => Unit) = {
+    new ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value)) });
+  }
+
   protected val observeWhileVisible: List[ReactiveAndObserverPair[_]]
 
   asComponent.addAncestorListener(new AncestorListener() {
     override def ancestorAdded(event: AncestorEvent) {
-      observeWhileVisible.foreach {_.activate}
+      observeWhileVisible.foreach { _.activate }
     }
     override def ancestorRemoved(event: AncestorEvent) {
-      observeWhileVisible.foreach {_.deactivate}
+      observeWhileVisible.foreach { _.deactivate }
     }
-    override def ancestorMoved(event : AncestorEvent) {}
+    override def ancestorMoved(event: AncestorEvent) {}
   });
 }

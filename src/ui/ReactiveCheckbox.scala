@@ -14,16 +14,8 @@ class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = fals
 } with ReactiveInput[Boolean] {
   checkbox.setSelected(initiallySelected);
   override protected val observeWhileVisible = List(
-    new ReactiveAndObserverPair(text, { value: String =>
-      AWTThreadSafe {
-        checkbox.setText(value)
-      }
-    }),
-    new ReactiveAndObserverPair(enabled, { value: Boolean =>
-      AWTThreadSafe {
-        checkbox.setEnabled(value)
-      }
-    }));
+    observeInEDT(text) { checkbox.setText(_) },
+    observeInEDT(enabled) { checkbox.setEnabled(_) });
 
   val _selected = Var(checkbox.isSelected())
   checkbox.addItemListener(new ItemListener {

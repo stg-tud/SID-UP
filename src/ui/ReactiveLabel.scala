@@ -14,20 +14,16 @@ class ReactiveLabel(text: Reactive[_]) extends {
   override val asComponent: JComponent = label;
 } with ReactiveComponent {
   override protected val observeWhileVisible = List(
-    new ReactiveAndObserverPair(text, { value: Any =>
-      AWTThreadSafe {
-        label.setText(String.valueOf(value))
-      }
-    }),
-    new ReactiveAndObserverPair(text.dirty, { value: Boolean =>
-      AWTThreadSafe {
-        label.setIcon(ReactiveLabel.icon(value))
-      }
-    }));
+    observeInEDT(text) { value: Any =>
+      label.setText(String.valueOf(value))
+    },
+    observeInEDT(text.dirty) { value: Boolean =>
+      label.setIcon(ReactiveLabel.icon(value))
+    });
 }
 
 object ReactiveLabel {
   private val check = new ImageIcon(getClass().getClassLoader().getResource("check.png"))
   private val hourglass = new ImageIcon(getClass().getClassLoader().getResource("hourglass.gif"))
-  def icon(dirty : Boolean) = if(dirty) hourglass else check
+  def icon(dirty: Boolean) = if (dirty) hourglass else check
 }

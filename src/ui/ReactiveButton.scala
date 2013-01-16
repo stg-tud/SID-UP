@@ -12,16 +12,8 @@ class ReactiveButton(val text: Reactive[String], val enabled: Reactive[Boolean] 
 } with ReactiveCommitable {
   //  private val _clicks  = EventSource[ActionEvent]
   override protected val observeWhileVisible = List(
-    new ReactiveAndObserverPair(enabled, { value: Boolean =>
-      AWTThreadSafe {
-        _realButton.setEnabled(value)
-      }
-    }),
-    new ReactiveAndObserverPair(text, { value: String =>
-      AWTThreadSafe {
-        _realButton.setText(value)
-      }
-    }));
+    observeInEDT(enabled) { _realButton.setEnabled(_) },
+    observeInEDT(text) { _realButton.setText(_) });
   //  _realButton.addActionListener(new ActionListener(){
   //    override def actionPerformed(event : ActionEvent) = {
   //      _clicks << event

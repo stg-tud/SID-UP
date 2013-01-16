@@ -15,12 +15,7 @@ class ReactiveTextField(initialText: String = "", enabled: Reactive[Boolean] = V
   override val asComponent: JComponent = _realTextField
 } with ReactiveInput[String] with ReactiveCommitable {
   //  private val _commits = EventSource[ActionEvent]
-  override protected val observeWhileVisible = List(
-    new ReactiveAndObserverPair(enabled, { value: Boolean =>
-      AWTThreadSafe {
-        _realTextField.setEnabled(value)
-      }
-    }));
+  override protected val observeWhileVisible = List(observeInEDT(enabled) { _realTextField.setEnabled(_) });
   //  _realTextField.addActionListener(new ActionListener() {
   //    override def actionPerformed(event: ActionEvent) = {
   //      _commits << event
