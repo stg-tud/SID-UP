@@ -13,6 +13,7 @@ import java.util.UUID
 import reactive.Event
 import util.SerializationSafe
 import reactive.ReactiveDependant
+import reactive.Lift
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
@@ -51,9 +52,7 @@ object ResourceAllocationExample extends App {
 
   def makeServer(clientRequests: Reactive[Int]): Reactive[Int] = {
     val resourcesInput = new ReactiveSpinner(44)
-    val committed = Signal("committed", clientRequests, resourcesInput.value) {
-      math.min(clientRequests, resourcesInput.value);
-    }
+    val committed = Lift(math.min(_:Int,_:Int))(clientRequests, resourcesInput.value);
 
     val frame = newFrame("Server");
 
@@ -87,9 +86,7 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(committedResources).asComponent)
 
     frame.add(new JLabel("Resource deficit:"));
-    frame.add(new ReactiveLabel(Signal("deficit", requested.value, committedResources) {
-      math.max(0, requested.value - committedResources);
-    }).asComponent)
+    frame.add(new ReactiveLabel(Lift((_:Int) - (_:Int))(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
   }
