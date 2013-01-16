@@ -11,11 +11,20 @@ import scala.actors.scheduler.ExecutorScheduler
 import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
+import scala.actors.threadpool.locks.ReentrantReadWriteLock
 
 abstract class Reactive[A](val name: String, private var currentValue: A) {
-  protected[reactive] val dependencies: mutable.MutableList[ReactiveDependant] = mutable.MutableList()
+  private val dependencies = mutable.Set[ReactiveDependant]()
+  private val dependenciesLock = new ReentrantReadWriteLock; 
   def addDependant(obs: ReactiveDependant) {
+    dependenciesLock.writeLock().lock();
     dependencies += obs
+    dependenciesLock.writeLock().unlock();
+  }
+  def removeDependant(obs : ReactiveDependant) {
+    dependenciesLock.writeLock().lock();
+    dependencies -= obs
+    dependenciesLock.writeLock().unlock();
   }
   def sourceDependencies: Map[UUID, UUID]
   //  protected[reactive] def level: Int;
@@ -58,28 +67,29 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
       changed
     }
 
-    if (changed) observers.foreach { _.notify(newValue) }
+    if (changed) {
+      observersLock.readLock().lock();
+      observers.foreach { _(newValue) }
+      observersLock.readLock().unlock();
+    }
+    dependenciesLock.readLock().lock();
     Reactive.executeNotifyPooled(dependencies, event, changed)
+    dependenciesLock.readLock().unlock();
   }
 
   // ====== Observing stuff ======
 
-  private class ObserverHandler(name: String, op: A => Unit) {
-    def notify(value: A) = op(value)
-    override def toString = name
-  }
-  private val observers: mutable.MutableList[ObserverHandler] = mutable.MutableList()
-  def observe(obs: => Unit) {
-    observe(_ => obs)
-  }
-  def observe(name: String, obs: => Unit) {
-    observe(name)(_ => obs)
-  }
+  private val observers = mutable.Set[A => Unit]()
+  private val observersLock = new ReentrantReadWriteLock
   def observe(obs: A => Unit) {
-    observe(obs.getClass().getName())(obs)
+    observersLock.writeLock().lock()
+    observers += obs
+    observersLock.writeLock().unlock()
   }
-  def observe(name: String)(obs: A => Unit) {
-    observers += new ObserverHandler(name, obs);
+  def unobserve(obs: A => Unit) {
+    observersLock.writeLock().lock()
+    observers -= obs
+    observersLock.writeLock().unlock()
   }
 
   def dirty: Reactive[Boolean]
@@ -153,7 +163,7 @@ object Reactive {
       }
     }
   }
-  private def executeNotifyPooled(dependencies: mutable.MutableList[ReactiveDependant], event: Event, changed: Boolean) {
+  private def executeNotifyPooled(dependencies: Iterable[ReactiveDependant], event: Event, changed: Boolean) {
     lock.synchronized {
       if (pool == null) {
         dependencies.foreach { _.notifyUpdate(event, changed) }

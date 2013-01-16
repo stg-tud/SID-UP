@@ -6,20 +6,22 @@ import javax.swing.JComponent
 import reactive.Reactive
 import reactive.Var
 
-class ReactiveButton(val text: Reactive[String], val enabled: Reactive[Boolean] = Var(true)) extends ReactiveCommitable {
-  //  private val _clicks  = EventSource[ActionEvent]
+class ReactiveButton(val text: Reactive[String], val enabled: Reactive[Boolean] = Var(true)) extends {
   private val _realButton = new JButton(text.value)
-  _realButton.setEnabled(enabled.value)
-  enabled.observe { value =>
-    AWTThreadSafe {
-      _realButton.setEnabled(value)
-    }
-  }
-  text.observe { value =>
-    AWTThreadSafe {
-      _realButton.setText(value)
-    }
-  }
+  val asComponent: JComponent = _realButton
+} with ReactiveCommitable {
+  //  private val _clicks  = EventSource[ActionEvent]
+  override protected val observeWhileVisible = List(
+    new ReactiveAndObserverPair(enabled, { value: Boolean =>
+      AWTThreadSafe {
+        _realButton.setEnabled(value)
+      }
+    }),
+    new ReactiveAndObserverPair(text, { value: String =>
+      AWTThreadSafe {
+        _realButton.setText(value)
+      }
+    }));
   //  _realButton.addActionListener(new ActionListener(){
   //    override def actionPerformed(event : ActionEvent) = {
   //      _clicks << event
@@ -27,5 +29,4 @@ class ReactiveButton(val text: Reactive[String], val enabled: Reactive[Boolean] 
   //  })
 
   //  val commits : Events[ActionEvent] = _clicks
-  val asComponent: JComponent = _realButton
 }

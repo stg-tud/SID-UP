@@ -113,7 +113,7 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reac
           getUpdateData(pendingUpdates - 1, anyDependencyChangedSoFar || notifierValueChanged)
         case None =>
           if (notifierValueChanged) numUpdatesWithChangedDependency += 1;
-          val expectedEdges = event.sourcesAndPredecessors.keys.foldLeft(Set[Reactive[_]]()) { (accu, source) => accu ++ incomingEdgesPerSource.get(source).get }
+          val expectedEdges = event.sourcesAndPredecessors.keySet.foldLeft(Set[Reactive[_]]()) { (accu, source) => accu ++ incomingEdgesPerSource.get(source).get }
           getUpdateData(expectedEdges.size - 1, notifierValueChanged)
       }
     }

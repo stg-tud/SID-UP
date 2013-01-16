@@ -61,8 +61,8 @@ object Test extends App {
 
   def track(signal: Reactive[_]) {
     println("Now Tracking: " + signal.name + " = " + signal.value);
-    signal.observe {
-      println("Value Changed: " + signal.name + " = " + signal.value);
+    signal.observe { value =>
+      println("Value Changed: " + signal.name + " = " + value);
     }
   }
 }

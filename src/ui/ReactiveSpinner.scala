@@ -12,23 +12,27 @@ import javax.swing.JComponent
 import reactive.Var
 import reactive.Reactive
 
-class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue), max: Reactive[Int] = Var(Int.MaxValue), step: Reactive[Int] = Var(1)) extends ReactiveInput[Int] with ReactiveCommitable {
+class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue), max: Reactive[Int] = Var(Int.MaxValue), step: Reactive[Int] = Var(1)) extends {
   private val model = new SpinnerNumberModel(initialValue, min.value, max.value, step.value)
-  min.observe { value =>
-    AWTThreadSafe {
-      model.setMinimum(value)
-    }
-  }
-  max.observe { value =>
-    AWTThreadSafe {
-      model.setMaximum(value)
-    }
-  }
-  step.observe { value =>
-    AWTThreadSafe {
-      model.setValue(value)
-    }
-  }
+  private val spinner = new JSpinner(model)
+  val asComponent: JComponent = spinner
+} with ReactiveInput[Int] with ReactiveCommitable {
+  protected val observeWhileVisible = List(
+    new ReactiveAndObserverPair(min, { value: Int =>
+      AWTThreadSafe {
+        model.setMinimum(value)
+      }
+    }),
+    new ReactiveAndObserverPair(max, { value: Int =>
+      AWTThreadSafe {
+        model.setMaximum(value)
+      }
+    }),
+    new ReactiveAndObserverPair(step, { value: Int =>
+      AWTThreadSafe {
+        model.setStepSize(value)
+      }
+    }));
 
   private val _value = Var(model.getValue().asInstanceOf[Int])
   model.addChangeListener(new ChangeListener {
@@ -39,8 +43,6 @@ class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue),
   val value: Reactive[Int] = _value
   def setValue(value: Int) = model.setValue(value)
 
-  private val spinner = new JSpinner(model)
-  val asComponent: JComponent = spinner
   //  private val _commits = EventSource[ActionEvent]
   private val editor = spinner.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
   //  editor.addActionListener(new ActionListener() {

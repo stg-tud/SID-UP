@@ -10,15 +10,17 @@ import reactive.Reactive
 import reactive.Var
 import java.awt.EventQueue
 
-class ReactiveTextField(initialText: String = "", enabled: Reactive[Boolean] = Var(true)) extends ReactiveInput[String] with ReactiveCommitable {
-  //  private val _commits = EventSource[ActionEvent]
+class ReactiveTextField(initialText: String = "", enabled: Reactive[Boolean] = Var(true)) extends {
   private val _realTextField = new JTextField(initialText)
-  _realTextField.setEnabled(enabled.value)
-  enabled.observe { value =>
-    AWTThreadSafe {
-      _realTextField.setEnabled(value)
-    }
-  }
+  override val asComponent: JComponent = _realTextField
+} with ReactiveInput[String] with ReactiveCommitable {
+  //  private val _commits = EventSource[ActionEvent]
+  override protected val observeWhileVisible = List(
+    new ReactiveAndObserverPair(enabled, { value: Boolean =>
+      AWTThreadSafe {
+        _realTextField.setEnabled(value)
+      }
+    }));
   //  _realTextField.addActionListener(new ActionListener() {
   //    override def actionPerformed(event: ActionEvent) = {
   //      _commits << event
@@ -42,6 +44,5 @@ class ReactiveTextField(initialText: String = "", enabled: Reactive[Boolean] = V
 
   val value: Reactive[String] = _text
   //  val commits: Events[ActionEvent] = _commits
-  val asComponent: JComponent = _realTextField
   def setValue(value: String) = _realTextField.setText(value)
 }

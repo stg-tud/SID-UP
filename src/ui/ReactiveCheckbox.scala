@@ -7,20 +7,23 @@ import javax.swing.JComponent
 import reactive.Reactive
 import reactive.Var
 
-class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = false, enabled: Reactive[Boolean] = Var(true)) extends ReactiveInput[Boolean] {
+class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = false, enabled: Reactive[Boolean] = Var(true)) extends {
   private val checkbox = new JCheckBox(text.value);
+  val asComponent: JComponent = checkbox
+
+} with ReactiveInput[Boolean] {
   checkbox.setSelected(initiallySelected);
-  text.observe { value =>
-    AWTThreadSafe {
-      checkbox.setText(value)
-    }
-  }
-  checkbox.setEnabled(enabled.value)
-  enabled.observe { value =>
-    AWTThreadSafe {
-      checkbox.setEnabled(value)
-    }
-  }
+  override protected val observeWhileVisible = List(
+    new ReactiveAndObserverPair(text, { value: String =>
+      AWTThreadSafe {
+        checkbox.setText(value)
+      }
+    }),
+    new ReactiveAndObserverPair(enabled, { value: Boolean =>
+      AWTThreadSafe {
+        checkbox.setEnabled(value)
+      }
+    }));
 
   val _selected = Var(checkbox.isSelected())
   checkbox.addItemListener(new ItemListener {
@@ -30,6 +33,5 @@ class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = fals
   })
   val value: Reactive[Boolean] = _selected
 
-  val asComponent: JComponent = checkbox
   def setValue(value: Boolean) = checkbox.setSelected(value)
 }
