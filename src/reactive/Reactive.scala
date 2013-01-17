@@ -12,16 +12,23 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import remote.RemoteReactive
 
-abstract class Reactive[A](val name: String, private var currentValue: A) {
-  private val dependencies = mutable.Set[ReactiveDependant]()
-  private val dependenciesLock = new ReentrantReadWriteLock; 
-  def addDependant(obs: ReactiveDependant) {
+/**
+ *  Note: while this class implements a remote interface, it doesn't actually
+ *  provide remoting capabilities for performance reasons. The interface is
+ *  implemented only to provide a remote-capable wrapper to just forward all
+ *  method invocations.
+ */
+abstract class Reactive[A](val name: String, private var currentValue: A) extends RemoteReactive[A] {
+  private val dependencies = mutable.Set[ReactiveDependant[_ >: A]]()
+  private val dependenciesLock = new ReentrantReadWriteLock;
+  override def addDependant(obs: ReactiveDependant[_ >: A]) {
     dependenciesLock.writeLock().lock();
     dependencies += obs
     dependenciesLock.writeLock().unlock();
   }
-  def removeDependant(obs : ReactiveDependant) {
+  override def removeDependant(obs: ReactiveDependant[_ >: A]) {
     dependenciesLock.writeLock().lock();
     dependencies -= obs
     dependenciesLock.writeLock().unlock();
@@ -73,7 +80,14 @@ abstract class Reactive[A](val name: String, private var currentValue: A) {
       observersLock.readLock().unlock();
     }
     dependenciesLock.readLock().lock();
-    Reactive.executeNotifyPooled(dependencies, event, changed)
+
+    Reactive.executeNotifyPooled[A](dependencies, { x: ReactiveDependant[_ >: A] =>
+      if (changed) {
+        x.notifyUpdate(event, newValue)
+      } else {
+        x.notifyEvent(event)
+      }
+    });
     dependenciesLock.readLock().unlock();
   }
 
@@ -163,15 +177,15 @@ object Reactive {
       }
     }
   }
-  private def executeNotifyPooled(dependencies: Iterable[ReactiveDependant], event: Event, changed: Boolean) {
+  private def executeNotifyPooled[A](dependencies: Iterable[ReactiveDependant[_ >: A]], op: ReactiveDependant[_ >: A] => Unit) {
     lock.synchronized {
       if (pool == null) {
-        dependencies.foreach { _.notifyUpdate(event, changed) }
+        dependencies.foreach { x => op(x) }
       } else {
         dependencies.foreach { x =>
           pool.execute(new Runnable {
             override def run() {
-              x.notifyUpdate(event, changed)
+              op(x)
             }
           })
         }

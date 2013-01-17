@@ -3,7 +3,6 @@ package example.remote
 import java.rmi.server.UnicastRemoteObject
 import reactive.Reactive
 import remote.RemoteReactive
-import remote.RemoteDependant
 import example.ResourceAllocationExample
 import java.rmi.Naming
 import java.rmi.registry.LocateRegistry
@@ -25,4 +24,8 @@ object Server extends App {
   LocateRegistry.createRegistry(Registry.REGISTRY_PORT)
   Naming.rebind("remoteServer", new RemoteServerImpl);
   println("Server ready, awaiting client connections..");
+  while(true) {
+    System.gc();
+    Thread.sleep(666);
+  }
 }

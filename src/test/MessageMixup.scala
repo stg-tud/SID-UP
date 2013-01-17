@@ -6,13 +6,16 @@ import reactive.Var
 import reactive.Event
 import reactive.ReactiveDependant
 
-class MessageMixup[A](input: Reactive[A]) extends Reactive[A]("NetworkMixer[" + input.name + "]", input.value) with ReactiveDependant {
+class MessageMixup[A](input: Reactive[A]) extends Reactive[A]("NetworkMixer[" + input.name + "]", input.value) with ReactiveDependant[A] {
   input.addDependant(this);
   val messages = mutable.MutableList[Tuple2[Event, A]]()
   override lazy val dirty: Reactive[Boolean] = Var(false);
   override def sourceDependencies = input.sourceDependencies
-  override def notifyUpdate(event: Event, valueChanged: Boolean) {
+  override def notifyUpdate(event: Event, value: A) {
     //    println("recording new value " + input.value + " for event " + event);
+    messages += ((event, value));
+  }
+  override def notifyEvent(event : Event) {
     messages += ((event, input.value));
   }
 

@@ -6,6 +6,9 @@ import example.ResourceAllocationExample.ServerFactory
 import reactive.Reactive
 import javax.swing.JOptionPane
 import remote.RemoteReactive._
+import java.awt.event.WindowListener
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 object Client extends App {
   Reactive.setThreadPoolSize(2);
@@ -16,6 +19,10 @@ object Client extends App {
       def connectToServer(requests: Reactive[Int]) = {
         receive(remote.connectToServer(send(requests)))
       }
-    })
+    }).addWindowListener(new WindowAdapter() {
+      override def windowClosed(event: WindowEvent) {
+        Reactive.setThreadPoolSize(0);
+      }
+    });
   }
 }

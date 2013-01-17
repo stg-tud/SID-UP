@@ -2,26 +2,17 @@ package remote
 import java.rmi.server.UnicastRemoteObject
 import reactive.Reactive
 import scala.collection.mutable.MutableList
-import reactive.ReactiveDependant
 import reactive.Event
 import util.SerializationSafe
 import java.util.UUID
+import reactive.ReactiveDependant
 
-class RemoteReactiveImpl[A : SerializationSafe](local: Reactive[A]) extends UnicastRemoteObject with RemoteReactive[A] with ReactiveDependant {
-  
-  private val remotes = MutableList[RemoteDependant[A]]()
-  override def addDependant(remote: RemoteDependant[A]) {
-    remotes += remote
+class RemoteReactiveImpl[A : SerializationSafe](local: Reactive[A]) extends UnicastRemoteObject with RemoteReactive[A] {
+  override def addDependant(remote: ReactiveDependant[_ >: A]) {
+    local.addDependant(remote)
   }
-  
-  local.addDependant(this);
-  override def notifyUpdate(event: Event, valueChanged: Boolean) {
-    if(valueChanged) {
-      val theValue = local.value
-      remotes.foreach{ _.notifyUpdate(event, theValue) }
-    } else {
-      remotes.foreach{ _.notifyEvent(event) }
-    }
+  override def removeDependant(remote: ReactiveDependant[_ >: A]) {
+    local.removeDependant(remote)
   }
   
   def makeConnectionData = new EstablishConnectionData(this, local.name, local.value, Map[UUID, UUID]() ++ local.sourceDependencies)

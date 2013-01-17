@@ -5,9 +5,10 @@ import reactive.Event
 import reactive.Var
 import java.rmi.server.UnicastRemoteObject
 import java.util.UUID
+import reactive.ReactiveDependant
 
 class RemoteDependantReactive[A: SerializationSafe](establishConnectionData: EstablishConnectionData[A]) extends Reactive[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
-  val remoteConnection = new UnicastRemoteObject with RemoteDependant[A] {
+  val remoteConnection = new UnicastRemoteObject with ReactiveDependant[A] {
     override def notifyEvent(event: Event) {
       updateValue(event, value);
     }

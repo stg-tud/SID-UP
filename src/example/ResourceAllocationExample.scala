@@ -22,11 +22,17 @@ object ResourceAllocationExample extends App {
     }
   })
 
-  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new Reactive[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant {
+  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new Reactive[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
     input.addDependant(this);
     override lazy val dirty: Reactive[Boolean] = Var(false);
     override def sourceDependencies = input.sourceDependencies 
-    override def notifyUpdate(event: Event, valueChanged: Boolean) {
+    override def notifyUpdate(event: Event, value: A) {
+      spawn {
+        Thread.sleep(500)
+        updateValue(event, value)
+      }
+    }
+    override def notifyEvent(event: Event) {
       val value = input.value
       spawn {
         Thread.sleep(500)
@@ -89,5 +95,6 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(Lift((_:Int) - (_:Int))(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
+    frame
   }
 }

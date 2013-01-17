@@ -2,7 +2,7 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op) with ReactiveDependant {
+class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reactive[A](name, op) with ReactiveDependant[Any] {
   private val debug = false;
 
   /**
@@ -66,7 +66,13 @@ class Signal[A](name: String, op: => A, dependencies: Reactive[_]*) extends Reac
     return _dirty
   }
 
-  protected[reactive] override def notifyUpdate(event: Event, notifierValueChanged: Boolean) {
+  override def notifyUpdate(event: Event, value: Any) {
+    notifyUpdate(event, true);
+  }
+  override def notifyEvent(event: Event) {
+    notifyUpdate(event, false);
+  }
+  private def notifyUpdate(event: Event, notifierValueChanged: Boolean) {
     var updateData = updateLog.synchronized {
       def getUpdateData(pendingUpdates: Int, valueChanged: Boolean) = {
         if (pendingUpdates == 0) {
