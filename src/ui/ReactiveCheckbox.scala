@@ -6,8 +6,9 @@ import java.awt.event.ItemEvent
 import javax.swing.JComponent
 import reactive.Reactive
 import reactive.Var
+import reactive.Signal
 
-class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = false, enabled: Reactive[Boolean] = Var(true)) extends {
+class ReactiveCheckbox(text: Signal[String], initiallySelected: Boolean = false, enabled: Signal[Boolean] = Var(true)) extends {
   private val checkbox = new JCheckBox(text.value);
   val asComponent: JComponent = checkbox
 
@@ -23,7 +24,7 @@ class ReactiveCheckbox(text: Reactive[String], initiallySelected: Boolean = fals
       _selected.set(checkbox.isSelected())
     }
   })
-  val value: Reactive[Boolean] = _selected
+  val value: Signal[Boolean] = _selected
 
   def setValue(value: Boolean) = checkbox.setSelected(value)
 }

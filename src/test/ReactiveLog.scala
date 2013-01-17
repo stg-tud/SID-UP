@@ -1,9 +1,11 @@
 package test
 import reactive.Reactive
 import scala.collection.mutable
+import reactive.Signal
 
 class ReactiveLog[A](reactive: Reactive[A]) {
-  private val _values = mutable.MutableList(reactive.value)
+  private val _values = mutable.MutableList[A]()
+  if(reactive.isInstanceOf[Signal[_]]) _values += reactive.asInstanceOf[Signal[A]].value
   reactive.observe { value => _values += value }
 
   def values = _values.toList

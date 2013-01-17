@@ -1,7 +1,7 @@
 package test
 import reactive.Var
 import reactive.Signal
-import reactive.Reactive.autoSignalToValue
+import reactive.Signal.autoSignalToValue
 import reactive.Transaction
 
 object TransactionTest extends App {

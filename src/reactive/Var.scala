@@ -3,27 +3,19 @@ import java.util.UUID
 import scala.collection.mutable
 import scala.collection.mutable.SynchronizedMap
 
-class Var[A](name: String, initialValue: A, initialEvent : Event) extends Reactive[A](name, initialValue) {
-  val uuid = UUID.randomUUID();
-  override lazy val dirty: Reactive[Boolean] = Var(false);
+class Var[A](name: String, initialValue: A, initialEvent : Event) extends SignalImpl[A](name, initialValue) with ReactiveSource[A] {
+  override lazy val dirty: Signal[Boolean] = Var(false);
 
-  protected[reactive] var lastEvent = UUID.randomUUID();
-  protected[reactive] val lock = new Object()
-
-  private val transaction = new Transaction();
   def set(value: A) = {
-    transaction.set(this, value);
-    transaction.commit();
+    emit(value);
   }
 
-  protected[reactive] def set(value: A, event: Event) : Event = {
-    lastEvent = event.uuid;
-    updateValue(event, value);
-    event
+  override protected[reactive] def emit(event: Event, newValue: A) {
+    updateValue(event, newValue);
   }
-
-  //  override val level = 0;
-  override def sourceDependencies = Map(uuid -> lastEvent);
+  override protected[reactive] def emit(event: Event) {
+    emit(event, value);
+  }
 }
 
 object Var {

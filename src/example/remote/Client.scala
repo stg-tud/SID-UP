@@ -9,6 +9,7 @@ import remote.RemoteReactive._
 import java.awt.event.WindowListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import reactive.Signal
 
 object Client extends App {
   Reactive.setThreadPoolSize(2);
@@ -16,7 +17,7 @@ object Client extends App {
   if (host != null) {
     val remote = Naming.lookup("//" + host + "/remoteServer").asInstanceOf[RemoteServer];
     ResourceAllocationExample.makeClient(new ServerFactory {
-      def connectToServer(requests: Reactive[Int]) = {
+      def connectToServer(requests: Signal[Int]) = {
         receive(remote.connectToServer(send(requests)))
       }
     }).addWindowListener(new WindowAdapter() {

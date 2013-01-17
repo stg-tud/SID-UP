@@ -8,8 +8,9 @@ import javax.swing.SwingConstants
 import java.awt.EventQueue
 import javax.swing.event.AncestorListener
 import javax.swing.event.AncestorEvent
+import reactive.Signal
 
-class ReactiveLabel(text: Reactive[_]) extends {
+class ReactiveLabel(text: Signal[_]) extends {
   private val label = new JLabel(String.valueOf(text.value), ReactiveLabel.icon(text.dirty.value), SwingConstants.LEFT)
   override val asComponent: JComponent = label;
 } with ReactiveComponent {

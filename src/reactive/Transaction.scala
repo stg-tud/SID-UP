@@ -13,27 +13,31 @@ import scala.collection.SortedSet
  */
 class Transaction {
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
-  private var boxes = SortedSet[Var[_]]()(Ordering[Int].on[Var[_]] { _.hashCode() })
-  private var values = Map[Var[_], Any]()
+  private var boxes = SortedSet[ReactiveSource[_]]()(Ordering[Int].on[ReactiveSource[_]] { _.hashCode() })
+  private var values = Map[ReactiveSource[_], Any]()
 
-  def set[A](box: Var[A], value: A) = {
+  def set[A](box: ReactiveSource[A], value: A) = {
     boxes += box;
     values += (box -> value);
     this
   }
+  
+  def emit[A](source : ReactiveSource[A], value : A ) {
+    throw new UnsupportedOperationException("TODO");
+  }
 
-  def touch(box: Var[_]) = {
+  def touch(box: ReactiveSource[_]) {
     boxes += box;
     values -= box;
   }
-
+  
   def commit() = {
     val event = commitWhenAllLocked(boxes.toList, Map())
     reset()
     event
   }
 
-  private def commitWhenAllLocked(boxes: List[Var[_]], lastEvents: Map[UUID, UUID]): Event = {
+  private def commitWhenAllLocked(boxes: List[ReactiveSource[_]], lastEvents: Map[UUID, UUID]): Event = {
     boxes match {
       case box :: tail =>
         box.lock.synchronized {
@@ -44,11 +48,13 @@ class Transaction {
     }
   }
 
-  private def setBoxFromMap[A](box: Var[A], event: Event): Event = {
-    box.set(values.get(box) match {
-      case Some(value) => value.asInstanceOf[A]
-      case None => box.value;
-    }, event);
+  private def setBoxFromMap[A](box: ReactiveSource[A], event: Event): Event = {
+    box.lastEvent = event.uuid;
+    values.get(box) match {
+      case Some(value) => box.emit(event, value.asInstanceOf[A]);
+      case None => box.emit(event);
+    }
+    event
   }
 
   private def reset() {

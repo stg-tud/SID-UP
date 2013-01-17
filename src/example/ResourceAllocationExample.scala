@@ -14,18 +14,19 @@ import reactive.Event
 import util.SerializationSafe
 import reactive.ReactiveDependant
 import reactive.Lift
+import reactive.SignalImpl
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
-    override def connectToServer(requests: Reactive[Int]) = {
+    override def connectToServer(requests: Signal[Int]) = {
       fakeNetwork(makeServer(fakeNetwork(requests)))
     }
   })
 
-  def fakeNetwork[A: SerializationSafe](input: Reactive[A]) = new Reactive[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
+  def fakeNetwork[A: SerializationSafe](input: Signal[A]) = new SignalImpl[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
     input.addDependant(this);
-    override lazy val dirty: Reactive[Boolean] = Var(false);
-    override def sourceDependencies = input.sourceDependencies 
+    override lazy val dirty: Signal[Boolean] = Var(false);
+    override def sourceDependencies = input.sourceDependencies
     override def notifyUpdate(event: Event, value: A) {
       spawn {
         Thread.sleep(500)
@@ -56,9 +57,9 @@ object ResourceAllocationExample extends App {
     frame.setVisible(true);
   }
 
-  def makeServer(clientRequests: Reactive[Int]): Reactive[Int] = {
+  def makeServer(clientRequests: Signal[Int]) = {
     val resourcesInput = new ReactiveSpinner(44)
-    val committed = Lift(math.min(_:Int,_:Int))(clientRequests, resourcesInput.value);
+    val committed = Lift(math.min(_: Int, _: Int))(clientRequests, resourcesInput.value);
 
     val frame = newFrame("Server");
 
@@ -77,7 +78,7 @@ object ResourceAllocationExample extends App {
   }
 
   trait ServerFactory {
-    def connectToServer(requests: Reactive[Int]): Reactive[Int]
+    def connectToServer(requests: Signal[Int]): Signal[Int]
   }
   def makeClient(serverFactory: ServerFactory) = {
     val requested = new ReactiveSpinner(4);
@@ -92,7 +93,7 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(committedResources).asComponent)
 
     frame.add(new JLabel("Resource deficit:"));
-    frame.add(new ReactiveLabel(Lift((_:Int) - (_:Int))(requested.value, committedResources)).asComponent)
+    frame.add(new ReactiveLabel(Lift((_: Int) - (_: Int))(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
     frame

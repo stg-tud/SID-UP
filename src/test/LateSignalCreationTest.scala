@@ -1,7 +1,7 @@
 package test
 import reactive.Signal
 import reactive.Var
-import reactive.Reactive.autoSignalToValue
+import reactive.Signal.autoSignalToValue
 
 object LateSignalCreationTest extends App {
   val var1 = Var(1);

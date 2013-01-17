@@ -5,6 +5,8 @@ import reactive.Reactive
 import util.SerializationSafe
 import reactive.ReactiveDependant
 import java.rmi.server.UnicastRemoteObject
+import reactive.EventStream
+import reactive.Signal
 
 @remote trait RemoteReactive[A] {
   def addDependant(obs: ReactiveDependant[_ >: A])
@@ -12,6 +14,8 @@ import java.rmi.server.UnicastRemoteObject
 }
 
 object RemoteReactive {
-  def send[A : SerializationSafe](reactive : Reactive[A]) : EstablishConnectionData[A] = new RemoteReactiveImpl(reactive).makeConnectionData
-  def receive[A : SerializationSafe](connectionData : EstablishConnectionData[A]) = new RemoteDependantReactive(connectionData)
+  def send[A : SerializationSafe](reactive : Signal[A]) : EstablishSignalConnectionData[A] = new RemoteSignalImpl(reactive).makeConnectionData
+  def send[A : SerializationSafe](reactive : EventStream[A]) : EstablishEventStreamConnectionData[A] = new RemoteEventStreamImpl(reactive).makeConnectionData
+  def receive[A : SerializationSafe](connectionData : EstablishSignalConnectionData[A]) = new RemoteDependantSignal(connectionData)
+  def receive[A : SerializationSafe](connectionData : EstablishEventStreamConnectionData[A]) = new RemoteDependantEventStream(connectionData)
 }

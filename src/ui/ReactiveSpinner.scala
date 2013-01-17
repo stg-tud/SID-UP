@@ -11,8 +11,11 @@ import java.awt.event.ActionListener
 import javax.swing.JComponent
 import reactive.Var
 import reactive.Reactive
+import reactive.Signal
+import reactive.EventSource
+import reactive.EventStream
 
-class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue), max: Reactive[Int] = Var(Int.MaxValue), step: Reactive[Int] = Var(1)) extends {
+class ReactiveSpinner(initialValue: Int, min: Signal[Int] = Var(Int.MinValue), max: Signal[Int] = Var(Int.MaxValue), step: Signal[Int] = Var(1)) extends {
   private val model = new SpinnerNumberModel(initialValue, min.value, max.value, step.value)
   private val spinner = new JSpinner(model)
   val asComponent: JComponent = spinner
@@ -28,17 +31,17 @@ class ReactiveSpinner(initialValue: Int, min: Reactive[Int] = Var(Int.MinValue),
       _value.set(model.getValue().asInstanceOf[Int])
     }
   })
-  val value: Reactive[Int] = _value
+  val value: Signal[Int] = _value
   def setValue(value: Int) = model.setValue(value)
 
-  //  private val _commits = EventSource[ActionEvent]
+    private val _commits = EventSource[ActionEvent]
   private val editor = spinner.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
-  //  editor.addActionListener(new ActionListener() {
-  //    override def actionPerformed(event: ActionEvent) = {
-  //      _commits << event
-  //    }
-  //  })
-  //  val commits: Events[ActionEvent] = _commits
+    editor.addActionListener(new ActionListener() {
+      override def actionPerformed(event: ActionEvent) {
+        _commits << event;
+      }
+    })
+    val commits: EventStream[ActionEvent] = _commits
 
   editor.getFormatter().asInstanceOf[DefaultFormatter].setCommitsOnValidEdit(true);
 }

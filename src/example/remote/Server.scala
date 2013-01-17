@@ -7,16 +7,17 @@ import example.ResourceAllocationExample
 import java.rmi.Naming
 import java.rmi.registry.LocateRegistry
 import java.rmi.registry.Registry
-import remote.EstablishConnectionData
+import remote.EstablishEventStreamConnectionData
 import remote.RemoteReactive._
+import remote.EstablishSignalConnectionData
 
 object Server extends App {
   Reactive.setThreadPoolSize(2);
   @remote trait RemoteServer {
-    def connectToServer(requests: EstablishConnectionData[Int]): EstablishConnectionData[Int];
+    def connectToServer(requests: EstablishSignalConnectionData[Int]): EstablishSignalConnectionData[Int];
   }
   class RemoteServerImpl extends UnicastRemoteObject with RemoteServer {
-    def connectToServer(requests: EstablishConnectionData[Int]): EstablishConnectionData[Int] = {
+    def connectToServer(requests: EstablishSignalConnectionData[Int]): EstablishSignalConnectionData[Int] = {
       send(ResourceAllocationExample.makeServer(receive(requests)))
     }
   }

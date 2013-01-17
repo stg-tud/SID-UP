@@ -1,6 +1,6 @@
 package example
 
-import reactive.Reactive.autoSignalToValue
+import reactive.Signal.autoSignalToValue
 import reactive.Var
 import reactive.Signal
 import reactive.Reactive
@@ -59,7 +59,7 @@ object Test extends App {
 
   //  println(s.toElaborateString);
 
-  def track(signal: Reactive[_]) {
+  def track(signal: Signal[_]) {
     println("Now Tracking: " + signal.name + " = " + signal.value);
     signal.observe { value =>
       println("Value Changed: " + signal.name + " = " + value);

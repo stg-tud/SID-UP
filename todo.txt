@@ -1,0 +1,12 @@
+++   3   implement more funny event things (snapshot, merge etc)
+++   3   implement folding signal
+        -> cannot fold over continuous things
+        -> only event.fold
+        -> need events first
+0   4   restrict event processing ordering only to where needed (folding signal and outside observers)
+-   2   implement exception propagation
+0   3   allow partial GC of dependency graphs
+0   2   allow remote var inclusion in transactions
++   10  communication failure tolerance?
++   15  dependency set changes
+

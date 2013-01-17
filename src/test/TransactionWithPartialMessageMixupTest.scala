@@ -2,7 +2,7 @@ package test
 
 import reactive.Var
 import reactive.Transaction
-import reactive.Reactive.autoSignalToValue
+import reactive.Signal.autoSignalToValue
 import reactive.Signal
 
 object TransactionWithPartialMessageMixupTest extends App {

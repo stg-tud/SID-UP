@@ -1,7 +1,8 @@
 package ui
 
 import java.awt.event.ActionEvent
+import reactive.EventStream
 
 trait ReactiveCommitable extends ReactiveComponent {
-//	def commits : Events[ActionEvent]
+	def commits : EventStream[ActionEvent]
 }
