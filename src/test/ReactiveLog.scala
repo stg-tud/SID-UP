@@ -14,7 +14,11 @@ class ReactiveLog[A](reactive: Reactive[A]) {
     if (expected.toList.equals(values)) {
       println("[OK] "+msg); ;
     } else {
-      throw new RuntimeException("[Assertion Violation] "+msg);
+      throw new ReactiveLog.AssertionFailure("[Assertion Violation] "+msg);
     }
   }
+}
+
+object ReactiveLog {
+  class AssertionFailure(msg : String) extends RuntimeException(msg);
 }

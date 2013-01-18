@@ -39,7 +39,7 @@ object SnapshotTest extends App {
   events << new Object
   // remain (1, 5+5 = 10)
 
-  merged.await(var1.set(0));
+  var1.set(0);
   // now (1, 0+5 = 10)
 
   snapshotLog.assert(1, 4, 6, 5);

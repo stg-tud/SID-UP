@@ -1,5 +1,5 @@
-++   3   implement more funny event things (snapshot, merge etc)
-++   3   implement folding signal
+0   ??  implement more funny event things
+++  3   implement folding signal
         -> cannot fold over continuous things
         -> only event.fold
         -> need events first
