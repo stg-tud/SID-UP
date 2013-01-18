@@ -73,8 +73,9 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Reactive[_]*) ex
     notifyUpdate(event, false);
   }
   private def notifyUpdate(event: Event, notifierValueChanged: Boolean) {
-    var updateData = updateLog.synchronized {
-      def getUpdateData(pendingUpdates: Int, valueChanged: Boolean) = {
+    updateLog.synchronized {
+      // TODO: deferring should only be needed for fold signals and observer notifications, but not here. 
+      def awaitRemainingUpdatesOrSpawnOrDeferUpdateExecution(pendingUpdates: Int, valueChanged: Boolean) = {
         if (pendingUpdates == 0) {
           updateLog -= event;
           val requiredPredecessors = mutable.Set[UUID]()
@@ -92,9 +93,12 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Reactive[_]*) ex
           }
           if (requiredPredecessors.isEmpty) {
             // event has no predecessor or event is next in line: process
-            Some((event, valueChanged))
+            if (debug) println("all predecessors of " + event + " already completed, scheduling immediate execution.");
+            Reactive.executePooled {
+              executeUpdates(event, valueChanged)
+            }
           } else {
-            if (debug) println("suspending evaluation for event " + event + " due to missing predecessors " + requiredPredecessors)
+            if (debug) println("suspending evaluation of " + event + " due to missing predecessors " + requiredPredecessors)
             // event has predecessor other than last processed event: defer to prevent out-of-order update
             val suspendedCalculation = (requiredPredecessors, event, valueChanged);
             requiredPredecessors.foreach { predecessor =>
@@ -104,72 +108,65 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Reactive[_]*) ex
               }))
             }
             if (debug) println("suspended calculations now: " + suspendedCalculations);
-            None
           }
         } else {
           updateLog += (event -> (pendingUpdates, valueChanged))
           if (_dirty != null) _dirty.set(true)
-          None
         }
       }
 
       updateLog.get(event) match {
         case Some((pendingUpdates, anyDependencyChangedSoFar)) =>
           if (!anyDependencyChangedSoFar && notifierValueChanged) numUpdatesWithChangedDependency += 1;
-          getUpdateData(pendingUpdates - 1, anyDependencyChangedSoFar || notifierValueChanged)
+          awaitRemainingUpdatesOrSpawnOrDeferUpdateExecution(pendingUpdates - 1, anyDependencyChangedSoFar || notifierValueChanged)
         case None =>
           if (notifierValueChanged) numUpdatesWithChangedDependency += 1;
           val expectedEdges = event.sourcesAndPredecessors.keySet.foldLeft(Set[Reactive[_]]()) { (accu, source) => accu ++ incomingEdgesPerSource.get(source).get }
-          getUpdateData(expectedEdges.size - 1, notifierValueChanged)
-      }
-    }
-    while (updateData.isDefined) {
-      val (event: Event, valueChanged: Boolean) = updateData.get
-      updateData = None;
-      updateLog.synchronized {
-        if (valueChanged) numUpdatesWithChangedDependency -= 1;
-        if (_dirty != null) _dirty.set(numUpdatesWithChangedDependency > 0)
-        event.sourcesAndPredecessors.keys.foreach { source =>
-          lastEvents += (source -> event.uuid)
-        }
-      }
-      // somewhat important: the actual evaluation and notification of
-      // observers and dependencies happens outside of synchronization.
-      // This especially means that it is possible for observers
-      // to be notified of a new value while the value actually has
-      // changed again already.
-      if (debug) print("evaluating " + event + ": ")
-      updateValue(event, if (valueChanged) {
-        val newValue = Signal.during(event) { op };
-        if (debug) println("calculated new value " + newValue);
-        newValue;
-      } else {
-        if (debug) println("no dependency changed, not recalculating value");
-        value
-      });
-      updateLog.synchronized {
-        suspendedCalculations.remove(event.uuid) match {
-          case Some(list) =>
-            list.foreach {
-              case (missingPredecessors, followUpEvent, valueChanged) =>
-                if (debug) print("updating suspended calculation of " + followUpEvent + " waiting for " + missingPredecessors + " -> ");
-                missingPredecessors.remove(event.uuid)
-                if (missingPredecessors.isEmpty) {
-                  if (debug) println("no predecessors left, scheduling immediate execution.");
-                  updateData match {
-                    case Some(x) => throw new AssertionError("processing one event triggered processing of multiple successors, this should not be possible.");
-                    case None => updateData = Some(followUpEvent, valueChanged)
-                  }
-                } else {
-                  if (debug) println("now waiting for " + missingPredecessors);
-                }
-            }
-            if (debug) println("suspended calculations now: " + suspendedCalculations);
-          case None =>
-            if (debug) println("no suspended calculations depending on " + event.uuid);
-        }
+          awaitRemainingUpdatesOrSpawnOrDeferUpdateExecution(expectedEdges.size - 1, notifierValueChanged)
       }
     }
   }
 
+  private def executeUpdates(event: Event, valueChanged: Boolean) {
+    updateLog.synchronized {
+      if (valueChanged) numUpdatesWithChangedDependency -= 1;
+      if (_dirty != null) _dirty.set(numUpdatesWithChangedDependency > 0)
+      event.sourcesAndPredecessors.keys.foreach { source =>
+        lastEvents += (source -> event.uuid)
+      }
+    }
+    // somewhat important: the actual evaluation and notification of
+    // observers and dependencies happens outside of synchronization.
+    // This especially means that it is possible for observers
+    // to be notified of a new value while the value actually has
+    // changed again already.
+    updateValue(event, if (valueChanged) {
+      val newValue = Signal.during(event) { op };
+      if (debug) println("evaluating " + event + ": calculated new value " + newValue);
+      newValue;
+    } else {
+      if (debug) println("evaluating " + event + ": no dependency changed, not recalculating value");
+      value
+    });
+    updateLog.synchronized {
+      suspendedCalculations.remove(event.uuid) match {
+        case Some(list) =>
+          list.foreach {
+            case (missingPredecessors, followUpEvent, valueChanged) =>
+              missingPredecessors.remove(event.uuid)
+              if (missingPredecessors.isEmpty) {
+                if (debug) println("updating suspended calculation of " + followUpEvent + ": no more missing predecessors left, scheduling immediate execution.");
+                Reactive.executePooled {
+                  executeUpdates(followUpEvent, valueChanged);
+                }
+              } else {
+                if (debug) println("updating suspended calculation of " + followUpEvent + ": now waiting for " + missingPredecessors);
+              }
+          }
+          if (debug) println("suspended calculations now: " + suspendedCalculations);
+        case None =>
+          if (debug) println("no suspended calculations depending on " + event.uuid);
+      }
+    }
+  }
 }

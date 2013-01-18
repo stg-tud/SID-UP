@@ -5,7 +5,7 @@ import scala.collection.immutable.Map
 class EventSource[A](name: String) extends EventStreamImpl[A](name) with ReactiveSource[A] {
   self => 
     
-  def <<(value: A) {
+  def <<(value: A) = {
     super.emit(value);
   }
 

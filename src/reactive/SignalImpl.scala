@@ -3,7 +3,7 @@ package reactive
 import scala.collection.mutable
 import util.Util.nullSafeEqual
 
-abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl[A](name) with Signal[A] with EventStream[A]{
+abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl[A](name) with Signal[A] with EventStream[A] {
   private var currentValue = initialValue;
   // TODO: instead of using a WeakHashMap, references on events should be counted explicitly.
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
@@ -51,6 +51,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   }
 
   def dirty: Signal[Boolean]
-  
-  override val changes : EventStream[A] = this
+
+  override val changes: EventStream[A] = this
+  override def snapshot(when: EventStream[_]) = new SnapshotSignal(this, when);
 }

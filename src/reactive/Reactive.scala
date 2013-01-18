@@ -21,7 +21,7 @@ import remote.RemoteReactive
  *  method invocations.
  */
 trait Reactive[A] extends RemoteReactive[A] {
-  val name : String;
+  val name: String;
   def sourceDependencies: Map[UUID, UUID]
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)
@@ -74,6 +74,19 @@ object Reactive {
         pool = Executors.newFixedThreadPool(size)
       } else {
         pool = null
+      }
+    }
+  }
+  def executePooled(op: => Unit) {
+    lock.synchronized {
+      if (pool == null) {
+        op
+      } else {
+        pool.execute(new Runnable {
+          override def run() {
+            op
+          }
+        })
       }
     }
   }

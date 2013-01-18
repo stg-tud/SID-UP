@@ -5,7 +5,8 @@
         -> need events first
 0   4   restrict event processing ordering only to where needed (folding signal and outside observers)
 -   2   implement exception propagation
-0   3   allow partial GC of dependency graphs
+0   3   allow partial GC of dependency graphs bottom up (discard var's and dependants that aren't referenced anymore and thus won't produce further updates)
+0   3   allow partial GC of dependency graphs top down (hold unobserved dependants with weak references so they can be discarded if no outside holds on to them) 
 0   2   allow remote var inclusion in transactions
 +   10  communication failure tolerance?
 +   15  dependency set changes

@@ -34,6 +34,7 @@ class Transaction {
   def commit() = {
     val event = commitWhenAllLocked(boxes.toList, Map())
     reset()
+//    println("committed "+event);
     event
   }
 
