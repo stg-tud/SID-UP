@@ -11,13 +11,15 @@ trait Signal[A] extends Reactive[A] {
 
   def changes: EventStream[A]
   def snapshot(when : EventStream[_]) : Signal[A]
+  
+  override def ordered : Signal[A]
 }
 
 object Signal {
   implicit def autoSignalToValue[A](signal: Signal[A]): A = signal.value
 
-  def apply[A](name: String, signals: Reactive[_]*)(op: => A) = new FunctionalSignal[A](name, op, signals: _*);
-  def apply[A](signals: Reactive[_]*)(op: => A): Signal[A] = apply("AnonSignal", signals: _*)(op)
+  def apply[A](name: String, signals: Signal[_]*)(op: => A) = new FunctionalSignal[A](name, op, signals: _*);
+  def apply[A](signals: Signal[_]*)(op: => A): Signal[A] = apply("AnonSignal", signals: _*)(op)
 
   protected[reactive] val threadEvent = new ThreadLocal[Event]() {
     override def initialValue = {

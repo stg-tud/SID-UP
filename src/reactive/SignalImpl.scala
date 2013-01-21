@@ -16,6 +16,10 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     valHistory.synchronized { valHistory.get(currentEvent) }.getOrElse(currentValue);
   }
 
+  override def ordered = {
+    null // TODO
+  }
+  
   /**
    * suspends the current thread until this reactive has completed processing the given event.
    */
