@@ -23,6 +23,7 @@ import remote.RemoteReactive
 trait Reactive[A] extends RemoteReactive[A] {
   val name: String;
   def sourceDependencies: Map[UUID, UUID]
+  def isConnectedTo(event : Event) : Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)
   // ====== Printing stuff ======

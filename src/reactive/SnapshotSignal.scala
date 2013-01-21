@@ -18,18 +18,19 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
       notifyUpdate(event, signal.value)
     }
     def notifyUpdate(event: Event, newValue: A) {
-      if (!(event.sourcesAndPredecessors.keySet & events.sourceDependencies.keySet).isEmpty) {
-        if (lock.synchronized {
+      if (events.isConnectedTo(event)) {
+        val shouldEmit = lock.synchronized {
           if (ignoreForSignal.remove(event)) {
             false
           } else {
-            val publish = waitingForSignal.remove(event);
-            if (!publish) {
+            val shouldEmit = waitingForSignal.remove(event);
+            if (!shouldEmit) {
               waitingForEventStream += (event -> newValue);
             }
-            publish
+            shouldEmit
           }
-        }) {
+        }
+        if(shouldEmit) {
           updateValue(event, newValue);
         }
       }
@@ -38,25 +39,25 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
   signal.addDependant(signalObserver);
   private val eventsObserver = new ReactiveDependant[Any] {
     def notifyEvent(event: Event) {
-      if (!(event.sourcesAndPredecessors.keySet & signal.sourceDependencies.keySet).isEmpty) {
+      notifyDependants(event);
+      if (signal.isConnectedTo(event)) {
         lock.synchronized {
           if (waitingForEventStream.remove(event).isEmpty) {
             ignoreForSignal += event;
           }
         }
       }
-      notifyDependants(event);
     }
     def notifyUpdate(event: Event, newValue: Any) {
-      if ((event.sourcesAndPredecessors.keySet & signal.sourceDependencies.keySet).isEmpty) {
-        updateValue(event, signal.value);
-      } else {
+      if (signal.isConnectedTo(event)) {
         lock.synchronized {
           waitingForEventStream.remove(event) match {
             case Some(value) => updateValue(event, value);
             case None => waitingForSignal += event
           }
         }
+      } else {
+        updateValue(event, signal.value);
       }
     }
   }
