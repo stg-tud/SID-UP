@@ -20,7 +20,6 @@ class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: Estab
   }
 
   establishConnectionData.remote.addDependant(remoteConnection);
-  override lazy val dirty: Signal[Boolean] = Var(false);
   // TODO: should have order preservation and source dependency updates?
   override def sourceDependencies = establishConnectionData.sourceDependencies
 }

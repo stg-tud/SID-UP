@@ -25,7 +25,6 @@ object ResourceAllocationExample extends App {
 
   def fakeNetwork[A: SerializationSafe](input: Signal[A]) = new SignalImpl[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
     input.addDependant(this);
-    override lazy val dirty: Signal[Boolean] = Var(false);
     override def sourceDependencies = input.sourceDependencies
     override def notifyUpdate(event: Event, value: A) {
       spawn {

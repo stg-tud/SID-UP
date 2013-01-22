@@ -7,12 +7,10 @@ trait Signal[A] extends Reactive[A] {
   def value: A
 
   def await(event: Event)
-  def dirty: Signal[Boolean]
+//  def dirty: Signal[Boolean]
 
   def changes: EventStream[A]
   def snapshot(when : EventStream[_]) : Signal[A]
-  
-  override def ordered : Signal[A]
 }
 
 object Signal {

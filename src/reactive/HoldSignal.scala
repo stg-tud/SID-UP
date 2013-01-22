@@ -2,7 +2,6 @@ package reactive
 
 class HoldSignal[A](override val changes: EventStream[A], initialValue: A) extends SignalImpl[A]("hold(" + changes.name + ")", initialValue) with ReactiveDependant[A] {
   changes.addDependant(this);
-  override val dirty: Signal[Boolean] = Var(false);
   override def sourceDependencies = changes.sourceDependencies;
   override def notifyEvent(event: Event) {
     notifyUpdate(event, value);

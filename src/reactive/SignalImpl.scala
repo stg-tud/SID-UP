@@ -15,10 +15,6 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     val currentEvent = Signal.threadEvent.get();
     valHistory.synchronized { valHistory.get(currentEvent) }.getOrElse(currentValue);
   }
-
-  override def ordered = {
-    null // TODO
-  }
   
   /**
    * suspends the current thread until this reactive has completed processing the given event.
@@ -53,8 +49,6 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
       notifyDependants(event);
     }
   }
-
-  def dirty: Signal[Boolean]
 
   override val changes: EventStream[A] = this
   override def snapshot(when: EventStream[_]) = new SnapshotSignal(this, when);

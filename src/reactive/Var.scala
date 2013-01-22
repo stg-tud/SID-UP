@@ -4,8 +4,6 @@ import scala.collection.mutable
 import scala.collection.mutable.SynchronizedMap
 
 class Var[A](name: String, initialValue: A, initialEvent : Event) extends SignalImpl[A](name, initialValue) with ReactiveSource[A] {
-  override lazy val dirty: Signal[Boolean] = Var(false);
-
   def set(value: A) = {
     emit(value);
   }
