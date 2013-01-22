@@ -3,29 +3,28 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-abstract class EventOrderingCache(dependencies: Reactive[_]*) {
+abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
   private val lastEvents = mutable.Map[UUID, UUID]()
-  dependencies.map { _.sourceDependencies }.flatten.foreach {
-    case (source, event) =>
-      lastEvents.get(source) match {
-        case Some(x) => if (!x.equals(event)) throw new IllegalStateException("Cannot initialize ordering while events are in transit!");
-        case None => lastEvents += (source -> event)
-      }
-  }
+  lastEvents ++= initialLastEvents
 
-  private case class EventRecord(missingPredecessors: mutable.Set[UUID], event: Event);
+  private case class EventRecord(event: Event, missingPredecessors: mutable.Set[UUID], data: T);
   private val suspendedRecords = mutable.Map[UUID, List[EventRecord]]()
 
-  def eventReady(event: Event) = {
-    val record = new EventRecord(calculateMissingPredecessors(event), event);
-    if (record.missingPredecessors.isEmpty) {
-      publish(record);
-    } else {
-      record.missingPredecessors.foreach { predecessor =>
-        suspendedRecords += (predecessor -> (suspendedRecords.get(predecessor) match {
-          case Some(x) => record :: x
-          case _ => List(record)
-        }))
+  def eventReady(event: Event, data: T) = {
+    suspendedRecords.synchronized {
+      val record = new EventRecord(event, calculateMissingPredecessors(event), data);
+      if (record.missingPredecessors.isEmpty) {
+//        println("no missing predecessors => immediate execution for "+record);
+        publish(record);
+      } else {
+//        println("missing predecessors; suspending: "+record);
+        record.missingPredecessors.foreach { predecessor =>
+          suspendedRecords += (predecessor -> (suspendedRecords.get(predecessor) match {
+            case Some(x) => record :: x
+            case _ => List(record)
+          }))
+        }
+//        println("updated suspended events: "+suspendedRecords);
       }
     }
   }
@@ -48,25 +47,29 @@ abstract class EventOrderingCache(dependencies: Reactive[_]*) {
   }
 
   private val publishQueue = mutable.Queue[EventRecord]()
-  def publish(newRecord: EventRecord) {
+  private def publish(newRecord: EventRecord) {
     publishQueue += newRecord;
 
     while (!publishQueue.isEmpty) {
       val record = publishQueue.dequeue()
+//      println("publishing "+record);
       record.event.sourcesAndPredecessors.keysIterator.foreach { source =>
         lastEvents += (source -> record.event.uuid)
       }
-      eventReadyInOrder(record.event)
+      eventReadyInOrder(record.event, record.data)
 
       suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>
-        if (record.missingPredecessors.size == 1) {
-          publishQueue += record
+        if (suspendedRecord.missingPredecessors.size == 1) {
+//          println("no more missing predecessors; scheduling "+suspendedRecord);
+          publishQueue += suspendedRecord
         } else {
-          record.missingPredecessors -= record.event.uuid
+          suspendedRecord.missingPredecessors -= record.event.uuid
+//          println("still missing predecessors; re-suspending "+suspendedRecord);
         }
       }
+//      println("updated suspended events: "+suspendedRecords);
     }
   }
 
-  def eventReadyInOrder(event: Event)
+  protected[this] def eventReadyInOrder(event: Event, data: T)
 }

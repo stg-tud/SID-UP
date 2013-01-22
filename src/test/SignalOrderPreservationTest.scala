@@ -40,6 +40,6 @@ object SignalOrderPreservationTest extends App {
 
   inputLog.assert(1, 3, 9, 1, 5, 2)
   directLog.assert(2, 4, 10, 2, 6, 3)
-  networkLog.assert(1, 2, 5, 1, 9, 3)
+  networkLog.assert(1, 3, 9, 1, 5, 2)
   outputLog.assert(3, 7, 19, 3, 11, 5)
 }

@@ -14,7 +14,7 @@ import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import remote.RemoteReactive
 
-abstract class ReactiveImpl[A](val name : String) extends Reactive[A] {
+abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
   private val dependencies = mutable.Set[ReactiveDependant[_ >: A]]()
   private val dependenciesLock = new ReentrantReadWriteLock;
   override def addDependant(obs: ReactiveDependant[_ >: A]) {
@@ -45,23 +45,33 @@ abstract class ReactiveImpl[A](val name : String) extends Reactive[A] {
     observersLock.writeLock().unlock()
   }
 
+  private val ordering = new EventOrderingCache[Option[A]](sourceDependencies) {
+    override def eventReadyInOrder(event: Event, value: Option[A]) {
+      value match {
+        case Some(newValue) =>
+          observersLock.readLock().lock();
+          observers.foreach { _(newValue) }
+          observersLock.readLock().unlock();
+        case None =>
+      }
+    }
+  }
   protected def notifyDependants(event: Event) {
     dependenciesLock.readLock().lock();
     Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
       x.notifyEvent(event)
     });
     dependenciesLock.readLock().unlock();
+    ordering.eventReady(event, None);
   }
 
   protected def notifyDependants(event: Event, newValue: A) {
-    observersLock.readLock().lock();
-    observers.foreach { _(newValue) }
-    observersLock.readLock().unlock();
     dependenciesLock.readLock().lock();
     Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
       x.notifyUpdate(event, newValue)
     });
     dependenciesLock.readLock().unlock();
+    ordering.eventReady(event, Some(newValue));
   }
 
   // ====== Printing stuff ======
