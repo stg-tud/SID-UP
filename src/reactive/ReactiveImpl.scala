@@ -47,14 +47,14 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
 
   private val ordering = new EventOrderingCache[Option[A]](sourceDependencies) {
     override def eventReadyInOrder(event: Event, value: Option[A]) {
-      value match {
-        case Some(newValue) =>
-          observersLock.readLock().lock();
-          observers.foreach { _(newValue) }
-          observersLock.readLock().unlock();
-        case None =>
+      if (value.isDefined) {
+        observersLock.readLock().lock();
+        observers.foreach { _(value.get) }
+        observersLock.readLock().unlock();
       }
     }
+  }
+  protected def publishValueInOrder(newValue: A) {
   }
   protected def notifyDependants(event: Event) {
     dependenciesLock.readLock().lock();
