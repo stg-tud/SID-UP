@@ -33,6 +33,11 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     }.get
   }
 
+  /*
+   *  TODO needs to be split into subclasses:
+   *   - functional signal -> cache into ordering, calculate if changed once ordered
+   *   - stateful signal -> will invoke in order, so just forward (do stateful signals exist?!)  
+   */
   protected[this] def updateValue(event: Event, newValue: A) {
     val changed = valHistory.synchronized {
       val changed = !nullSafeEqual(currentValue, newValue);

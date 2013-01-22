@@ -1,5 +1,6 @@
-0   4   restrict event processing ordering only to where needed (folding signal and outside observers)
+0   3   restrict event processing ordering only to where needed (folding signal and outside observers)
 +   2   proper solution for source dependencies / late reactive creation
+        -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
 ++  3   implement folding signal
         -> cannot fold over continuous things
         -> only event.fold
