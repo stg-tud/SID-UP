@@ -17,7 +17,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   }
 
   private def await(event: Event): (A, Boolean) = {
-    if ((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
+    if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
     valHistory.synchronized {
@@ -41,15 +41,19 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     if (changed) Some(value) else None
   }
 
-  private var ordering: EventOrderingCache[A] = new EventOrderingCache[A](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, newValue: A) {
-      val changed = valHistory.synchronized {
-        val changed = !nullSafeEqual(currentValue, newValue);
+  private var ordering: EventOrderingCache[Option[A]] = new EventOrderingCache[Option[A]](sourceDependencies) {
+    override def eventReadyInOrder(event: Event, maybeNewValue: Option[A]) {
+      val (newValue, changed) = valHistory.synchronized {
+        val (newValue, changed) = maybeNewValue match {
+          case Some(newValue) => (newValue, !nullSafeEqual(currentValue, newValue))
+          case None => (value, false)
+        }
         currentValue = newValue;
 
+        if(name.equals("B1")) println(newValue+" from "+event)
         valHistory += (event -> ((newValue, changed)))
         valHistory.notifyAll();
-        changed
+        (newValue, changed)
       }
 
       if (changed) {
@@ -61,8 +65,11 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     }
   }
 
-  protected[this] def updateValue(event: Event, newValue: A) {
-    ordering.eventReady(event, newValue);
+  protected[this] def maybeNewValue(event: Event, newValue: A) {
+    ordering.eventReady(event, Some(newValue));
+  }
+  protected[this] def noNewValue(event: Event) {
+    ordering.eventReady(event, None);
   }
 
   override val changes: EventStream[A] = this

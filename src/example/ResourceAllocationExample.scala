@@ -29,14 +29,14 @@ object ResourceAllocationExample extends App {
     override def notifyUpdate(event: Event, value: A) {
       spawn {
         Thread.sleep(500)
-        updateValue(event, value)
+        maybeNewValue(event, value)
       }
     }
     override def notifyEvent(event: Event) {
       val value = input.value
       spawn {
         Thread.sleep(500)
-        updateValue(event, value)
+        noNewValue(event);
       }
     }
   }

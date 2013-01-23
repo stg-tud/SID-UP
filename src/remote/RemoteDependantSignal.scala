@@ -12,10 +12,10 @@ import reactive.SignalImpl
 class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends SignalImpl[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
   val remoteConnection = new UnicastRemoteObject with ReactiveDependant[A] {
     override def notifyEvent(event: Event) {
-      updateValue(event, value);
+      noNewValue(event)
     }
     override def notifyUpdate(event: Event, newValue: A) {
-      updateValue(event, newValue);
+      maybeNewValue(event, newValue);
     }
   }
 

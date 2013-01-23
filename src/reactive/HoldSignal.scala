@@ -4,10 +4,10 @@ class HoldSignal[A](override val changes: EventStream[A], initialValue: A) exten
   changes.addDependant(this);
   override def sourceDependencies = changes.sourceDependencies;
   override def notifyEvent(event: Event) {
-    notifyUpdate(event, value);
+    noNewValue(event);
   }
   override def notifyUpdate(event: Event, value: A) {
-    updateValue(event, value);
+    maybeNewValue(event, value);
   }
   override def hold(initialValue : A) = new HoldSignal(changes, initialValue);
 }

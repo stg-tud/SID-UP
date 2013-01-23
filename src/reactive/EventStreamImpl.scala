@@ -24,7 +24,7 @@ abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) wi
   private val valHistory = new mutable.WeakHashMap[Event, Option[A]]();
 
   override def awaitMaybeEvent(event: Event): Option[A] = {
-    if ((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
+    if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
     valHistory.synchronized {

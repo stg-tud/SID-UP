@@ -15,33 +15,45 @@ object SnapshotTest extends App {
   }
   val snapshotLog = new ReactiveLog(snapshot);
   val mergedLog = new ReactiveLog(merged);
-  // initial (1, 1+1 = 2)
+  snapshotLog.assert(1);
+  mergedLog.assert(2);
 
   var1.set(3);
-  // now (1, 1+3 = 4)
+  snapshotLog.assert(1);
+  mergedLog.assert(2, 4);
+
   var1.set(4);
-  // now (1, 1+4 = 5)
+  snapshotLog.assert(1);
+  mergedLog.assert(2, 4, 5);
+
   events << new Object
-  // now (1, 4+4 = 8)
+  snapshotLog.assert(1, 4);
+  mergedLog.assert(2, 4, 5, 8);
+
   var1.set(6);
-  // now (1, 4+6 = 10)
+  snapshotLog.assert(1, 4);
+  mergedLog.assert(2, 4, 5, 8, 10);
+
   events << new Object
-  // now (1, 6+6 = 12)
+  snapshotLog.assert(1, 4, 6);
+  mergedLog.assert(2, 4, 5, 8, 10, 12);
+
   events << new Object
-  // remain (1, 6+6 = 12)
+  snapshotLog.assert(1, 4, 6);
+  mergedLog.assert(2, 4, 5, 8, 10, 12);
 
   val transaction = new Transaction
   transaction.set(var1, 5);
   transaction.set(events, new Object);
   transaction.commit();
-  // now (1, 5+5 = 10)
+  snapshotLog.assert(1, 4, 6, 5);
+  mergedLog.assert(2, 4, 5, 8, 10, 12, 10);
 
   events << new Object
-  // remain (1, 5+5 = 10)
+  snapshotLog.assert(1, 4, 6, 5);
+  mergedLog.assert(2, 4, 5, 8, 10, 12, 10);
 
   var1.set(0);
-  // now (1, 0+5 = 10)
-
   snapshotLog.assert(1, 4, 6, 5);
   mergedLog.assert(2, 4, 5, 8, 10, 12, 10, 5);
 }

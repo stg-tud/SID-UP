@@ -28,8 +28,8 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
    */
   private var numUpdatesWithChangedDependency = 0;
 
-//  private lazy val _dirty = updateLog.synchronized { Var(name + ".dirty", numUpdatesWithChangedDependency > 0) }
-//  override def dirty: Signal[Boolean] = _dirty
+  //  private lazy val _dirty = updateLog.synchronized { Var(name + ".dirty", numUpdatesWithChangedDependency > 0) }
+  //  override def dirty: Signal[Boolean] = _dirty
 
   override def notifyUpdate(event: Event, value: Any) {
     notifyUpdate(event, true);
@@ -41,7 +41,11 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
   private def notifyUpdate(event: Event, notifierValueChanged: Boolean) {
     val action = getEmitAction(event, notifierValueChanged);
     if (action.isDefined) {
-      updateValue(event, if (action.get) Signal.during(event) { op } else value);
+      if (action.get) {
+        maybeNewValue(event, Signal.during(event) { op });
+      } else {
+        noNewValue(event);
+      }
     }
   }
 

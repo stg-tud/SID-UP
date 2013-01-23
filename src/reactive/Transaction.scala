@@ -22,10 +22,6 @@ class Transaction {
     this
   }
   
-  def emit[A](source : ReactiveSource[A], value : A ) {
-    throw new UnsupportedOperationException("TODO");
-  }
-
   def touch(box: ReactiveSource[_]) {
     boxes += box;
     values -= box;

@@ -9,10 +9,10 @@ class Var[A](name: String, initialValue: A, initialEvent : Event) extends Signal
   }
 
   override protected[reactive] def emit(event: Event, newValue: A) {
-    updateValue(event, newValue);
+    maybeNewValue(event, newValue)
   }
   override protected[reactive] def emit(event: Event) {
-    emit(event, value);
+    noNewValue(event)
   }
 }
 
