@@ -1,6 +1,9 @@
-package reactive
+package reactive.impl
 import java.util.UUID
 import scala.collection.mutable
+import reactive.EventStream
+import reactive.ReactiveDependant
+import reactive.Event
 
 class MergeStream[A](streams: EventStream[_ <: A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with ReactiveDependant[A] {
   streams.foreach { _.addDependant(this) }

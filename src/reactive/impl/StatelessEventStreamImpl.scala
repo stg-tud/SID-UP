@@ -1,6 +1,8 @@
-package reactive
+package reactive.impl
 
 import scala.collection.mutable
+import reactive.EventStream
+import reactive.Event
 
 abstract class StatelessEventStreamImpl[A](name: String) extends EventStreamImpl[A](name) with EventStream[A] {
   /**

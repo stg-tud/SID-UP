@@ -6,8 +6,8 @@ import reactive.Var
 import reactive.Event
 import reactive.ReactiveDependant
 import reactive.Signal
-import reactive.SignalImpl
-import reactive.StatelessSignal
+import reactive.impl.SignalImpl
+import reactive.impl.StatelessSignal
 
 class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer[" + input.name + "]", input.value) with ReactiveDependant[A] {
   input.addDependant(this);

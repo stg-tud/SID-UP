@@ -1,20 +1,14 @@
 package reactive
 
 import scala.collection.immutable.Map
+import reactive.impl.EventSourceImpl
+import reactive.impl.EventSourceImpl
 
-class EventSource[A](name: String) extends StatelessEventStreamImpl[A](name) with ReactiveSource[A] {
-  self => 
-    
-  def <<(value: A) = {
-    super.emit(value);
-  }
-
-  protected[reactive] override def emit(event: Event, maybeValue: Option[A]) {
-    propagate(event, maybeValue);
-  }
+trait EventSource[A] extends EventStream[A] with ReactiveSource[A] {
+  def <<(value: A) : Event
 }
 
 object EventSource {
-  def apply[A]() = new EventSource[A]("AnonEventSource");
-  def apply[A](name: String) = new EventSource[A](name);
+  def apply[A]() : EventSource[A] = apply[A]("AnonEventSource");
+  def apply[A](name: String) : EventSource[A] = new EventSourceImpl[A](name);
 }

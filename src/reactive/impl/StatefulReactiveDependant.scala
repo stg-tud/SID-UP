@@ -1,4 +1,7 @@
-package reactive
+package reactive.impl
+import reactive.ReactiveDependant
+import reactive.Reactive
+import reactive.Event
 
 trait StatefulReactiveDependant[A] extends ReactiveDependant[A] {
   self : Reactive[_] =>

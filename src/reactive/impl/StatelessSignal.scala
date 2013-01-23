@@ -1,4 +1,5 @@
-package reactive
+package reactive.impl
+import reactive.Event
 
 abstract class StatelessSignal[A](name: String, initialValue: A) extends SignalImpl[A](name, initialValue) {
   private var ordering: EventOrderingCache[Option[A]] = new EventOrderingCache[Option[A]](sourceDependencies) {

@@ -1,7 +1,8 @@
-package reactive
+package reactive.impl
 
 import scala.collection.mutable
 import java.util.UUID
+import reactive.Event
 
 abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
   private val lastEvents = mutable.Map[UUID, UUID]()

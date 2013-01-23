@@ -1,6 +1,9 @@
-package reactive
+package reactive.impl
 import scala.collection.mutable
 import java.util.UUID
+import reactive.Signal
+import reactive.Event
+import reactive.ReactiveDependant
 
 class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends StatelessSignal[A](name, op) with ReactiveDependant[Any] {
   private val debug = false;

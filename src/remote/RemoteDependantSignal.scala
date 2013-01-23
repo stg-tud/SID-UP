@@ -7,8 +7,8 @@ import java.rmi.server.UnicastRemoteObject
 import java.util.UUID
 import reactive.ReactiveDependant
 import reactive.Signal
-import reactive.SignalImpl
-import reactive.StatelessSignal
+import reactive.impl.SignalImpl
+import reactive.impl.StatelessSignal
 
 class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends StatelessSignal[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
   val remoteConnection = new UnicastRemoteObject with ReactiveDependant[A] {

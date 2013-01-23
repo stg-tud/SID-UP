@@ -1,6 +1,10 @@
-package reactive
+package reactive.impl
 
 import scala.collection.mutable
+import reactive.Signal
+import reactive.EventStream
+import reactive.Event
+import reactive.ReactiveDependant
 
 class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.value) {
 

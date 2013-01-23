@@ -1,39 +1,20 @@
 package example
-import scala.concurrent.ops.spawn
-import javax.swing.JFrame
-import reactive.Var
-import java.awt.GridLayout
-import javax.swing.JLabel
-import ui.ReactiveSpinner
-import ui.ReactiveLabel
 import reactive.Signal
-import reactive.Reactive
+import javax.swing.JFrame
+import testtools.FakeNetwork
+import java.awt.GridLayout
 import javax.swing.WindowConstants
-import java.util.UUID
-import reactive.Event
-import util.SerializationSafe
-import reactive.ReactiveDependant
-import reactive.Lift
-import reactive.SignalImpl
-import reactive.StatelessSignal
+import ui.ReactiveSpinner
+import javax.swing.JLabel
+import ui.ReactiveLabel
+import reactive.Lift.lift2
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
     override def connectToServer(requests: Signal[Int]) = {
-      fakeNetwork(makeServer(fakeNetwork(requests)))
+      new FakeNetwork(makeServer(new FakeNetwork(requests)))
     }
   })
-
-  def fakeNetwork[A: SerializationSafe](input: Signal[A]) = new StatelessSignal[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
-    input.addDependant(this);
-    override def sourceDependencies = input.sourceDependencies
-    override def notifyEvent(event: Event, value: Option[A]) {
-      spawn {
-        Thread.sleep(500)
-        propagate(event, value)
-      }
-    }
-  }
 
   def newFrame(title: String) = {
     val frame = new JFrame(title);
@@ -52,7 +33,9 @@ object ResourceAllocationExample extends App {
 
   def makeServer(clientRequests: Signal[Int]) = {
     val resourcesInput = new ReactiveSpinner(44)
-    val committed = Lift(math.min(_: Int, _: Int))(clientRequests, resourcesInput.value);
+    val regularMin : (Int, Int) => Int = math.min(_: Int, _: Int)
+    val reactiveMin : (Signal[Int], Signal[Int]) => Signal[Int] = regularMin
+    val committed = reactiveMin(clientRequests, resourcesInput.value);
 
     val frame = newFrame("Server");
 
@@ -86,7 +69,9 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(committedResources).asComponent)
 
     frame.add(new JLabel("Resource deficit:"));
-    frame.add(new ReactiveLabel(Lift((_: Int) - (_: Int))(requested.value, committedResources)).asComponent)
+    val difference = (_: Int) - (_: Int);
+    val reactiveDifference : (Signal[Int],Signal[Int]) => Signal[Int] = difference 
+    frame.add(new ReactiveLabel(reactiveDifference(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
     frame

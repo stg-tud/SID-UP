@@ -1,4 +1,4 @@
-package reactive
+package reactive.impl
 
 import scala.collection.mutable
 import scala.concurrent.ops.spawn
@@ -14,6 +14,9 @@ import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import remote.RemoteReactive
 import scala.actors.threadpool.locks.ReadWriteLock
+import reactive.Reactive
+import reactive.Event
+import reactive.ReactiveDependant
 
 abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
   private val dependencies = mutable.Set[ReactiveDependant[A]]()
