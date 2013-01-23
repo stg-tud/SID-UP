@@ -3,14 +3,14 @@ import scala.collection.mutable
 import java.util.UUID
 import util.Util.nullSafeEqual
 
-trait Signal[A] extends Reactive[A] {
+trait Signal[+A] extends Reactive[A] {
   def value(event : Event): A
   def value : A = value(Signal.threadEvent.get())
 
   def awaitValue(event: Event): A
 
   def changes: EventStream[A]
-  def snapshot(when: EventStream[_]) = new SnapshotSignal(this, when);
+  def snapshot(when: EventStream[_]) : Signal[A] = new SnapshotSignal(this, when);
 }
 
 object Signal {

@@ -20,10 +20,10 @@ import remote.RemoteReactive
  *  implemented only to provide a remote-capable wrapper to just forward all
  *  method invocations.
  */
-trait Reactive[A] extends RemoteReactive[A] {
+trait Reactive[+A] extends RemoteReactive[A] {
   val name: String;
   def sourceDependencies: Map[UUID, UUID]
-  def isConnectedTo(event : Event) : Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
+  def isConnectedTo(event: Event): Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)
   // ====== Printing stuff ======
@@ -92,16 +92,18 @@ object Reactive {
     }
   }
   def executePooled[A](dependencies: Iterable[A], op: A => Unit) {
-    lock.synchronized {
-      if (pool == null) {
-        dependencies.foreach { x => op(x) }
-      } else {
-        dependencies.foreach { x =>
-          pool.execute(new Runnable {
-            override def run() {
-              op(x)
-            }
-          })
+    if (!dependencies.isEmpty) {
+      lock.synchronized {
+        if (pool == null) {
+          dependencies.foreach { x => op(x) }
+        } else {
+          dependencies.foreach { x =>
+            pool.execute(new Runnable {
+              override def run() {
+                op(x)
+              }
+            })
+          }
         }
       }
     }

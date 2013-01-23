@@ -8,10 +8,10 @@ import java.util.UUID
 import reactive.ReactiveDependant
 
 abstract class RemoteReactiveImpl[A : SerializationSafe](local: Reactive[A]) extends UnicastRemoteObject with RemoteReactive[A] {
-  override def addDependant(remote: ReactiveDependant[_ >: A]) {
+  override def addDependant(remote: ReactiveDependant[A]) {
     local.addDependant(remote)
   }
-  override def removeDependant(remote: ReactiveDependant[_ >: A]) {
+  override def removeDependant(remote: ReactiveDependant[A]) {
     local.removeDependant(remote)
   }
 }

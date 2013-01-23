@@ -8,9 +8,9 @@ import java.rmi.server.UnicastRemoteObject
 import reactive.EventStream
 import reactive.Signal
 
-@remote trait RemoteReactive[A] {
-  def addDependant(obs: ReactiveDependant[_ >: A])
-  def removeDependant(obs: ReactiveDependant[_ >: A])
+@remote trait RemoteReactive[+A] {
+  def addDependant(obs: ReactiveDependant[A])
+  def removeDependant(obs: ReactiveDependant[A])
 }
 
 object RemoteReactive {

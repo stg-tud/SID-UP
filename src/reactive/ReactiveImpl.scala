@@ -16,21 +16,21 @@ import remote.RemoteReactive
 import scala.actors.threadpool.locks.ReadWriteLock
 
 abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
-  private val dependencies = mutable.Set[ReactiveDependant[_ >: A]]()
+  private val dependencies = mutable.Set[ReactiveDependant[A]]()
   private val dependenciesLock = new ReentrantReadWriteLock;
-  override def addDependant(obs: ReactiveDependant[_ >: A]) {
+  override def addDependant(obs: ReactiveDependant[A]) {
     dependenciesLock.writeLock().lock();
     dependencies += obs
     dependenciesLock.writeLock().unlock();
   }
-  override def removeDependant(obs: ReactiveDependant[_ >: A]) {
+  override def removeDependant(obs: ReactiveDependant[A]) {
     dependenciesLock.writeLock().lock();
     dependencies -= obs
     dependenciesLock.writeLock().unlock();
   }
   protected def notifyDependants(event: Event, maybeValue: Option[A]) {
     dependenciesLock.readLock().lock();
-    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
+    Reactive.executePooled(dependencies, { x: ReactiveDependant[A] =>
       x.notifyEvent(event, maybeValue)
     });
     dependenciesLock.readLock().unlock();

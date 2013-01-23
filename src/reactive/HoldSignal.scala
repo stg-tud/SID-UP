@@ -6,5 +6,4 @@ class HoldSignal[A](override val changes: EventStream[A], initialValue: A) exten
   override def notifyEvent(event: Event, maybeValue: Option[A]) {
     propagate(event, maybeValue);
   }
-  override def hold(initialValue: A) = new HoldSignal(changes, initialValue);
 }
