@@ -11,9 +11,12 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
 
-  def value = {
-    val currentEvent = Signal.threadEvent.get();
-    valHistory.synchronized { valHistory.get(currentEvent) }.map { _._1 }.getOrElse(currentValue);
+  def value(currentEvent: Event) = {
+    if (isConnectedTo(currentEvent)) {
+      valHistory.synchronized { valHistory(currentEvent) }._1;
+    } else {
+      currentValue
+    }
   }
 
   private def await(event: Event): (A, Boolean) = {
@@ -29,6 +32,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
       value
     }.get
   }
+
   /**
    * suspends the current thread until this reactive has completed processing the given event.
    */
@@ -41,37 +45,24 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     if (changed) Some(value) else None
   }
 
-  private var ordering: EventOrderingCache[Option[A]] = new EventOrderingCache[Option[A]](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, maybeNewValue: Option[A]) {
-      val (newValue, changed) = valHistory.synchronized {
-        val (newValue, changed) = maybeNewValue match {
-          case Some(newValue) => (newValue, !nullSafeEqual(currentValue, newValue))
-          case None => (value, false)
-        }
-        currentValue = newValue;
+  protected[this] def updateValue(event: Event)(calculateNewValue: A => A) {
+    val (newValue, changed) = valHistory.synchronized {
+      val newValue = calculateNewValue(currentValue);
+      val changed = !nullSafeEqual(currentValue, newValue)
+      currentValue = newValue;
 
-        if(name.equals("B1")) println(newValue+" from "+event)
-        valHistory += (event -> ((newValue, changed)))
-        valHistory.notifyAll();
-        (newValue, changed)
-      }
+      valHistory += (event -> ((newValue, changed)))
+      valHistory.notifyAll();
+      (newValue, changed)
+    }
 
-      if (changed) {
-        notifyDependants(event, newValue);
-        notifyObservers(event, newValue)
-      } else {
-        notifyDependants(event);
-      }
+    if (changed) {
+      notifyDependants(event, Some(newValue));
+      notifyObservers(event, newValue)
+    } else {
+      notifyDependants(event, None);
     }
   }
 
-  protected[this] def maybeNewValue(event: Event, newValue: A) {
-    ordering.eventReady(event, Some(newValue));
-  }
-  protected[this] def noNewValue(event: Event) {
-    ordering.eventReady(event, None);
-  }
-
   override val changes: EventStream[A] = this
-  override def snapshot(when: EventStream[_]) = new SnapshotSignal(this, when);
 }

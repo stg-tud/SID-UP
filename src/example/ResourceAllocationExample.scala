@@ -15,6 +15,7 @@ import util.SerializationSafe
 import reactive.ReactiveDependant
 import reactive.Lift
 import reactive.SignalImpl
+import reactive.StatelessSignal
 
 object ResourceAllocationExample extends App {
   makeClient(new ServerFactory {
@@ -23,20 +24,13 @@ object ResourceAllocationExample extends App {
     }
   })
 
-  def fakeNetwork[A: SerializationSafe](input: Signal[A]) = new SignalImpl[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
+  def fakeNetwork[A: SerializationSafe](input: Signal[A]) = new StatelessSignal[A]("NetworkDelayed[" + input.name + "]", input.value) with ReactiveDependant[A] {
     input.addDependant(this);
     override def sourceDependencies = input.sourceDependencies
-    override def notifyUpdate(event: Event, value: A) {
+    override def notifyEvent(event: Event, value: Option[A]) {
       spawn {
         Thread.sleep(500)
-        maybeNewValue(event, value)
-      }
-    }
-    override def notifyEvent(event: Event) {
-      val value = input.value
-      spawn {
-        Thread.sleep(500)
-        noNewValue(event);
+        propagate(event, value)
       }
     }
   }

@@ -7,6 +7,7 @@ import reactive.Reactive
 import java.text.SimpleDateFormat
 import java.util.Date
 import scala.actors.threadpool.AtomicInteger
+import testtools.ReactiveLog
 
 object RandomDelays extends App {
   val format = new SimpleDateFormat("[mm:ss.SSS] ")

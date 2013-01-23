@@ -1,6 +1,7 @@
 package test
 import reactive.EventSource
 import reactive.Transaction
+import testtools.ReactiveLog
 
 object MergeTest extends App {
   val e1 = EventSource[Object]

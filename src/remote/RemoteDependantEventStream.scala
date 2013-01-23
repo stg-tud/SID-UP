@@ -9,15 +9,12 @@ import reactive.ReactiveDependant
 import reactive.Signal
 import reactive.EventStream
 import reactive.ReactiveImpl
-import reactive.EventStreamImpl
+import reactive.StatelessEventStreamImpl
 
-class RemoteDependantEventStream[A: SerializationSafe](establishConnectionData: EstablishEventStreamConnectionData[A]) extends EventStreamImpl[A]("remote" + establishConnectionData.name) {
+class RemoteDependantEventStream[A: SerializationSafe](establishConnectionData: EstablishEventStreamConnectionData[A]) extends StatelessEventStreamImpl[A]("remote" + establishConnectionData.name) {
   val remoteConnection = new UnicastRemoteObject with ReactiveDependant[A] {
-    override def notifyEvent(event: Event) {
-      notifyDependants(event)
-    }
-    override def notifyUpdate(event: Event, newValue: A) {
-      notifyDependants(event, newValue);
+    override def notifyEvent(event: Event, maybeValue: Option[A]) {
+      propagate(event, maybeValue);
     }
   }
 

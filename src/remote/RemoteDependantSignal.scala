@@ -8,14 +8,12 @@ import java.util.UUID
 import reactive.ReactiveDependant
 import reactive.Signal
 import reactive.SignalImpl
+import reactive.StatelessSignal
 
-class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends SignalImpl[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
+class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends StatelessSignal[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
   val remoteConnection = new UnicastRemoteObject with ReactiveDependant[A] {
-    override def notifyEvent(event: Event) {
-      noNewValue(event)
-    }
-    override def notifyUpdate(event: Event, newValue: A) {
-      maybeNewValue(event, newValue);
+    override def notifyEvent(event: Event, maybeValue: Option[A]) {
+      propagate(event, maybeValue);
     }
   }
 

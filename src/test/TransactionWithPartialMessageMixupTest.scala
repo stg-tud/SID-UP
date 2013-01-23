@@ -4,6 +4,8 @@ import reactive.Var
 import reactive.Transaction
 import reactive.Signal.autoSignalToValue
 import reactive.Signal
+import testtools.ReactiveLog
+import testtools.MessageMixup
 
 object TransactionWithPartialMessageMixupTest extends App {
   val var1 = Var("1", 1);

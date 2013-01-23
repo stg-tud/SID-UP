@@ -5,6 +5,7 @@ import reactive.Signal
 import reactive.Signal.autoSignalToValue
 import reactive.Transaction
 import reactive.Reactive
+import testtools.ReactiveLog
 
 object SnapshotTest extends App {
   val var1 = Var(1);

@@ -14,8 +14,7 @@ trait ReactiveSource[A] {
   protected[reactive] var lastEvent = UUID.randomUUID();
   protected[reactive] val lock = new Object()
 
-  protected[reactive] def emit(event: Event, newValue : A)
-  protected[reactive] def emit(event: Event)
+  protected[reactive] def emit(event: Event, maybeValue : Option[A])
 
   override def sourceDependencies = Map(uuid -> lastEvent);
 }

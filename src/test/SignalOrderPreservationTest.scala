@@ -6,6 +6,8 @@ import reactive.Event
 import scala.collection.mutable
 import reactive.Signal
 import reactive.Signal.autoSignalToValue
+import testtools.ReactiveLog
+import testtools.MessageMixup
 
 object SignalOrderPreservationTest extends App {
   val input = Var(1);

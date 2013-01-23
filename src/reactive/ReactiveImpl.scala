@@ -28,17 +28,10 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     dependencies -= obs
     dependenciesLock.writeLock().unlock();
   }
-  protected def notifyDependants(event: Event) {
+  protected def notifyDependants(event: Event, maybeValue: Option[A]) {
     dependenciesLock.readLock().lock();
     Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
-      x.notifyEvent(event)
-    });
-    dependenciesLock.readLock().unlock();
-  }
-  protected def notifyDependants(event: Event, newValue: A) {
-    dependenciesLock.readLock().lock();
-    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
-      x.notifyUpdate(event, newValue)
+      x.notifyEvent(event, maybeValue)
     });
     dependenciesLock.readLock().unlock();
   }

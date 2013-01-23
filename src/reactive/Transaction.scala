@@ -48,8 +48,8 @@ class Transaction {
   private def setBoxFromMap[A](box: ReactiveSource[A], event: Event): Event = {
     box.lastEvent = event.uuid;
     values.get(box) match {
-      case Some(value) => box.emit(event, value.asInstanceOf[A]);
-      case None => box.emit(event);
+      case Some(value) => box.emit(event, Some(value.asInstanceOf[A]));
+      case None => box.emit(event, None);
     }
     event
   }

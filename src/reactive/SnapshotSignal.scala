@@ -2,7 +2,7 @@ package reactive
 
 import scala.collection.mutable
 
-class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.value) {
+class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.value) {
 
   override def sourceDependencies = events.sourceDependencies
 
@@ -11,20 +11,8 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
   private val waitingForSignal = mutable.Set[Event]()
   private val ignoreForSignal = mutable.Set[Event]()
 
-  private def propagateUpdate(event: Event, maybeNewValue: Option[A]) {
-    maybeNewValue match {
-      case Some(newValue) => this.maybeNewValue(event, newValue);
-      case None => noNewValue(event);
-    }
-  }
   private val signalObserver = new ReactiveDependant[A] {
-    def notifyEvent(event: Event) {
-      notifyUpdate(event, None)
-    }
-    def notifyUpdate(event: Event, newValue: A) {
-      notifyUpdate(event, Some(newValue))
-    }
-    private def notifyUpdate(event: Event, maybeNewValue: Option[A]) {
+    override def notifyEvent(event: Event, maybeValue: Option[A]) {
       if (events.isConnectedTo(event)) {
         val shouldEmit = lock.synchronized {
           if (ignoreForSignal.remove(event)) {
@@ -32,13 +20,13 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
           } else {
             val shouldEmit = waitingForSignal.remove(event);
             if (!shouldEmit) {
-              waitingForEventStream += (event -> maybeNewValue);
+              waitingForEventStream += (event -> maybeValue);
             }
             shouldEmit
           }
         }
         if (shouldEmit) {
-          propagateUpdate(event, maybeNewValue);
+          propagate(event, maybeValue);
         }
       }
 
@@ -46,26 +34,28 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
   }
   signal.addDependant(signalObserver);
   private val eventsObserver = new ReactiveDependant[Any] {
-    def notifyEvent(event: Event) {
-      noNewValue(event);
-      if (signal.isConnectedTo(event)) {
-        lock.synchronized {
-          if (waitingForEventStream.remove(event).isEmpty) {
-            ignoreForSignal += event;
+    def notifyEvent(event: Event, maybeValue: Option[Any]) {
+      maybeValue match {
+        case None =>
+          propagate(event, None);
+          if (signal.isConnectedTo(event)) {
+            lock.synchronized {
+              if (waitingForEventStream.remove(event).isEmpty) {
+                ignoreForSignal += event;
+              }
+            }
           }
-        }
-      }
-    }
-    def notifyUpdate(event: Event, newValue: Any) {
-      if (signal.isConnectedTo(event)) {
-        lock.synchronized {
-          waitingForEventStream.remove(event) match {
-            case Some(maybeNewValue) => propagateUpdate(event, maybeNewValue);
-            case None => waitingForSignal += event
+        case Some(_) =>
+          if (signal.isConnectedTo(event)) {
+            lock.synchronized {
+              waitingForEventStream.remove(event) match {
+                case Some(maybeNewValue) => propagate(event, maybeNewValue);
+                case None => waitingForSignal += event
+              }
+            }
+          } else {
+            propagate(event, Some(signal.value));
           }
-        }
-      } else {
-        maybeNewValue(event, signal.value);
       }
     }
   }

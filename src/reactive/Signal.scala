@@ -4,13 +4,13 @@ import java.util.UUID
 import util.Util.nullSafeEqual
 
 trait Signal[A] extends Reactive[A] {
-  def value: A
+  def value(event : Event): A
+  def value : A = value(Signal.threadEvent.get())
 
-  def awaitValue(event: Event) : A
-//  def dirty: Signal[Boolean]
+  def awaitValue(event: Event): A
 
   def changes: EventStream[A]
-  def snapshot(when : EventStream[_]) : Signal[A]
+  def snapshot(when: EventStream[_]) = new SnapshotSignal(this, when);
 }
 
 object Signal {

@@ -3,6 +3,7 @@ import reactive.Var
 import reactive.Signal
 import reactive.Signal.autoSignalToValue
 import reactive.Transaction
+import testtools.ReactiveLog
 
 object TransactionTest extends App {
 	val var1 = Var(1);

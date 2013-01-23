@@ -3,16 +3,13 @@ import java.util.UUID
 import scala.collection.mutable
 import scala.collection.mutable.SynchronizedMap
 
-class Var[A](name: String, initialValue: A, initialEvent : Event) extends SignalImpl[A](name, initialValue) with ReactiveSource[A] {
+class Var[A](name: String, initialValue: A, initialEvent: Event) extends StatelessSignal[A](name, initialValue) with ReactiveSource[A] {
   def set(value: A) = {
     emit(value);
   }
 
-  override protected[reactive] def emit(event: Event, newValue: A) {
-    maybeNewValue(event, newValue)
-  }
-  override protected[reactive] def emit(event: Event) {
-    noNewValue(event)
+  override protected[reactive] def emit(event: Event, maybeNewValue: Option[A]) {
+    propagate(event, maybeNewValue)
   }
 }
 

@@ -2,7 +2,7 @@ package reactive
 import scala.collection.mutable
 import java.util.UUID
 
-class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends SignalImpl[A](name, op) with ReactiveDependant[Any] {
+class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends StatelessSignal[A](name, op) with ReactiveDependant[Any] {
   private val debug = false;
 
   /**
@@ -28,23 +28,12 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
    */
   private var numUpdatesWithChangedDependency = 0;
 
-  //  private lazy val _dirty = updateLog.synchronized { Var(name + ".dirty", numUpdatesWithChangedDependency > 0) }
-  //  override def dirty: Signal[Boolean] = _dirty
-
-  override def notifyUpdate(event: Event, value: Any) {
-    notifyUpdate(event, true);
-  }
-  override def notifyEvent(event: Event) {
-    notifyUpdate(event, false);
-  }
-
-  private def notifyUpdate(event: Event, notifierValueChanged: Boolean) {
-    val action = getEmitAction(event, notifierValueChanged);
-    if (action.isDefined) {
-      if (action.get) {
-        maybeNewValue(event, Signal.during(event) { op });
+  override def notifyEvent(event: Event, value: Option[Any]) {
+    getEmitAction(event, value.isDefined).foreach { recalculate =>
+      if (recalculate) {
+        propagate(event, Some(Signal.during(event) { op }));
       } else {
-        noNewValue(event);
+        propagate(event, None);
       }
     }
   }
