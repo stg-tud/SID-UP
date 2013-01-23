@@ -14,7 +14,7 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
     suspendedRecords.synchronized {
       val record = new EventRecord(event, calculateMissingPredecessors(event), data);
       if (record.missingPredecessors.isEmpty) {
-        publish(record);
+        Some(record);
       } else {
         record.missingPredecessors.foreach { predecessor =>
           suspendedRecords += (predecessor -> (suspendedRecords.get(predecessor) match {
@@ -22,8 +22,9 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
             case _ => List(record)
           }))
         }
+        None
       }
-    }
+    }.foreach { publish(_) }
   }
 
   private def calculateMissingPredecessors(event: Event) = {
@@ -43,27 +44,35 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
     result
   }
 
-  private val publishQueue = mutable.Queue[EventRecord]()
   private def publish(newRecord: EventRecord) {
-    publishQueue += newRecord;
+    var readyEvents = newRecord :: Nil
 
-    while (!publishQueue.isEmpty) {
-      val record = publishQueue.dequeue()
-      record.event.sourcesAndPredecessors.keysIterator.foreach { source =>
-        lastEvents += (source -> record.event.uuid)
-      }
+    while (!readyEvents.isEmpty) {
+      val record = readyEvents.head
+      readyEvents = readyEvents.tail
+
       eventReadyInOrder(record.event, record.data)
 
-      suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>
-        if (suspendedRecord.missingPredecessors.size == 1) {
-          publishQueue += suspendedRecord
-        } else {
-          suspendedRecord.missingPredecessors -= record.event.uuid
+      suspendedRecords.synchronized {
+        record.event.sourcesAndPredecessors.keysIterator.foreach { source =>
+          lastEvents += (source -> record.event.uuid)
+        }
+
+        suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>
+          if (suspendedRecord.missingPredecessors.size == 1) {
+            readyEvents = suspendedRecord :: readyEvents;
+          } else {
+            suspendedRecord.missingPredecessors -= record.event.uuid
+          }
         }
       }
     }
   }
 
+  /**
+   *  for temporally related events, this will be invoked in order.
+   *  for temporally unrelated events, this can be invoked concurrently.
+   */
   protected[this] def eventReadyInOrder(event: Event, data: T)
 }
 

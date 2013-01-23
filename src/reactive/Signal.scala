@@ -6,7 +6,7 @@ import util.Util.nullSafeEqual
 trait Signal[A] extends Reactive[A] {
   def value: A
 
-  def await(event: Event)
+  def awaitValue(event: Event) : A
 //  def dirty: Signal[Boolean]
 
   def changes: EventStream[A]

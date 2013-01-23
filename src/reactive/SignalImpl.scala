@@ -9,17 +9,14 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
-  private val valHistory = new mutable.WeakHashMap[Event, A]();
+  private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
 
   def value = {
     val currentEvent = Signal.threadEvent.get();
-    valHistory.synchronized { valHistory.get(currentEvent) }.getOrElse(currentValue);
+    valHistory.synchronized { valHistory.get(currentEvent) }.map { _._1 }.getOrElse(currentValue);
   }
-  
-  /**
-   * suspends the current thread until this reactive has completed processing the given event.
-   */
-  def await(event: Event) = {
+
+  private def await(event: Event): (A, Boolean) = {
     if ((event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
@@ -32,27 +29,40 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
       value
     }.get
   }
-
-  /*
-   *  TODO needs to be split into subclasses:
-   *   - functional signal -> cache into ordering, calculate if changed once ordered
-   *   - stateful signal -> will invoke in order, so just forward (do stateful signals exist?!)  
+  /**
+   * suspends the current thread until this reactive has completed processing the given event.
    */
+  override def awaitValue(event: Event): A = {
+    await(event)._1
+  }
+
+  override def awaitMaybeEvent(event: Event): Option[A] = {
+    val (value, changed) = await(event);
+    if (changed) Some(value) else None
+  }
+
+  private var ordering: EventOrderingCache[A] = new EventOrderingCache[A](sourceDependencies) {
+    override def eventReadyInOrder(event: Event, newValue: A) {
+      val changed = valHistory.synchronized {
+        val changed = !nullSafeEqual(currentValue, newValue);
+        currentValue = newValue;
+
+        valHistory += (event -> ((newValue, changed)))
+        valHistory.notifyAll();
+        changed
+      }
+
+      if (changed) {
+        notifyDependants(event, newValue);
+        notifyObservers(event, newValue)
+      } else {
+        notifyDependants(event);
+      }
+    }
+  }
+
   protected[this] def updateValue(event: Event, newValue: A) {
-    val changed = valHistory.synchronized {
-      val changed = !nullSafeEqual(currentValue, newValue);
-      currentValue = newValue;
-
-      valHistory += (event -> newValue)
-      valHistory.notifyAll();
-      changed
-    }
-
-    if (changed) {
-      notifyDependants(event, newValue);
-    } else {
-      notifyDependants(event);
-    }
+    ordering.eventReady(event, newValue);
   }
 
   override val changes: EventStream[A] = this

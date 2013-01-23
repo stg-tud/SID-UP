@@ -43,7 +43,7 @@ object Test extends App {
     println("updating source...");
     val event = s.set(2)
     println("waiting for propagation to complete...");
-    c.await(event);
+    c.awaitValue(event);
     println("waiting period completed.");
 
     println
@@ -53,7 +53,7 @@ object Test extends App {
     println("updating source...");
     val event2 = s.set(4);
     println("waiting for propagation to complete...");
-    c.await(event2)
+    c.awaitValue(event2)
     println("waiting period completed, terminating thread pool.");
   }
 

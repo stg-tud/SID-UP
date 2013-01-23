@@ -13,6 +13,7 @@ import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import remote.RemoteReactive
+import scala.actors.threadpool.locks.ReadWriteLock
 
 abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
   private val dependencies = mutable.Set[ReactiveDependant[_ >: A]]()
@@ -27,6 +28,21 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     dependencies -= obs
     dependenciesLock.writeLock().unlock();
   }
+  protected def notifyDependants(event: Event) {
+    dependenciesLock.readLock().lock();
+    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
+      x.notifyEvent(event)
+    });
+    dependenciesLock.readLock().unlock();
+  }
+  protected def notifyDependants(event: Event, newValue: A) {
+    dependenciesLock.readLock().lock();
+    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
+      x.notifyUpdate(event, newValue)
+    });
+    dependenciesLock.readLock().unlock();
+  }
+
   def sourceDependencies: Map[UUID, UUID]
   //  protected[reactive] def level: Int;
 
@@ -45,33 +61,10 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     observersLock.writeLock().unlock()
   }
 
-  private val ordering = new EventOrderingCache[Option[A]](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, value: Option[A]) {
-      if (value.isDefined) {
-        observersLock.readLock().lock();
-        observers.foreach { _(value.get) }
-        observersLock.readLock().unlock();
-      }
-    }
-  }
-  protected def publishValueInOrder(newValue: A) {
-  }
-  protected def notifyDependants(event: Event) {
-    dependenciesLock.readLock().lock();
-    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
-      x.notifyEvent(event)
-    });
-    dependenciesLock.readLock().unlock();
-    ordering.eventReady(event, None);
-  }
-
-  protected def notifyDependants(event: Event, newValue: A) {
-    dependenciesLock.readLock().lock();
-    Reactive.executePooled(dependencies, { x: ReactiveDependant[_ >: A] =>
-      x.notifyUpdate(event, newValue)
-    });
-    dependenciesLock.readLock().unlock();
-    ordering.eventReady(event, Some(newValue));
+  protected def notifyObservers(event: Event, value: A) {
+    observersLock.readLock().lock();
+    observers.foreach { _(value) }
+    observersLock.readLock().unlock();
   }
 
   // ====== Printing stuff ======
