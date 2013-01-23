@@ -12,7 +12,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
 
   def value(currentEvent: Event) = {
-    if (isConnectedTo(currentEvent)) {
+    if (currentEvent != null && isConnectedTo(currentEvent)) {
       valHistory.synchronized { valHistory(currentEvent) }._1;
     } else {
       currentValue

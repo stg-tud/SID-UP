@@ -1,7 +1,5 @@
 +   2   proper solution for source dependencies / late reactive creation
         -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
-++  3   implement folding signal
-        -> cannot fold over continuous things, so only event.fold?
 +   ??  implement more funny event things
 +   10  implement proper demo application (CRUD??)
 -   2   implement exception propagation

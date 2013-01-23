@@ -3,7 +3,6 @@ package reactive
 import scala.collection.mutable
 
 abstract class StatelessEventStreamImpl[A](name: String) extends EventStreamImpl[A](name) with EventStream[A] {
-
   /**
    * lazily instantiated when first observer is added
    */
