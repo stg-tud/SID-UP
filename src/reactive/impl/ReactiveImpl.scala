@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scala.concurrent.ops.spawn
 import util.ToStringHelper._
 import util.Util._
+import util.LockWithExecute._
 import java.util.UUID
 import scala.concurrent.ThreadPoolRunner
 import scala.actors.threadpool.Executor
@@ -22,21 +23,21 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
   private val dependencies = mutable.Set[ReactiveDependant[A]]()
   private val dependenciesLock = new ReentrantReadWriteLock;
   override def addDependant(obs: ReactiveDependant[A]) {
-    dependenciesLock.writeLock().lock();
-    dependencies += obs
-    dependenciesLock.writeLock().unlock();
+    dependenciesLock.writeLocked {
+      dependencies += obs
+    }
   }
   override def removeDependant(obs: ReactiveDependant[A]) {
-    dependenciesLock.writeLock().lock();
-    dependencies -= obs
-    dependenciesLock.writeLock().unlock();
+    dependenciesLock.writeLocked {
+      dependencies -= obs
+    }
   }
   protected def notifyDependants(event: Event, maybeValue: Option[A]) {
-    dependenciesLock.readLock().lock();
-    Reactive.executePooled(dependencies, { x: ReactiveDependant[A] =>
-      x.notifyEvent(event, maybeValue)
-    });
-    dependenciesLock.readLock().unlock();
+    dependenciesLock.readLocked {
+      Reactive.executePooled(dependencies, { x: ReactiveDependant[A] =>
+        x.notifyEvent(event, maybeValue)
+      });
+    }
   }
 
   def sourceDependencies: Map[UUID, UUID]
@@ -47,20 +48,20 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
   private val observers = mutable.Set[A => Unit]()
   private val observersLock = new ReentrantReadWriteLock
   def observe(obs: A => Unit) {
-    observersLock.writeLock().lock()
-    observers += obs
-    observersLock.writeLock().unlock()
+    observersLock.writeLocked {
+      observers += obs
+    }
   }
   def unobserve(obs: A => Unit) {
-    observersLock.writeLock().lock()
-    observers -= obs
-    observersLock.writeLock().unlock()
+    observersLock.writeLocked {
+      observers -= obs
+    }
   }
 
   protected def notifyObservers(event: Event, value: A) {
-    observersLock.readLock().lock();
-    observers.foreach { _(value) }
-    observersLock.readLock().unlock();
+    observersLock.readLocked {
+      observers.foreach { _(value) }
+    }
   }
 
   // ====== Printing stuff ======

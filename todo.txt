@@ -1,7 +1,13 @@
+currently broken:
+    - late signal creation when the system is active
+    - exception handling
+    - garbage collection of parts of the network
+
 +   2   proper solution for source dependencies / late reactive creation
         -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
 +   ??  implement more funny event things
 +   10  implement proper demo application (CRUD??)
+0   8   lazy evaluation and omitting of pointless recalculations, e.g. if the currently unaccessed else part of an if condition changed
 -   2   implement exception propagation
 0   3   allow partial GC of dependency graphs bottom up (discard var's and dependants that aren't referenced anymore and thus won't produce further updates)
 0   3   allow partial GC of dependency graphs top down (hold unobserved dependants with weak references so they can be discarded if no outside holds on to them) 
