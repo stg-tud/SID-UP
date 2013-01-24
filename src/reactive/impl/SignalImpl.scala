@@ -6,7 +6,7 @@ import reactive.Signal
 import reactive.EventStream
 import reactive.Event
 
-abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with SignalDefaults[A] with EventStreamDefaults[A] {
+abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] with EventStream[A] {
 
   // TODO: instead of using a WeakHashMap, references on events should be counted explicitly.
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats

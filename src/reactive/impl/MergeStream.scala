@@ -5,7 +5,7 @@ import reactive.EventStream
 import reactive.ReactiveDependant
 import reactive.Event
 
-class MergeStream[A](streams: EventStream[_ <: A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with ReactiveDependant[A] {
+class MergeStream[A](streams: EventStream[A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with ReactiveDependant[A] {
   streams.foreach { _.addDependant(this) }
   override def sourceDependencies = streams.foldLeft(Map[UUID, UUID]()) { (accu, dep) => accu ++ dep.sourceDependencies }
 

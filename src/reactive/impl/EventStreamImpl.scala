@@ -4,7 +4,7 @@ import scala.collection.mutable
 import reactive.EventStream
 import reactive.Event
 
-abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStreamDefaults[A] {
+abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
 
   private val valHistory = new mutable.WeakHashMap[Event, Option[A]]();
 
