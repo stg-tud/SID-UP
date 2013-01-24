@@ -5,6 +5,7 @@ import impl.FoldSignal
 import reactive.impl.MergeStream
 import reactive.impl.MappedEventStream
 import reactive.impl.HoldSignal
+import impl.FilteredEventStream
 
 trait EventStream[+A] extends Reactive[A] {
   def awaitMaybeEvent(event: Event): Option[A]
@@ -12,4 +13,5 @@ trait EventStream[+A] extends Reactive[A] {
   def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
   def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream((this +: streams): _*);
   def fold[B](initialValue: B)(op: (B, A) => B): Signal[B] = new FoldSignal(initialValue, this, op);
+  def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
 }
