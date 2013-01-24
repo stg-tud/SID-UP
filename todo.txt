@@ -3,11 +3,16 @@ currently broken:
     - exception handling
     - garbage collection of parts of the network
 
+++  8   signal input value caching (crossing events in resource allocation example)
+        -> e.g. don't just cache currentValue but all dependency values with it
++   3   lazy evaluation in the presence of exception handling - is it desired, does it have a purpose?
++   ??  implement more funny event things
+        -> and-event
+        -> "not" event??
 +   2   proper solution for source dependencies / late reactive creation
         -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
-+   ??  implement more funny event things
 +   10  implement proper demo application (CRUD??)
-0   8   lazy evaluation and omitting of pointless recalculations, e.g. if the currently unaccessed else part of an if condition changed
+0   8   omitting of pointless recalculations, e.g. if the currently unaccessed else part of an if condition changed
 -   2   implement exception propagation
 0   3   allow partial GC of dependency graphs bottom up (discard var's and dependants that aren't referenced anymore and thus won't produce further updates)
 0   3   allow partial GC of dependency graphs top down (hold unobserved dependants with weak references so they can be discarded if no outside holds on to them) 
