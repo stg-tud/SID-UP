@@ -21,11 +21,7 @@ object Signal {
   def apply[A](name: String, signals: Signal[_]*)(op: => A): Signal[A] = new FunctionalSignal[A](name, op, signals: _*);
   def apply[A](signals: Signal[_]*)(op: => A): Signal[A] = apply("AnonSignal", signals: _*)(op)
 
-  protected[reactive] val threadEvent = new ThreadLocal[Event]() {
-    override def initialValue = {
-      null
-    }
-  }
+  protected[reactive] val threadEvent = new ThreadLocal[Event]()
   def during[A](event: Event)(op: => A) = {
     val old = threadEvent.get();
     threadEvent.set(event);
