@@ -9,7 +9,7 @@ import reactive.Var
 import reactive.Signal
 
 class ReactiveCheckbox(text: Signal[String], initiallySelected: Boolean = false, enabled: Signal[Boolean] = Var(true)) extends {
-  private val checkbox = new JCheckBox(text.value);
+  private val checkbox = new JCheckBox(text.now);
   val asComponent: JComponent = checkbox
 
 } with ReactiveInput[Boolean] {

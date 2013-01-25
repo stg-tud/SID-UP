@@ -16,7 +16,7 @@ import reactive.EventSource
 import reactive.EventStream
 
 class ReactiveSpinner(initialValue: Int, min: Signal[Int] = Var(Int.MinValue), max: Signal[Int] = Var(Int.MaxValue), step: Signal[Int] = Var(1)) extends {
-  private val model = new SpinnerNumberModel(initialValue, min.value, max.value, step.value)
+  private val model = new SpinnerNumberModel(initialValue, min.now, max.now, step.now)
   private val spinner = new JSpinner(model)
   val asComponent: JComponent = spinner
 } with ReactiveInput[Int] with ReactiveCommitable {

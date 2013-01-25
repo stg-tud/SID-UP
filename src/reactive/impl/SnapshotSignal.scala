@@ -6,7 +6,7 @@ import reactive.EventStream
 import reactive.Event
 import reactive.ReactiveDependant
 
-class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.value) {
+class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.now) {
 
   override def sourceDependencies = events.sourceDependencies
 
@@ -58,7 +58,7 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends State
               }
             }
           } else {
-            propagate(event, Some(signal.value));
+            propagate(event, Some(signal.now));
           }
       }
     }

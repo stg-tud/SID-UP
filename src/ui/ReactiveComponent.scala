@@ -17,7 +17,7 @@ trait ReactiveComponent {
   protected case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
     def activate {
       reactive.observe(op);
-      op(reactive.value);
+      op(reactive.now);
     }
     def deactivate {
       reactive.unobserve(op);

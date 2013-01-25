@@ -11,7 +11,7 @@ import javax.swing.event.AncestorEvent
 import reactive.Signal
 
 class ReactiveLabel(text: Signal[_]) extends {
-  private val label = new JLabel(String.valueOf(text.value)/*, ReactiveLabel.icon(text.dirty.value), SwingConstants.LEFT*/)
+  private val label = new JLabel(String.valueOf(text.now)/*, ReactiveLabel.icon(text.dirty.value), SwingConstants.LEFT*/)
   override val asComponent: JComponent = label;
 } with ReactiveComponent {
   override protected val observeWhileVisible = List(

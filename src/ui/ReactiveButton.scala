@@ -10,7 +10,7 @@ import reactive.EventStream
 import reactive.EventSource
 
 class ReactiveButton(val text: Signal[String], val enabled: Signal[Boolean] = Var(true)) extends {
-  private val _realButton = new JButton(text.value)
+  private val _realButton = new JButton(text.now)
   val asComponent: JComponent = _realButton
 } with ReactiveCommitable {
     private val _clicks  = EventSource[ActionEvent]

@@ -4,32 +4,32 @@ import java.util.UUID
 import util.Util.nullSafeEqual
 import impl.FunctionalSignal
 import reactive.impl.SnapshotSignal
+import reactive.impl.DependencyValueCache
 
 trait Signal[+A] extends Reactive[A] {
-  def value(event: Event): A
-  def value: A = value(Signal.threadEvent.get())
+  def now: A
 
   def awaitValue(event: Event): A
 
   def changes: EventStream[A]
-  def apply[B](op: A => B): Signal[B] = new FunctionalSignal(name+"."+op, { op(this) }, this);
+  def apply[B](op: A => B): Signal[B] = new FunctionalSignal(name + "." + op, { op(this) }, this);
   def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
 }
 
 object Signal {
-  implicit def autoSignalToValue[A](signal: Signal[A]): A = signal.value
-
   def apply[A](name: String, signals: Signal[_]*)(op: => A): Signal[A] = new FunctionalSignal[A](name, op, signals: _*);
   def apply[A](signals: Signal[_]*)(op: => A): Signal[A] = apply("AnonSignal", signals: _*)(op)
 
-  protected[reactive] val threadEvent = new ThreadLocal[Event]()
-  def during[A](event: Event)(op: => A) = {
-    val old = threadEvent.get();
-    threadEvent.set(event);
+  implicit def autoSignalToValue[A](signal: Signal[A]): A = threadContext.get().get(signal);
+
+  protected[reactive] val threadContext = new ThreadLocal[DependencyValueCache]()
+  def withContext[A](context: DependencyValueCache)(op: => A) = {
+    val old = threadContext.get();
+    threadContext.set(context);
     try {
       op
     } finally {
-      threadEvent.set(old);
+      threadContext.set(old);
     }
   }
 

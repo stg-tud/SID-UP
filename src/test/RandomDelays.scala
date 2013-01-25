@@ -95,7 +95,7 @@ object RandomDelays extends App {
   //  println(s.toElaborateString);
 
   def track(signal: Signal[_]) {
-    timeStampPrint("Now Tracking: " + signal.name + " = " + signal.value);
+    timeStampPrint("Now Tracking: " + signal.name + " = " + signal.now);
     signal.observe { value =>
       timeStampPrint("Value Changed: " + signal.name + " = " + value);
     }

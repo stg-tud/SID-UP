@@ -6,7 +6,7 @@ import util.Util
 
 class ReactiveLog[A](reactive: Reactive[A]) {
   private val _values = mutable.MutableList[A]()
-  if(reactive.isInstanceOf[Signal[_]]) _values += reactive.asInstanceOf[Signal[A]].value
+  if(reactive.isInstanceOf[Signal[_]]) _values += reactive.asInstanceOf[Signal[A]].now
   reactive.observe { value => _values += value }
 
   def values = _values.toList

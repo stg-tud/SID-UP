@@ -14,13 +14,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
 
-  def value(currentEvent: Event) = {
-    if (currentEvent != null && isConnectedTo(currentEvent)) {
-      valHistory.synchronized { valHistory(currentEvent) }._1;
-    } else {
-      currentValue
-    }
-  }
+  override def now = currentValue
 
   private def await(event: Event): (A, Boolean) = {
     if (!isConnectedTo(event)) {
