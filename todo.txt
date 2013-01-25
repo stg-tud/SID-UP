@@ -5,7 +5,9 @@ currently broken:
 
 ++  8   signal input value caching (crossing events in resource allocation example)
         -> e.g. don't just cache currentValue but all dependency values with it
+        -> need to rewrite value discovery in signal closures to go through "this" signal
 +   3   lazy evaluation in the presence of exception handling - is it desired, does it have a purpose?
+++  >>> signal profiling to optimize through lowering or premature propagation of quickly calculated results instead of waiting to see if recalculation is necessary   
 +   ??  implement more funny event things
         -> and-event
         -> "not" event??
