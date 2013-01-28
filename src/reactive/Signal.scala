@@ -5,12 +5,14 @@ import util.Util.nullSafeEqual
 import impl.FunctionalSignal
 import reactive.impl.SnapshotSignal
 import scala.collection.Map
+import scala.actors.threadpool.TimeoutException
 
 trait Signal[+A] extends Reactive[A] {
   def now: A
   protected def value(ifKnown: Event, otherwise: => Event): A
   def lastEvent : Event
-  def awaitValue(event: Event): A
+  @throws(classOf[TimeoutException])
+  def awaitValue(event: Event, timeout: Long = 0): A
 
   def changes: EventStream[A]
   def apply[B](op: A => B): Signal[B] = new FunctionalSignal(name + "." + op, { op(this) }, this);

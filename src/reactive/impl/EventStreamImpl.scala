@@ -3,6 +3,7 @@ package reactive.impl
 import scala.collection.mutable
 import reactive.EventStream
 import reactive.Event
+import scala.actors.threadpool.TimeoutException
 
 abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
 
@@ -16,14 +17,17 @@ abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) wi
     value.foreach { notifyObservers(event, _); }
   }
 
-  override def awaitMaybeEvent(event: Event): Option[A] = {
+  @throws(classOf[TimeoutException])
+  override def awaitMaybeEvent(event: Event, timeout : Long = 0): Option[A] = {
     if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
     valHistory.synchronized {
       var value = valHistory.get(event);
+      val end = System.currentTimeMillis() + timeout;
       while (value.isEmpty) {
-        valHistory.wait();
+        if (end < System.currentTimeMillis()) throw new TimeoutException(name + " timed out waiting for " + event);
+        valHistory.wait(timeout);
         value = valHistory.get(event);
       }
       value
