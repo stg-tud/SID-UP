@@ -6,70 +6,61 @@ import reactive.Event
 import reactive.ReactiveDependant
 
 class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends {
-  private var currentValues = DependencyValueCache.initializeInstance(dependencies: _*);
-} with SignalImpl[A](name, Signal.withContext(currentValues) { op }) {
+  private val lastEventsLock = new Object
+  private var lastEvents = dependencies.foldLeft(Map[Signal[_], Event]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
+} with SignalImpl[A](name, Signal.withContext(null, lastEvents) { op }) {
   private val debug = false;
 
-  private var ordering: EventOrderingCache[(Option[A], DependencyValueCache)] = new EventOrderingCache[(Option[A], DependencyValueCache)](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, data: (Option[A], DependencyValueCache)) {
-      val (maybeNewValue, recalculate) = data
-      updateValue(event) { currentValue =>
-        currentValues = recalculate;
-        maybeNewValue.getOrElse(currentValue);
-      };
-    }
-  }
+  private var ordering = new EventOrderingCache[UpdateLogEntry](sourceDependencies) {
+    override def eventReadyInOrder(event: Event, data: UpdateLogEntry) {
+      lastEventsLock.synchronized {
+        dependencies.foreach { dependency =>
+          if (dependency.isConnectedTo(event)) {
+            lastEvents += (dependency -> event)
+          }
+        }
+      }
 
-  class UpdateLogEntry(var pendingUpdates: Int) {
-    val dependencyValues = new DependencyValueCache(currentValues)
-    var anyDependencyChanged = false;
-    def receivedNotification[A](dependency: Signal[A], maybeValue: Option[A]) {
-      pendingUpdates -= 1;
-      maybeValue.foreach { value =>
-        dependencyValues.set(dependency, value);
-        anyDependencyChanged = true;
+      if (data.anyDependencyChanged) {
+        val newValue = Signal.withContext(event, lastEvents) { op }
+        updateValue(event) { _ => newValue };
+      } else {
+        updateValue(event) { oldValue => oldValue }
       }
     }
   }
 
-  private def createUpdateLogEntry[A](event: Event) = new UpdateLogEntry(dependencies.count { _.isConnectedTo(event) });
+  private class UpdateLogEntry(var pendingUpdates: Int) {
+    var anyDependencyChanged = false;
+    def receivedNotification(dependencyChanged: Boolean) {
+      pendingUpdates -= 1;
+      anyDependencyChanged |= dependencyChanged
+    }
+  }
 
   dependencies.foreach { connect(_) }
   private def connect[A](dependency: Signal[A]) {
     dependency.addDependant(new ReactiveDependant[A] {
-      /**
-       * None => don't emit yet
-       * Some(false) => emit, but no need to recalculate value
-       * Some(true) => recalculate and then emit value
-       */
-      private def getEmitAction(event: Event, maybeValue: Option[A]): Option[UpdateLogEntry] = {
+      override def notifyEvent(event: Event, maybeValue: Option[A]) {
         updateLog.synchronized {
           val logEntry = updateLog.get(event).getOrElse {
-            val newEntry = createUpdateLogEntry(event);
+            val newEntry = new UpdateLogEntry(dependencies.count { _.isConnectedTo(event) })
+            //            println("expecting "+newEntry.pendingUpdates+" notifications for " + event);
             if (newEntry.pendingUpdates > 1) updateLog += (event -> newEntry);
             newEntry
           }
-          logEntry.receivedNotification(dependency, maybeValue);
+          logEntry.receivedNotification(maybeValue.isDefined);
 
           if (logEntry.pendingUpdates == 0) {
+            //            println("Event ready: "+event);
             updateLog -= event;
             Some(logEntry)
           } else {
+            //            println("Event still missing "+logEntry.pendingUpdates+" notifications: "+event);
             updateLog += (event -> logEntry)
             None
           }
-        }
-      }
-
-      override def notifyEvent(event: Event, value: Option[A]) {
-        getEmitAction(event, value).foreach { recalculate =>
-          if (recalculate.anyDependencyChanged) {
-            val newValue = Signal.withContext(recalculate.dependencyValues) { op };
-            ordering.eventReady(event, (Some(newValue), recalculate.dependencyValues));
-          } else {
-            ordering.eventReady(event, (None, recalculate.dependencyValues));
-          }
-        }
+        }.foreach { ordering.eventReady(event, _) }
       }
     })
   }

@@ -13,8 +13,21 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
+  valHistory += (null.asInstanceOf[Event] -> (currentValue, true));
 
   override def now = currentValue
+  private var _lastEvent : Event = null
+  override def lastEvent = _lastEvent;
+
+  override def value(ifKnown: Event, otherwise: => Event) : A = {
+    if(ifKnown == null) {
+     currentValue; 
+    } else {
+      valHistory.synchronized {
+    	valHistory.get(ifKnown).getOrElse(valHistory(otherwise))._1     
+      }
+    }
+  }
 
   private def await(event: Event): (A, Boolean) = {
     if (!isConnectedTo(event)) {
@@ -45,6 +58,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   protected[this] def updateValue(event: Event)(calculateNewValue: A => A) {
     val (newValue, changed) = valHistory.synchronized {
       val newValue = calculateNewValue(currentValue);
+      _lastEvent = event;
       val changed = !nullSafeEqual(currentValue, newValue)
       currentValue = newValue;
 

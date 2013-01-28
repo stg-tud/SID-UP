@@ -8,7 +8,7 @@ class EventSourceImpl[A](name: String) extends StatelessEventStreamImpl[A](name)
     super.emit(value);
   }
 
-  protected[reactive] override def emit(event: Event, maybeValue: Option[A]) {
+  override def emit(event: Event, maybeValue: Option[A]) {
     propagate(event, maybeValue);
   }
 }

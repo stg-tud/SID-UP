@@ -30,7 +30,6 @@ class Transaction {
   def commit() = {
     val event = commitWhenAllLocked(boxes.toList, Map())
     reset()
-//    println("committed "+event);
     event
   }
 
@@ -38,7 +37,7 @@ class Transaction {
     boxes match {
       case box :: tail =>
         box.lock.synchronized {
-          setBoxFromMap(box, commitWhenAllLocked(tail, lastEvents + (box.uuid -> box.lastEvent)));
+          setBoxFromMap(box, commitWhenAllLocked(tail, lastEvents + (box.uuid -> box.lastEventId)));
         }
       case Nil =>
         new Event(lastEvents);
@@ -46,11 +45,8 @@ class Transaction {
   }
 
   private def setBoxFromMap[A](box: ReactiveSource[A], event: Event): Event = {
-    box.lastEvent = event.uuid;
-    values.get(box) match {
-      case Some(value) => box.emit(event, Some(value.asInstanceOf[A]));
-      case None => box.emit(event, None);
-    }
+    box.lastEventId = event.uuid;
+    box.emit(event, values.get(box).asInstanceOf[Option[A]])
     event
   }
 
