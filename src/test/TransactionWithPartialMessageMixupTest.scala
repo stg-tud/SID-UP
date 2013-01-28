@@ -50,9 +50,12 @@ object TransactionWithPartialMessageMixupTest extends App {
     val lastEvent = transaction.commit();
     // new value 6+1=7
 
+    Thread.sleep(50);
     mixup1.releaseQueue();
     output.awaitValue(lastEvent);
   }
+
+  Thread.sleep(10);
 
   outputLog.assert(3, 5, 6, 9, 2, 7)
 }

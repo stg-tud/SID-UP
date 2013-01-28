@@ -4,28 +4,32 @@ import java.util.UUID
 import reactive.Signal
 import reactive.Event
 import reactive.ReactiveDependant
+import reactive.Reactive
 
 class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends {
   private val lastEventsLock = new Object
   private var lastEvents = dependencies.foldLeft(Map[Signal[_], Event]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
-} with SignalImpl[A](name, Signal.withContext(null, lastEvents) { op }) {
+} with StatelessSignal[A](name, Signal.withContext(null, lastEvents) { op }) {
   private val debug = false;
 
   private var ordering = new EventOrderingCache[UpdateLogEntry](sourceDependencies) {
     override def eventReadyInOrder(event: Event, data: UpdateLogEntry) {
-      lastEventsLock.synchronized {
+      val cachedLastEvents = lastEventsLock.synchronized {
         dependencies.foreach { dependency =>
           if (dependency.isConnectedTo(event)) {
             lastEvents += (dependency -> event)
           }
         }
+        lastEvents
       }
 
-      if (data.anyDependencyChanged) {
-        val newValue = Signal.withContext(event, lastEvents) { op }
-        updateValue(event) { _ => newValue };
-      } else {
-        updateValue(event) { oldValue => oldValue }
+      Reactive.executePooled {
+        if (data.anyDependencyChanged) {
+          val newValue = Signal.withContext(event, cachedLastEvents) { op }
+          propagate(event, Some(newValue));
+        } else {
+          propagate(event, None);
+        }
       }
     }
   }

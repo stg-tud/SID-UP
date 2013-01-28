@@ -19,7 +19,7 @@ class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer
   }
 
   def releaseQueue() {
-    messages.reverse.foreach {
+    messages.toList.reverse.foreach {
       case (event, maybeValue) =>
         //      println("releasing new value " + value + " for event " + event);
         propagate(event, maybeValue);
