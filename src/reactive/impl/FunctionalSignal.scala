@@ -12,8 +12,8 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
 } with StatelessSignal[A](name, Signal.withContext(null, lastEvents) { op }) with ReactiveDependant[Any] {
   private val debug = false;
 
-  private var ordering = new EventOrderingCache[UpdateLogEntry](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, data: UpdateLogEntry) {
+  private var ordering = new EventOrderingCache[Boolean](sourceDependencies) {
+    override def eventReadyInOrder(event: Event, anyDependencyChanged: Boolean) {
       val cachedLastEvents = lastEventsLock.synchronized {
         dependencies.foreach { dependency =>
           if (dependency.isConnectedTo(event)) {
@@ -24,7 +24,7 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
       }
 
       Reactive.executePooled {
-        if (data.anyDependencyChanged) {
+        if (anyDependencyChanged) {
           val newValue = Signal.withContext(event, cachedLastEvents) { op }
           propagate(event, Some(newValue));
         } else {
@@ -34,34 +34,37 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
     }
   }
 
-  private class UpdateLogEntry(var pendingUpdates: Int) {
-    var anyDependencyChanged = false;
+  private class UpdateLogEntry(var pendingUpdates: Int, var anyDependencyChanged: Boolean) {
     def receivedNotification(dependencyChanged: Boolean) {
-      pendingUpdates -= 1;
       anyDependencyChanged |= dependencyChanged
+      pendingUpdates -= 1;
     }
+    def isReady() = pendingUpdates == 0
   }
 
   dependencies.foreach { _.addDependant(this) }
-  
-  override def notifyEvent(event: Event, maybeValue: Option[Any]) {
-    updateLog.synchronized {
-      val logEntry = updateLog.get(event).getOrElse {
-        val newEntry = new UpdateLogEntry(dependencies.count { _.isConnectedTo(event) })
-        //            println("expecting "+newEntry.pendingUpdates+" notifications for " + event);
-        if (newEntry.pendingUpdates > 1) updateLog += (event -> newEntry);
-        newEntry
-      }
-      logEntry.receivedNotification(maybeValue.isDefined);
 
-      if (logEntry.pendingUpdates == 0) {
-        //            println("Event ready: "+event);
-        updateLog -= event;
-        Some(logEntry)
-      } else {
-        //            println("Event still missing "+logEntry.pendingUpdates+" notifications: "+event);
-        updateLog += (event -> logEntry)
-        None
+  override def notifyEvent(event: Event, maybeValue: Option[Any]) {
+    val dependencyChanged = maybeValue.isDefined;
+    updateLog.synchronized {
+      updateLog.get(event) match {
+        case Some(logEntry) =>
+          logEntry.receivedNotification(dependencyChanged);
+          if (logEntry.isReady()) {
+            updateLog -= event;
+            Some(logEntry.anyDependencyChanged)
+          } else {
+            None
+          }
+        case None =>
+          val expectedNotifications = dependencies.count { _.isConnectedTo(event) }
+          if (expectedNotifications == 1) {
+            Some(dependencyChanged)
+          } else {
+            val newEntry = new UpdateLogEntry(expectedNotifications - 1, dependencyChanged)
+            updateLog += (event -> newEntry);
+            None
+          }
       }
     }.foreach { ordering.eventReady(event, _) }
   }
