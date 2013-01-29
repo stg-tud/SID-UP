@@ -40,7 +40,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
       var value = valHistory.get(event);
       val end = System.currentTimeMillis() + timeout;
       while (value.isEmpty) {
-        if (end < System.currentTimeMillis()) throw new TimeoutException(name + " timed out waiting for " + event);
+        if (timeout > 0 && end < System.currentTimeMillis()) throw new TimeoutException(name + " timed out waiting for " + event);
         valHistory.wait(timeout);
         value = valHistory.get(event);
       }
