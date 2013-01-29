@@ -6,19 +6,20 @@ import reactive.Signal
 import reactive.EventStream
 import reactive.Event
 import scala.actors.threadpool.TimeoutException
+import reactive.Event
 
 abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] with EventStream[A] {
+
+  override def now = currentValue
+  private var _lastEvent: Event = new Event(Map())
+  override def lastEvent = _lastEvent;
 
   // TODO: instead of using a WeakHashMap, references on events should be counted explicitly.
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
-  valHistory += (null.asInstanceOf[Event] -> (currentValue, true));
-
-  override def now = currentValue
-  private var _lastEvent: Event = null
-  override def lastEvent = _lastEvent;
+  valHistory += (lastEvent -> (currentValue, true));
 
   override def value(ifKnown: Event, otherwise: => Event): A = {
     if (ifKnown == null) {
