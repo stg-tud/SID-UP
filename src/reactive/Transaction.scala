@@ -9,11 +9,13 @@ import scala.collection.SortedSet
  *  relations between all elements of two only partially overlapping
  *  transactions. It only causes multiple set-instructions to produce a
  *  singular observable event. The updated values of two synchronously
- *  executing transactions can still mix arbitrarily.  
+ *  executing transactions can still mix arbitrarily.
  */
 class Transaction {
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
-  private var boxes = SortedSet[ReactiveSource[_]]()(Ordering[Int].on[ReactiveSource[_]] { _.hashCode() })
+  private var boxes = SortedSet[ReactiveSource[_]]()(new Ordering[ReactiveSource[_]] {
+    override def compare(a: ReactiveSource[_], b: ReactiveSource[_]) = a.uuid.compareTo(b.uuid)
+  })
   private var values = Map[ReactiveSource[_], Any]()
 
   def set[A](box: ReactiveSource[A], value: A) = {
@@ -21,12 +23,12 @@ class Transaction {
     values += (box -> value);
     this
   }
-  
+
   def touch(box: ReactiveSource[_]) {
     boxes += box;
     values -= box;
   }
-  
+
   def commit() = {
     val event = commitWhenAllLocked(boxes.toList, Map())
     reset()

@@ -15,7 +15,7 @@ trait Signal[+A] extends Reactive[A] {
   def awaitValue(event: Event, timeout: Long = 0): A
 
   def changes: EventStream[A]
-  def apply[B](op: A => B): Signal[B] = new FunctionalSignal(name + "." + op, { op(this) }, this);
+  def apply[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
   def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
 }
 

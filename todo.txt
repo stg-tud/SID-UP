@@ -1,5 +1,6 @@
 currently broken:
-    - late signal creation when the system is active
+    - late signal creation from remote
+    - signal creation when the system is active
     - exception handling
     - garbage collection of parts of the network
 
@@ -12,6 +13,9 @@ currently broken:
         -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
 +   10  implement proper demo application (CRUD??)
 +   3   omitting of pointless recalculations, e.g. if the currently unaccessed else part of an if condition changed
+        -> requires profiling of previous evaluation, thus requires sequential evaluation.
+            -> criteria for good or bad? sounds like it depends on system load?
+            -> maybe implement as "if immediate predecessor evaluation happens to be finished, use it's profiling, otherwise just recalculate concurrently"?
 0   2   implement exception propagation
 0   2   clean up garbage collection prevention of Signal.lastEvent thingy
         -> maybe just use WeakReference?
