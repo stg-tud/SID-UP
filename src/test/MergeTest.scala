@@ -1,7 +1,7 @@
 package test
 import reactive.EventSource
 import reactive.Transaction
-import testtools.ReactiveLog
+import testtools.Asserts
 
 object MergeTest extends App {
   val e1 = EventSource[Object]
@@ -9,7 +9,7 @@ object MergeTest extends App {
   val e3 = EventSource[Long]
   val merge = e1 merge (e2, e3)
   
-  val mergeLog = new ReactiveLog(merge);
+  val mergeLog = merge.log
   
   e1 << "bla";
   e2 << 123;
@@ -20,8 +20,8 @@ object MergeTest extends App {
   transaction.commit();
   
   try{
-    mergeLog.assert("bla", 123, 5, "x");
+    Asserts.assert(List("bla", 123, 5, "x"), mergeLog.now);
   } catch {
-    case _ : ReactiveLog.AssertionFailure => mergeLog.assert("bla", 123, 5, 2);
+    case _ : Asserts.AssertionFailure => Asserts.assert(List("bla", 123, 5, 2), mergeLog.now);
   }
 }

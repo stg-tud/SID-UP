@@ -7,9 +7,10 @@ import reactive.EventStream
 import reactive.Event
 import scala.actors.threadpool.TimeoutException
 import reactive.Event
+import reactive.ReactiveDependant
 
-abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] with EventStream[A] {
-
+abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] {
+  signal =>
   override def now = currentValue
   private var _lastEvent: Event = new Event(Map())
   override def lastEvent = _lastEvent;
@@ -32,7 +33,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   }
 
   @throws(classOf[TimeoutException])
-  private def await(event: Event, timeout: Long): (A, Boolean) = {
+  private def awaitInternal(event: Event, timeout: Long): (A, Boolean) = {
     if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
@@ -51,13 +52,9 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   /**
    * suspends the current thread until this reactive has completed processing the given event.
    */
-  override def awaitValue(event: Event, timeout: Long = 0): A = {
-    await(event, timeout)._1
-  }
-
-  override def awaitMaybeEvent(event: Event, timeout: Long = 0): Option[A] = {
-    val (value, changed) = await(event, timeout);
-    if (changed) Some(value) else None
+  @throws(classOf[TimeoutException])
+  override def await(event: Event, timeout: Long = 0): A = {
+    awaitInternal(event, timeout)._1
   }
 
   protected[this] def updateValue(event: Event)(calculateNewValue: A => A) {
@@ -80,5 +77,23 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     }
   }
 
-  override val changes: EventStream[A] = this
+  override val changes: EventStream[A] = new EventStream[A] {
+    override val name = signal.name + ".changes"
+    @throws(classOf[TimeoutException])
+    override def await(event: Event, timeout: Long = 0): Option[A] = {
+      val (value, changed) = awaitInternal(event, timeout);
+      if (changed) Some(value) else None
+    }
+    override def observe(obs: A => Unit) = signal.observe(obs)
+    override def unobserve(obs: A => Unit) = signal.unobserve(obs)
+    override def sourceDependencies = signal.sourceDependencies
+    override def addDependant(dependant: ReactiveDependant[A]) {
+      signal.addDependant(dependant)
+    }
+    override def removeDependant(dependant: ReactiveDependant[A]) {
+      signal.addDependant(dependant)
+    }
+    override def hold[B >: A](initialValue: B): Signal[B] = if (nullSafeEqual(initialValue, currentValue)) signal else new HoldSignal(this, initialValue);
+  }
+  override def fold[B](initial: A => B)(op: (B, A) => B): Signal[B] = changes.fold(initial(currentValue))(op)
 }

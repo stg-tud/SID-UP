@@ -18,7 +18,7 @@ abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) wi
   }
 
   @throws(classOf[TimeoutException])
-  override def awaitMaybeEvent(event: Event, timeout : Long = 0): Option[A] = {
+  override def await(event: Event, timeout : Long = 0): Option[A] = {
     if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }

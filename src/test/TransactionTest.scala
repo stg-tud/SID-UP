@@ -3,14 +3,14 @@ import reactive.Var
 import reactive.Signal
 import reactive.Signal.autoSignalToValue
 import reactive.Transaction
-import testtools.ReactiveLog
+import testtools.Asserts
 
 object TransactionTest extends App {
 	val var1 = Var(1);
 	val var2 = Var(5);
 	
 	val sum = Signal(var1, var2) { var1 + var2 }
-	val sumLog = new ReactiveLog(sum);
+	val sumLog = sum.log
 	
 	var1.set(4);
 	var2.set(4);
@@ -27,5 +27,5 @@ object TransactionTest extends App {
 
 	var2.set(4);
 	
-	sumLog.assert(6, 9, 8, 10, 0, 6)
+	Asserts.assert(List(6, 9, 8, 10, 0, 6), sumLog.now)
 }

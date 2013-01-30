@@ -5,7 +5,7 @@ import reactive.Signal
 import reactive.Signal.autoSignalToValue
 import reactive.Transaction
 import reactive.Reactive
-import testtools.ReactiveLog
+import testtools.Asserts
 
 object SnapshotTest extends App {
   val var1 = Var(1);
@@ -14,47 +14,47 @@ object SnapshotTest extends App {
   val merged = Signal(var1, snapshot) {
     var1 + snapshot;
   }
-  val snapshotLog = new ReactiveLog(snapshot);
-  val mergedLog = new ReactiveLog(merged);
-  snapshotLog.assert(1);
-  mergedLog.assert(2);
+  val snapshotLog = snapshot.log
+  val mergedLog = merged.log
+  Asserts.assert(List(1), snapshotLog.now);
+  Asserts.assert(List(2), mergedLog.now);
 
   var1.set(3);
-  snapshotLog.assert(1);
-  mergedLog.assert(2, 4);
+  Asserts.assert(List(1), snapshotLog.now);
+  Asserts.assert(List(2, 4), mergedLog.now);
 
   var1.set(4);
-  snapshotLog.assert(1);
-  mergedLog.assert(2, 4, 5);
+  Asserts.assert(List(1), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5), mergedLog.now);
 
   events << new Object
-  snapshotLog.assert(1, 4);
-  mergedLog.assert(2, 4, 5, 8);
+  Asserts.assert(List(1, 4), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8), mergedLog.now);
 
   var1.set(6);
-  snapshotLog.assert(1, 4);
-  mergedLog.assert(2, 4, 5, 8, 10);
+  Asserts.assert(List(1, 4), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10), mergedLog.now);
 
   events << new Object
-  snapshotLog.assert(1, 4, 6);
-  mergedLog.assert(2, 4, 5, 8, 10, 12);
+  Asserts.assert(List(1, 4, 6), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12), mergedLog.now);
 
   events << new Object
-  snapshotLog.assert(1, 4, 6);
-  mergedLog.assert(2, 4, 5, 8, 10, 12);
+  Asserts.assert(List(1, 4, 6), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12), mergedLog.now);
 
   val transaction = new Transaction
   transaction.set(var1, 5);
   transaction.set(events, new Object);
   transaction.commit();
-  snapshotLog.assert(1, 4, 6, 5);
-  mergedLog.assert(2, 4, 5, 8, 10, 12, 10);
+  Asserts.assert(List(1, 4, 6, 5), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10), mergedLog.now);
 
   events << new Object
-  snapshotLog.assert(1, 4, 6, 5);
-  mergedLog.assert(2, 4, 5, 8, 10, 12, 10);
+  Asserts.assert(List(1, 4, 6, 5), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10), mergedLog.now);
 
   var1.set(0);
-  snapshotLog.assert(1, 4, 6, 5);
-  mergedLog.assert(2, 4, 5, 8, 10, 12, 10, 5);
+  Asserts.assert(List(1, 4, 6, 5), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10, 5), mergedLog.now);
 }

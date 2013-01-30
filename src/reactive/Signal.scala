@@ -10,12 +10,14 @@ import scala.actors.threadpool.TimeoutException
 trait Signal[+A] extends Reactive[A] {
   def now: A
   protected def value(ifKnown: Event, otherwise: => Event): A
-  def lastEvent : Event
+  def lastEvent: Event
   @throws(classOf[TimeoutException])
-  def awaitValue(event: Event, timeout: Long = 0): A
+  def await(event: Event, timeout: Long = 0): A
 
   def changes: EventStream[A]
   def apply[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
+  def fold[B](initial: A => B)(op: (B, A) => B): Signal[B]
+  override def log = fold(List(_))((list, elem) => list :+ elem);
   def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
 }
 

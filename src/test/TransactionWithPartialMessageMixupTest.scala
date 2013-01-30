@@ -4,10 +4,10 @@ import reactive.Var
 import reactive.Transaction
 import reactive.Signal.autoSignalToValue
 import reactive.Signal
-import testtools.ReactiveLog
 import testtools.MessageMixup
 import reactive.Reactive
 import scala.actors.threadpool.TimeoutException
+import testtools.Asserts
 
 object TransactionWithPartialMessageMixupTest extends App {
   val repeat = 100;
@@ -23,7 +23,7 @@ object TransactionWithPartialMessageMixupTest extends App {
       mixup1 + var2;
     }
 
-    val outputLog = new ReactiveLog(output);
+    val outputLog = output.log
     // initial value 1+2=3
 
     val transaction = new Transaction();
@@ -57,12 +57,12 @@ object TransactionWithPartialMessageMixupTest extends App {
 
       Thread.sleep(50);
       mixup1.releaseQueue();
-      output.awaitValue(lastEvent, 500);
+      output.await(lastEvent, 500);
     }
 
     Thread.sleep(10);
 
     print("%%%1$dd of %%%1$dd: ".format(length).format(i, repeat))
-    outputLog.assert(3, 5, 6, 9, 2, 7)
+    Asserts.assert(List(3, 5, 6, 9, 2, 7), outputLog.now)
   }
 }

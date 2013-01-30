@@ -7,7 +7,7 @@ import reactive.Reactive
 import java.text.SimpleDateFormat
 import java.util.Date
 import scala.actors.threadpool.AtomicInteger
-import testtools.ReactiveLog
+import testtools.Asserts
 
 object RandomDelays extends App {
   val format = new SimpleDateFormat("[mm:ss.SSS] ")
@@ -36,8 +36,8 @@ object RandomDelays extends App {
     // this sums up to c = s % 2 + 3 * s + 4
     val c = Signal("C", b1, a2, b2) { log("C"); b1 + a2 + b2 };
 
-    val valueLog = new ReactiveLog(c);
-    valueLog.assert(8);
+    val valueLog = c.log
+    Asserts.assert(List(8), valueLog.now);
 
     println
     println("--------------------------")
@@ -58,11 +58,11 @@ object RandomDelays extends App {
     timeStampPrint("updating source...");
     val event = s.set(2)
     timeStampPrint("waiting for propagation to complete...");
-    c.awaitValue(event);
+    c.await(event);
     timeStampPrint("waiting period completed.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    valueLog.assert(8, 10);
+    Asserts.assert(List(8, 10), valueLog.now);
 
     println
     println("--------------------------")
@@ -71,11 +71,11 @@ object RandomDelays extends App {
     timeStampPrint("updating source...");
     val event2 = s.set(4);
     timeStampPrint("waiting for propagation to complete...");
-    c.awaitValue(event2)
+    c.await(event2)
     timeStampPrint("waiting period completed.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    valueLog.assert(8, 10, 16);
+    Asserts.assert(List(8, 10, 16), valueLog.now);
 
     println
     println("--------------------------")
@@ -85,11 +85,11 @@ object RandomDelays extends App {
     s.set(5);
     val event3 = s.set(7);
     timeStampPrint("waiting for propagation to complete...");
-    c.awaitValue(event3)
+    c.await(event3)
     timeStampPrint("waiting period completed, terminating thread pool.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    valueLog.assert(8, 10, 16, 20, 26);
+    Asserts.assert(List(8, 10, 16, 20, 26), valueLog.now);
   }
 
   //  println(s.toElaborateString);

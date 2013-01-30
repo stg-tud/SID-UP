@@ -6,25 +6,25 @@ import reactive.Event
 import scala.collection.mutable
 import reactive.Signal
 import reactive.Signal.autoSignalToValue
-import testtools.ReactiveLog
 import testtools.MessageMixup
+import testtools.Asserts
 
 object SignalOrderPreservationTest extends App {
   val input = Var(1);
-  val inputLog = new ReactiveLog(input);
+  val inputLog = input.log
 
   val screwedUpThroughNetwork = new MessageMixup(input);
-  val networkLog = new ReactiveLog(screwedUpThroughNetwork);
+  val networkLog = screwedUpThroughNetwork.log;
 
   val direct = Signal(input) {
     input + 1;
   }
-  val directLog = new ReactiveLog(direct);
+  val directLog = direct.log
 
   val output = Signal(direct, screwedUpThroughNetwork) {
     direct + screwedUpThroughNetwork;
   }
-  val outputLog = new ReactiveLog(output);
+  val outputLog = output.log;
 
   input.set(3);
   input.set(9);
@@ -33,15 +33,15 @@ object SignalOrderPreservationTest extends App {
   input.set(5);
   input.set(2);
 
-  inputLog.assert(1, 3, 9, 1, 5, 2)
-  directLog.assert(2, 4, 10, 2, 6, 3)
-  networkLog.assert(1)
-  outputLog.assert(3)
+  Asserts.assert(List(1, 3, 9, 1, 5, 2), inputLog.now)
+  Asserts.assert(List(2, 4, 10, 2, 6, 3), directLog.now)
+  Asserts.assert(List(1), networkLog.now)
+  Asserts.assert(List(3), outputLog.now)
 
   screwedUpThroughNetwork.releaseQueue;
 
-  inputLog.assert(1, 3, 9, 1, 5, 2)
-  directLog.assert(2, 4, 10, 2, 6, 3)
-  networkLog.assert(1, 3, 9, 1, 5, 2)
-  outputLog.assert(3, 7, 19, 3, 11, 5)
+  Asserts.assert(List(1, 3, 9, 1, 5, 2), inputLog.now)
+  Asserts.assert(List(2, 4, 10, 2, 6, 3), directLog.now)
+  Asserts.assert(List(1, 3, 9, 1, 5, 2), networkLog.now)
+  Asserts.assert(List(3, 7, 19, 3, 11, 5), outputLog.now)
 }

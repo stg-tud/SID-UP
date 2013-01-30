@@ -2,7 +2,7 @@ package test
 import reactive.Signal
 import reactive.Var
 import reactive.Signal.autoSignalToValue
-import testtools.ReactiveLog
+import testtools.Asserts
 
 object LateSignalCreationTest extends App {
   val var1 = Var(1);
@@ -15,11 +15,11 @@ object LateSignalCreationTest extends App {
   var3.set(5);
 
   val lateSignal = Signal(var3, signal) { var3 + signal }
-  val log = new ReactiveLog(lateSignal)
+  val log = lateSignal.log
   
   var1.set(2);
   var2.set(2);
   var3.set(2);
   
-  log.assert(12, 11, 9, 6);  
+  Asserts.assert(List(12, 11, 9, 6), log.now);  
 }

@@ -26,6 +26,7 @@ trait Reactive[+A] extends RemoteReactive[A] {
   def isConnectedTo(event: Event): Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)
+  def log : Signal[List[A]]
   // ====== Printing stuff ======
   //
   //  override def toString = name;
