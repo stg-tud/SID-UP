@@ -7,9 +7,18 @@ import javax.swing.WindowConstants
 import ui.ReactiveSpinner
 import javax.swing.JLabel
 import ui.ReactiveLabel
-import reactive.Lift.lift2
+import reactive.Lift._
 
 object ResourceAllocationExample extends App {
+  val min: (Signal[Int], Signal[Int]) => Signal[Int] = {
+    val tmp: (Int, Int) => Int = math.min(_, _)
+    tmp
+  }
+  val minus: (Signal[Int], Signal[Int]) => Signal[Int] = {
+    val tmp = (_: Int) - (_: Int);
+    tmp
+  }
+
   makeClient(new ServerFactory {
     override def connectToServer(requests: Signal[Int]) = {
       new FakeNetwork(makeServer(new FakeNetwork(requests)))
@@ -33,9 +42,7 @@ object ResourceAllocationExample extends App {
 
   def makeServer(clientRequests: Signal[Int]) = {
     val resourcesInput = new ReactiveSpinner(44)
-    val regularMin : (Int, Int) => Int = math.min(_: Int, _: Int)
-    val reactiveMin : (Signal[Int], Signal[Int]) => Signal[Int] = regularMin
-    val committed = reactiveMin(clientRequests, resourcesInput.value);
+    val committed = min(clientRequests, resourcesInput.value);
 
     val frame = newFrame("Server");
 
@@ -69,9 +76,8 @@ object ResourceAllocationExample extends App {
     frame.add(new ReactiveLabel(committedResources).asComponent)
 
     frame.add(new JLabel("Resource deficit:"));
-    val difference = (_: Int) - (_: Int);
-    val reactiveDifference : (Signal[Int],Signal[Int]) => Signal[Int] = difference 
-    frame.add(new ReactiveLabel(reactiveDifference(requested.value, committedResources)).asComponent)
+
+    frame.add(new ReactiveLabel(minus(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
     frame

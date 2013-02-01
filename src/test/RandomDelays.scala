@@ -4,6 +4,7 @@ import reactive.Signal.autoSignalToValue
 import reactive.Var
 import reactive.Signal
 import reactive.Reactive
+import reactive.Lift._
 import java.text.SimpleDateFormat
 import java.util.Date
 import scala.actors.threadpool.AtomicInteger
@@ -14,7 +15,7 @@ object RandomDelays extends App {
   def timeStampPrint(text: String) {
     println(format.format(new Date) + text)
   }
-  
+
   val id = new AtomicInteger(0)
   def log(name: String) {
     val uid = id.incrementAndGet();
@@ -94,10 +95,13 @@ object RandomDelays extends App {
 
   //  println(s.toElaborateString);
 
-  def track(signal: Signal[_]) {
-    timeStampPrint("Now Tracking: " + signal.name + " = " + signal.now);
-    signal.observe { value =>
-      timeStampPrint("Value Changed: " + signal.name + " = " + value);
-    }
+  def track(signal: Signal[AnyVal]) {
+    // semi-implicit lifting of sink function (semi-implicit because scala
+    // can't figure it out if you don't store every step in a variable)
+    val log = { value: AnyVal => timeStampPrint("Value Changed: " + signal.name + " = " + value); }
+    val logLifted : Signal[AnyVal] => Unit = log
+
+    timeStampPrint("Now Tracking: " + signal.name);
+    logLifted(signal);
   }
 }

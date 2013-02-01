@@ -10,11 +10,10 @@ import scala.actors.threadpool.TimeoutException
 
 trait EventStream[+A] extends Reactive[A] {
   @throws(classOf[TimeoutException])
-  def await(event: Event, timeout : Long = 0): Option[A]
-  def hold[B >: A](initialValue: B): Signal[B] = new HoldSignal(this, initialValue);
-  def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
-  def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream((this +: streams): _*);
-  def fold[B](initialValue: B)(op: (B, A) => B): Signal[B] = new FoldSignal(initialValue, this, op);
-  override def log = fold(List[A]())((list, elem) => list :+ elem)
-  def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
+  def await(event: Event, timeout: Long = 0): Option[A]
+  def hold[B >: A](initialValue: B): Signal[B]
+  def map[B](op: A => B): EventStream[B]
+  def merge[B >: A](streams: EventStream[B]*): EventStream[B]
+  def fold[B](initialValue: B)(op: (B, A) => B): Signal[B]
+  def filter(op: A => Boolean): EventStream[A]
 }

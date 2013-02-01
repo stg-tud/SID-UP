@@ -7,38 +7,30 @@ import reactive.impl.SnapshotSignal
 import scala.collection.Map
 import scala.actors.threadpool.TimeoutException
 
+// TODO should be package protected 
 trait Signal[+A] extends Reactive[A] {
+  // use this to get the current value from regular code
   def now: A
-  protected def value(ifKnown: Event, otherwise: => Event): A
+  // use this only inside FunctionalSignal closures
+  // TODO should be package protected 
+  def reactive: A
+  
+  // TODO should be package protected 
   def lastEvent: Event
+
   @throws(classOf[TimeoutException])
   def await(event: Event, timeout: Long = 0): A
 
   def changes: EventStream[A]
-  def apply[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
+  def map[B](op: A => B): Signal[B]
   def fold[B](initial: A => B)(op: (B, A) => B): Signal[B]
-  override def log = fold(List(_))((list, elem) => list :+ elem);
-  def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
+  def snapshot(when: EventStream[_]): Signal[A]
 }
 
+// TODO this should all be removed in favor of reactive.Lift'ed functions 
 object Signal {
+  // use this only inside FunctionalSignal closures
+  implicit def autoSignalToValue[A](a: Signal[A]): A = a.reactive
   def apply[A](name: String, signals: Signal[_]*)(op: => A): Signal[A] = new FunctionalSignal[A](name, op, signals: _*);
   def apply[A](signals: Signal[_]*)(op: => A): Signal[A] = apply("AnonSignal", signals: _*)(op)
-
-  implicit def autoSignalToValue[A](signal: Signal[A]): A = {
-    val (event, context) = threadContext.get();
-    signal.value(event, { context.get(signal).getOrElse(null) })
-  }
-
-  protected[reactive] val threadContext = new ThreadLocal[(Event, Map[Signal[_], Event])]()
-  def withContext[A](event: Event, context: Map[Signal[_], Event])(op: => A) = {
-    val old = threadContext.get();
-    threadContext.set((event, context));
-    try {
-      op
-    } finally {
-      threadContext.set(old);
-    }
-  }
-
 }

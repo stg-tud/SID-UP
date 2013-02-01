@@ -9,7 +9,7 @@ import reactive.Reactive
 class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) extends {
   private val lastEventsLock = new Object
   private var lastEvents = dependencies.foldLeft(Map[Signal[_], Event]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
-} with StatelessSignal[A](name, Signal.withContext(null, lastEvents) { op }) with ReactiveDependant[Any] {
+} with StatelessSignal[A](name, SignalImpl.withContext(null, lastEvents) { op }) with ReactiveDependant[Any] {
   private val debug = false;
 
   private var ordering = new EventOrderingCache[Boolean](sourceDependencies) {
@@ -25,7 +25,7 @@ class FunctionalSignal[A](name: String, op: => A, dependencies: Signal[_]*) exte
 
       Reactive.executePooled {
         if (anyDependencyChanged) {
-          val newValue = Signal.withContext(event, cachedLastEvents) { op }
+          val newValue = SignalImpl.withContext(event, cachedLastEvents) { op }
           propagate(event, Some(newValue));
         } else {
           propagate(event, None);

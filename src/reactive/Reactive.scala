@@ -22,32 +22,15 @@ import remote.RemoteReactive
  */
 trait Reactive[+A] extends RemoteReactive[A] {
   val name: String;
-  def sourceDependencies: Map[UUID, UUID]
-  def isConnectedTo(event: Event): Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
-  def observe(obs: A => Unit)
-  def unobserve(obs: A => Unit)
   def log : Signal[List[A]]
-  // ====== Printing stuff ======
-  //
-  //  override def toString = name;
-  //  def toElaborateString: String = {
-  //    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
-  //  }
-  //  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
-  //    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
-  //    if (done.add(this)) {
-  //      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
-  //      listTag(builder, depth + 1, "observers", observers) {
-  //        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
-  //      }
-  //      listTag(builder, depth + 1, "dependencies", dependencies) {
-  //        _.toString(builder, depth + 2, done);
-  //      }
-  //    } else {
-  //      builder.append(" backref=\"").append(name).append("\"/>\n");
-  //    }
-  //    return builder;
-  //  }
+  // TODO should be package protected 
+  def sourceDependencies: Map[UUID, UUID]
+  // TODO should be package protected 
+  def isConnectedTo(event: Event): Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
+  // TODO should be package protected 
+  def observe(obs: A => Unit)
+  // TODO should be package protected 
+  def unobserve(obs: A => Unit)
 }
 
 object Reactive {
