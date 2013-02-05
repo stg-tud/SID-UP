@@ -56,7 +56,7 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
 
       suspendedRecords.synchronized {
         record.event.sourcesAndPredecessors.keysIterator.foreach { source =>
-          lastEvents += (source -> record.event.uuid)
+          if(lastEvents.contains(source)) lastEvents += (source -> record.event.uuid)
         }
 
         suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>

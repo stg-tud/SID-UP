@@ -23,7 +23,6 @@ trait Signal[+A] extends Reactive[A] {
 
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
-  def fold[B](initial: A => B)(op: (B, A) => B): Signal[B]
   def snapshot(when: EventStream[_]): Signal[A]
 }
 

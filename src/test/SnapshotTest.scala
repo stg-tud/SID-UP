@@ -54,7 +54,17 @@ object SnapshotTest extends App {
   Asserts.assert(List(1, 4, 6, 5), snapshotLog.now);
   Asserts.assert(List(2, 4, 5, 8, 10, 12, 10), mergedLog.now);
 
-  var1.set(0);
+  var1.set(9);
   Asserts.assert(List(1, 4, 6, 5), snapshotLog.now);
-  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10, 5), mergedLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10, 14), mergedLog.now);
+  
+  transaction.set(var1, 9);
+  transaction.set(events, new Object)
+  transaction.commit()
+  Asserts.assert(List(1, 4, 6, 5, 9), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10, 14, 18), mergedLog.now);
+  
+  var1.set(0);
+  Asserts.assert(List(1, 4, 6, 5, 9), snapshotLog.now);
+  Asserts.assert(List(2, 4, 5, 8, 10, 12, 10, 14, 18, 9), mergedLog.now);
 }
