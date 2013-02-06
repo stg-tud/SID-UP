@@ -64,6 +64,7 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     }
   }
 
+  override def toString = name
   // ====== Printing stuff ======
   //
   //  override def toString = name;

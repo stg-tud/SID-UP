@@ -30,8 +30,7 @@ object RandomDelays extends App {
     def modulo(name : String) = { (x: Int, y : Int) => log(name); x % y };
     def add(name : String) = { (x: Int, y : Int) => log(name); x + y };
     
-    val bla = signal2(modulo("A1"))
-    val a1 = bla(s, 2)
+    val a1 = signal2(modulo("A1"))(s, 2)
     val a2 = signal2(add("A2"))(s, 1)
     val a3 = signal2(add("A3"))(s, 1);
     // this sums up to b1 = s % 2 + 1
