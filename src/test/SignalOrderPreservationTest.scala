@@ -5,9 +5,10 @@ import reactive.Reactive
 import reactive.Event
 import scala.collection.mutable
 import reactive.Signal
-import reactive.Signal.autoSignalToValue
 import testtools.MessageMixup
 import testtools.Asserts
+import reactive.Lift._
+import reactive.LiftableWrappers._
 
 object SignalOrderPreservationTest extends App {
   val input = Var(1);
@@ -16,14 +17,10 @@ object SignalOrderPreservationTest extends App {
   val screwedUpThroughNetwork = new MessageMixup(input);
   val networkLog = screwedUpThroughNetwork.log;
 
-  val direct = Signal(input) {
-    input + 1;
-  }
+  val direct = add(input, 1 : Signal[Int]);
   val directLog = direct.log
 
-  val output = Signal(direct, screwedUpThroughNetwork) {
-    direct + screwedUpThroughNetwork;
-  }
+  val output = add(direct, screwedUpThroughNetwork)
   val outputLog = output.log;
 
   input.set(3);

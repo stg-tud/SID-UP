@@ -1,15 +1,16 @@
 package test
 import reactive.Var
 import reactive.Signal
-import reactive.Signal.autoSignalToValue
 import reactive.Transaction
 import testtools.Asserts
+import reactive.Lift._
+import reactive.LiftableWrappers._
 
 object TransactionTest extends App {
 	val var1 = Var(1);
 	val var2 = Var(5);
 	
-	val sum = Signal(var1, var2) { var1 + var2 }
+	val sum = add(var1, var2)
 	val sumLog = sum.log
 	
 	var1.set(4);

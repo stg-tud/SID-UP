@@ -1,6 +1,5 @@
 package test
 
-import reactive.Signal.autoSignalToValue
 import reactive.Var
 import reactive.Signal
 import reactive.Reactive
@@ -27,15 +26,21 @@ object RandomDelays extends App {
 
   Reactive.withThreadPoolSize(4) {
     val s = Var("S", 1);
-    val a1 = Signal("A1", s) { log("A1"); s % 2 };
-    val a2 = Signal("A2", s) { log("A2"); s + 1 };
-    val a3 = Signal("A3", s) { log("A3"); s + 1 };
+
+    def modulo(name : String) = { (x: Int, y : Int) => log(name); x % y };
+    def add(name : String) = { (x: Int, y : Int) => log(name); x + y };
+    
+    val bla = signal2(modulo("A1"))
+    val a1 = bla(s, 2)
+    val a2 = signal2(add("A2"))(s, 1)
+    val a3 = signal2(add("A3"))(s, 1);
     // this sums up to b1 = s % 2 + 1
-    val b1 = Signal("B1", a1) { log("B1"); a1 + 1 };
+    val b1 = signal2(add("B1"))(a1, 1);
     // this sums up to b2 = 2 * s + 2
-    val b2 = Signal("B2", a2, a3) { log("B2"); a2 + a3 };
+    val b2 = signal2(add("B2"))(a2, a3);
     // this sums up to c = s % 2 + 3 * s + 4
-    val c = Signal("C", b1, a2, b2) { log("C"); b1 + a2 + b2 };
+    val C = { (x1: Int, x2: Int, x3: Int) => log("C"); x1 + x2 + x3 };
+    val c = C(b1, a2, b2)
 
     val valueLog = c.log
     Asserts.assert(List(8), valueLog.now);
@@ -99,7 +104,7 @@ object RandomDelays extends App {
     // semi-implicit lifting of sink function (semi-implicit because scala
     // can't figure it out if you don't store every step in a variable)
     val log = { value: AnyVal => timeStampPrint("Value Changed: " + signal.name + " = " + value); }
-    val logLifted : Signal[AnyVal] => Unit = log
+    val logLifted: Signal[AnyVal] => Unit = log
 
     timeStampPrint("Now Tracking: " + signal.name);
     logLifted(signal);

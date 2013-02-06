@@ -8,17 +8,9 @@ import ui.ReactiveSpinner
 import javax.swing.JLabel
 import ui.ReactiveLabel
 import reactive.Lift._
+import reactive.LiftableWrappers._
 
 object ResourceAllocationExample extends App {
-  val min: (Signal[Int], Signal[Int]) => Signal[Int] = {
-    val tmp: (Int, Int) => Int = math.min(_, _)
-    tmp
-  }
-  val minus: (Signal[Int], Signal[Int]) => Signal[Int] = {
-    val tmp = (_: Int) - (_: Int);
-    tmp
-  }
-
   makeClient(new ServerFactory {
     override def connectToServer(requests: Signal[Int]) = {
       new FakeNetwork(makeServer(new FakeNetwork(requests)))
@@ -77,7 +69,7 @@ object ResourceAllocationExample extends App {
 
     frame.add(new JLabel("Resource deficit:"));
 
-    frame.add(new ReactiveLabel(minus(requested.value, committedResources)).asComponent)
+    frame.add(new ReactiveLabel(substract(requested.value, committedResources)).asComponent)
 
     showFrame(frame, 1);
     frame

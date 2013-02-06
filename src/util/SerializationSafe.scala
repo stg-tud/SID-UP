@@ -3,7 +3,7 @@ package util
 trait SerializationSafe[S] extends Serializable
  
 object SerializationSafe {
-  implicit def serializableIsSafe[S <: Serializable](s: S) = new SerializationSafe[S] {}
+  implicit def serializableIsSafe[S <: Serializable] = new SerializationSafe[S] {}
  
   implicit def valuesAreSafe[A <: AnyVal] = new SerializationSafe[A] {}
 }

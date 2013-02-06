@@ -2,12 +2,13 @@ package test
 
 import reactive.Var
 import reactive.Transaction
-import reactive.Signal.autoSignalToValue
 import reactive.Signal
 import testtools.MessageMixup
 import reactive.Reactive
 import scala.actors.threadpool.TimeoutException
 import testtools.Asserts
+import reactive.Lift._
+import reactive.LiftableWrappers._
 
 object TransactionWithPartialMessageMixupTest extends App {
   val repeat = 100;
@@ -19,9 +20,7 @@ object TransactionWithPartialMessageMixupTest extends App {
 
     val mixup1 = new MessageMixup(var1);
 
-    val output = Signal(mixup1, var2) {
-      mixup1 + var2;
-    }
+    val output = add(mixup1, var2)
 
     val outputLog = output.log
     // initial value 1+2=3

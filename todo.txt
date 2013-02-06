@@ -4,6 +4,12 @@ currently broken:
     - exception handling
     - garbage collection of parts of the network
 
+++  15  dependency set changes
+        -> Signal.rmap
++   3   separate signal and eventStream dependency interfaces
++   3   make an EventStream equivalent of HoldSignal
+        -> possibly replace HoldSignal by this eventStream.hold(initialValue)
+        -> use for eventstream lifting functions
 +   3   lazy evaluation desired, purpose? is that different if exception handling is available? 
 ++  >>> signal profiling to optimize through lowering or premature propagation of quickly calculated results instead of waiting to see if recalculation is necessary   
 +   ??  implement more funny event things
@@ -23,5 +29,4 @@ currently broken:
 0   3   allow partial GC of dependency graphs top down (hold unobserved dependants with weak references so they can be discarded if no outside holds on to them) 
 0   2   allow remote var inclusion in transactions
 +   10  add communication failure / duplicate tolerance
-+   15  dependency set changes
 +   10  bidirectional signals/reactives

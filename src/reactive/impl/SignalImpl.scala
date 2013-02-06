@@ -22,13 +22,12 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
   valHistory += (lastEvent -> (currentValue, true));
 
-  override def reactive = {
-    val (event, context) = SignalImpl.threadContext.get();
-    if (event == null) {
+  override def reactive(context : Signal.ReactiveEvaluationContext) = {
+    if (context.event == null) {
       currentValue;
     } else {
       valHistory.synchronized {
-        valHistory.get(event).getOrElse(valHistory(context(this)))._1
+        valHistory.get(context.event).getOrElse(valHistory(context.context(this)))._1
       }
     }
   }
@@ -100,17 +99,4 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   override def map[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
   override def log = changes.fold(List(currentValue))((list, elem) => list :+ elem);
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
-}
-
-object SignalImpl {
-  protected[reactive] val threadContext = new ThreadLocal[(Event, Map[Signal[_], Event])]()
-  def withContext[A](event: Event, context: Map[Signal[_], Event])(op: => A) = {
-    val old = threadContext.get();
-    threadContext.set((event, context));
-    try {
-      op
-    } finally {
-      threadContext.set(old);
-    }
-  }
 }

@@ -2,18 +2,18 @@ package test
 import reactive.Var
 import reactive.EventSource
 import reactive.Signal
-import reactive.Signal.autoSignalToValue
 import reactive.Transaction
 import reactive.Reactive
 import testtools.Asserts
+import reactive.Lift._
+import reactive.LiftableWrappers._
 
 object SnapshotTest extends App {
   val var1 = Var(1);
   val events = EventSource[Object]
   val snapshot = var1.snapshot(events);
-  val merged = Signal(var1, snapshot) {
-    var1 + snapshot;
-  }
+  val merged = add(var1, snapshot);
+  
   val snapshotLog = snapshot.log
   val mergedLog = merged.log
   Asserts.assert(List(1), snapshotLog.now);
