@@ -22,7 +22,7 @@ trait Signal[+A] extends Reactive[A] {
 
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
-//  def rmap[B, R <: Reactive[B]](op : A => R) : R
+  def rmap[R <: Signal[_]](op : A => R) : R
   def snapshot(when: EventStream[_]): Signal[A]
 }
 

@@ -20,6 +20,7 @@ class Val[A](value: A) extends Signal[A] {
   override def unobserve(obs: A => Unit) = {}
   override lazy val changes: EventStream[A] = Val.NothingEventStream
   override def map[B](op: A => B): Signal[B] = new Val(op(value))
+  override def rmap[R <: Signal[_]](op: A => R): R = op(value);
   override lazy val log = new Val(List(value))
   override def snapshot(when: EventStream[_]): Signal[A] = this
 
