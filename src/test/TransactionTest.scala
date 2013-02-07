@@ -5,28 +5,31 @@ import reactive.Transaction
 import testtools.Asserts
 import reactive.Lift._
 import reactive.LiftableWrappers._
+import org.scalatest.FunSuite
 
-object TransactionTest extends App {
-	val var1 = Var(1);
-	val var2 = Var(5);
-	
-	val sum = add(var1, var2)
-	val sumLog = sum.log
-	
-	var1.set(4);
-	var2.set(4);
-	
-	val transaction = new Transaction();
+class TransactionTest extends FunSuite {
+  test("transactions work") {
+    val var1 = Var(1);
+    val var2 = Var(5);
 
-	transaction.set(var1, 5);
-	transaction.set(var2, 5);
-	transaction.commit();
-	
-	transaction.set(var1, 2);
-	transaction.set(var2, -2);
-	transaction.commit();
+    val sum = add(var1, var2)
+    val sumLog = sum.log
 
-	var2.set(4);
-	
-	Asserts.assert(List(6, 9, 8, 10, 0, 6), sumLog.now)
+    var1.set(4);
+    var2.set(4);
+
+    val transaction = new Transaction();
+
+    transaction.set(var1, 5);
+    transaction.set(var2, 5);
+    transaction.commit();
+
+    transaction.set(var1, 2);
+    transaction.set(var2, -2);
+    transaction.commit();
+
+    var2.set(4);
+
+    expectResult(List(6, 9, 8, 10, 0, 6)) { sumLog.now }
+  }
 }
