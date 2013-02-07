@@ -3,13 +3,14 @@ import scala.collection.mutable
 import java.util.UUID
 import reactive.Signal
 import reactive.Event
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Reactive
+import reactive.SignalDependant
 
 class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => A, dependencies: Signal[_]*) extends {
   private val lastEventsLock = new Object
   private var lastEvents = dependencies.foldLeft(Map[Signal[_], Event]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
-} with StatelessSignal[A](name, op(new Signal.ReactiveEvaluationContext(null, lastEvents))) with ReactiveDependant[Any] {
+} with StatelessSignal[A](name, op(new Signal.ReactiveEvaluationContext(null, lastEvents))) with SignalDependant[Any] {
   private val debug = false;
 
   private var ordering = new EventOrderingCache[Boolean](sourceDependencies) {
@@ -44,12 +45,11 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
 
   dependencies.foreach { _.addDependant(this) }
 
-  override def notifyEvent(event: Event, maybeValue: Option[Any]) {
-    val dependencyChanged = maybeValue.isDefined;
+  override def notifyEvent(event: Event, value : Any, changed : Boolean) {
     updateLog.synchronized {
       updateLog.get(event) match {
         case Some(logEntry) =>
-          logEntry.receivedNotification(dependencyChanged);
+          logEntry.receivedNotification(changed);
           if (logEntry.isReady()) {
             updateLog -= event;
             Some(logEntry.anyDependencyChanged)
@@ -59,9 +59,9 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
         case None =>
           val expectedNotifications = dependencies.count { _.isConnectedTo(event) }
           if (expectedNotifications == 1) {
-            Some(dependencyChanged)
+            Some(changed)
           } else {
-            val newEntry = new UpdateLogEntry(expectedNotifications - 1, dependencyChanged)
+            val newEntry = new UpdateLogEntry(expectedNotifications - 1, changed)
             updateLog += (event -> newEntry);
             None
           }

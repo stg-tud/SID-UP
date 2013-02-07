@@ -13,32 +13,13 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import remote.RemoteReactive
+import remote.RemoteEventStream
 import scala.actors.threadpool.locks.ReadWriteLock
 import reactive.Reactive
 import reactive.Event
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 
 abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
-  private val dependencies = mutable.Set[ReactiveDependant[A]]()
-  private val dependenciesLock = new ReentrantReadWriteLock;
-  override def addDependant(obs: ReactiveDependant[A]) {
-    dependenciesLock.writeLocked {
-      dependencies += obs
-    }
-  }
-  override def removeDependant(obs: ReactiveDependant[A]) {
-    dependenciesLock.writeLocked {
-      dependencies -= obs
-    }
-  }
-  protected def notifyDependants(event: Event, maybeValue: Option[A]) {
-    dependenciesLock.readLocked {
-      Reactive.executePooled(dependencies, { x: ReactiveDependant[A] =>
-        x.notifyEvent(event, maybeValue)
-      });
-    }
-  }
 
   def sourceDependencies: Map[UUID, UUID]
   //  protected[reactive] def level: Int;

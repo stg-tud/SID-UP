@@ -6,7 +6,6 @@ currently broken:
 
 ++  15  dependency set changes
         -> Signal.rmap
-+   3   separate signal and eventStream dependency interfaces
 +   3   make an EventStream equivalent of HoldSignal
         -> possibly replace HoldSignal by this eventStream.hold(initialValue)
         -> use for eventstream lifting functions

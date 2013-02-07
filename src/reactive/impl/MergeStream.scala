@@ -2,10 +2,10 @@ package reactive.impl
 import java.util.UUID
 import scala.collection.mutable
 import reactive.EventStream
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Event
 
-class MergeStream[A](streams: EventStream[A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with ReactiveDependant[A] {
+class MergeStream[A](streams: EventStream[A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with EventStreamDependant[A] {
   streams.foreach { _.addDependant(this) }
   override def sourceDependencies = streams.foldLeft(Map[UUID, UUID]()) { (accu, dep) => accu ++ dep.sourceDependencies }
 

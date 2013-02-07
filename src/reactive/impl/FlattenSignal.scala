@@ -1,48 +1,42 @@
 package reactive.impl
 
 import reactive.Signal
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Event
 import scala.collection.mutable
+import reactive.SignalDependant
 
 // TODOs:
 // - make thread safe
 // - make order preserving
 // - add source dependencies update
 // - wait for inner notification only if inner has not yet processed event (need to make this information accessible first)
-class FlattenSignal[A, B](name: String, outer: Signal[B], op: B => Signal[A]) extends {
-  var currentInner = op(outer.now);
-} with StatelessSignal[A](name, currentInner.now) {
+class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
+  var currentInner = outer.now;
+} with StatelessSignal[A](outer.name+".flatten", currentInner.now) {
   override def sourceDependencies = Map()
 
   class LogEntry(val event: Event) {
     val affectsOuter = outer.isConnectedTo(event)
-    var outerNotification: Option[B] = null
+    var receivedOuterNotification: Option[Boolean] = None
     var affectsInner = currentInner.isConnectedTo(event)
-    var innerNotification: Option[A] = null
-    def receiveOuterNotification(maybeValue: Option[B]) {
-      outerNotification = maybeValue;
-      if (outerNotification.isDefined) {
-        val newInner = op(outerNotification.get)
-        if (newInner.equals(currentInner)) {
-          if(!affectsInner) {
-            innerNotification = None
-          }
-        } else {
-	      currentInner.removeDependant(innerObserver)
-	      currentInner = newInner
-	      currentInner.addDependant(innerObserver)
-          affectsInner = newInner.isConnectedTo(event);
-          innerNotification = if(affectsInner) null else Some(newInner.now) 
-        }
+    var newValue: Option[A] = null
+    def receiveOuterNotification(value: Signal[A], changed: Boolean) {
+      receivedOuterNotification = Some(changed);
+      if (changed) {
+        currentInner.removeDependant(innerObserver)
+        currentInner = value
+        currentInner.addDependant(innerObserver)
+        affectsInner = currentInner.isConnectedTo(event);
+        newValue = if (affectsInner) null else Some(currentInner.now)
       }
     }
     def receiveInnerNotification(maybeValue: Option[A]) {
-      innerNotification = maybeValue;
+      newValue = maybeValue;
     }
 
-    def isOuterReady = !affectsOuter || outerNotification != null
-    def isInnerReady = !affectsInner || innerNotification != null
+    def isOuterReady = !affectsOuter || receivedOuterNotification.isDefined
+    def isInnerReady = !affectsInner || newValue != null
     def isReady = isOuterReady && isInnerReady
   }
 
@@ -56,18 +50,18 @@ class FlattenSignal[A, B](name: String, outer: Signal[B], op: B => Signal[A]) ex
     }
   }
 
-  val outerObserver = new ReactiveDependant[B] {
-    override def notifyEvent(event: Event, maybeValue: Option[B]) {
+  val outerObserver = new SignalDependant[Signal[A]] {
+    override def notifyEvent(event: Event, value: Signal[A], changed: Boolean) {
       val logEntry = getLogEntry(event);
-      logEntry.receiveOuterNotification(maybeValue);
+      logEntry.receiveOuterNotification(value, changed);
       updated(logEntry);
     }
   }
   outer.addDependant(outerObserver);
-  val innerObserver = new ReactiveDependant[A] {
-    override def notifyEvent(event: Event, maybeValue: Option[A]) {
+  val innerObserver = new SignalDependant[A] {
+    override def notifyEvent(event: Event, value: A, changed: Boolean) {
       val logEntry = getLogEntry(event);
-      logEntry.receiveInnerNotification(maybeValue);
+      logEntry.receiveInnerNotification(if(changed) Some(value) else None);
       updated(logEntry);
     }
   }
@@ -76,7 +70,8 @@ class FlattenSignal[A, B](name: String, outer: Signal[B], op: B => Signal[A]) ex
   def updated(logEntry: LogEntry) {
     if (logEntry.isReady) {
       logEntries -= logEntry.event;
-      propagate(logEntry.event, logEntry.innerNotification)
+      if(logEntry.newValue == null) throw new AssertionError("That should be impossible");
+      propagate(logEntry.event, logEntry.newValue)
     }
   }
 }

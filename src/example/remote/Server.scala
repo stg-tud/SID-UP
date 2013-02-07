@@ -2,13 +2,13 @@ package example.remote
 
 import java.rmi.server.UnicastRemoteObject
 import reactive.Reactive
-import remote.RemoteReactive
+import remote.RemoteEventStream
 import example.ResourceAllocationExample
 import java.rmi.Naming
 import java.rmi.registry.LocateRegistry
 import java.rmi.registry.Registry
 import remote.EstablishEventStreamConnectionData
-import remote.RemoteReactive._
+import remote.RemoteSignal._
 import remote.EstablishSignalConnectionData
 
 object Server extends App {

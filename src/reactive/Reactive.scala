@@ -12,7 +12,7 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import remote.RemoteReactive
+import remote.RemoteEventStream
 
 /**
  *  Note: while this class implements a remote interface, it doesn't actually
@@ -20,7 +20,7 @@ import remote.RemoteReactive
  *  implemented only to provide a remote-capable wrapper to just forward all
  *  method invocations.
  */
-trait Reactive[+A] extends RemoteReactive[A] {
+trait Reactive[+A] {
   val name: String;
   def log : Signal[List[A]]
   // TODO should be package protected 

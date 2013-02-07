@@ -6,8 +6,9 @@ import impl.FunctionalSignal
 import reactive.impl.SnapshotSignal
 import scala.collection.Map
 import scala.actors.threadpool.TimeoutException
+import remote.RemoteSignal
 
-trait Signal[+A] extends Reactive[A] {
+trait Signal[+A] extends Reactive[A] with RemoteSignal[A] {
   // use this to get the current value from regular code
   def now: A
   // use this only inside FunctionalSignal closures
@@ -23,6 +24,7 @@ trait Signal[+A] extends Reactive[A] {
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def rmap[B](op: A => Signal[B]): Signal[B]
+  def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];
   def snapshot(when: EventStream[_]): Signal[A]
 }
 

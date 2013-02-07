@@ -5,8 +5,31 @@ import reactive.EventStream
 import reactive.Event
 import scala.actors.threadpool.TimeoutException
 import reactive.Signal
+import reactive.EventStreamDependant
+import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import util.LockWithExecute._
+import reactive.Reactive
 
 abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
+  private val dependencies = mutable.Set[EventStreamDependant[A]]()
+  private val dependenciesLock = new ReentrantReadWriteLock;
+  override def addDependant(obs: EventStreamDependant[A]) {
+    dependenciesLock.writeLocked {
+      dependencies += obs
+    }
+  }
+  override def removeDependant(obs: EventStreamDependant[A]) {
+    dependenciesLock.writeLocked {
+      dependencies -= obs
+    }
+  }
+  protected def notifyDependants(event: Event, maybeValue: Option[A]) {
+    dependenciesLock.readLocked {
+      Reactive.executePooled(dependencies, { x: EventStreamDependant[A] =>
+        x.notifyEvent(event, maybeValue)
+      });
+    }
+  }
 
   private val valHistory = new mutable.WeakHashMap[Event, Option[A]]();
 

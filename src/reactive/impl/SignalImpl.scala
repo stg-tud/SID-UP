@@ -7,12 +7,35 @@ import reactive.EventStream
 import reactive.Event
 import scala.actors.threadpool.TimeoutException
 import reactive.Event
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Reactive
 import reactive.Var
+import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import util.LockWithExecute._
+import reactive.SignalDependant
 
 abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] {
   signal =>
+  private val dependencies = mutable.Set[SignalDependant[A]]()
+  private val dependenciesLock = new ReentrantReadWriteLock;
+  override def addDependant(obs: SignalDependant[A]) {
+    dependenciesLock.writeLocked {
+      dependencies += obs
+    }
+  }
+  override def removeDependant(obs: SignalDependant[A]) {
+    dependenciesLock.writeLocked {
+      dependencies -= obs
+    }
+  }
+  protected def notifyDependants(event: Event, value: A, changed: Boolean) {
+    dependenciesLock.readLocked {
+      Reactive.executePooled(dependencies, { x: SignalDependant[A] =>
+        x.notifyEvent(event, value, changed)
+      });
+    }
+  }
+
   override def now = currentValue
   private var _lastEvent: Event = new Event(Map())
   override def lastEvent = _lastEvent;
@@ -24,7 +47,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
   valHistory += (lastEvent -> (currentValue, true));
 
-  override def reactive(context : Signal.ReactiveEvaluationContext) = {
+  override def reactive(context: Signal.ReactiveEvaluationContext) = {
     if (context.event == null) {
       currentValue;
     } else {
@@ -71,11 +94,9 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
       (newValue, changed)
     }
 
+    notifyDependants(event, newValue, changed);
     if (changed) {
-      notifyDependants(event, Some(newValue));
       notifyObservers(event, newValue)
-    } else {
-      notifyDependants(event, None);
     }
   }
 
@@ -89,8 +110,8 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     override def observe(obs: A => Unit) = signal.observe(obs)
     override def unobserve(obs: A => Unit) = signal.unobserve(obs)
     override def sourceDependencies = signal.sourceDependencies
-    override def addDependant(dependant: ReactiveDependant[A]) { signal.addDependant(dependant) }
-    override def removeDependant(dependant: ReactiveDependant[A]) { signal.addDependant(dependant) }
+    override def addDependant(dependant: EventStreamDependant[A]) { signal.addDependant(new SignalImpl.EventStreamDependantAsSignalDependant(dependant)) }
+    override def removeDependant(dependant: EventStreamDependant[A]) { signal.addDependant(new SignalImpl.EventStreamDependantAsSignalDependant(dependant)) }
     override def hold[B >: A](initialValue: B): Signal[B] = if (nullSafeEqual(initialValue, currentValue)) signal else new HoldSignal(this, initialValue);
     override def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
     override def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream((this +: streams): _*);
@@ -99,7 +120,16 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     override def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
   }
   override def map[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
-  override def rmap[B](op: A => Signal[B]): Signal[B] = new FlattenSignal("bla", this, op);
+  override def rmap[B](op: A => Signal[B]): Signal[B] = map(op).flatten
+  override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]]);
   override def log = changes.fold(List(currentValue))((list, elem) => list :+ elem);
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
+}
+
+object SignalImpl {
+  class EventStreamDependantAsSignalDependant[A](esd: EventStreamDependant[A]) extends SignalDependant[A] {
+    override def notifyEvent(event: Event, value: A, changed: Boolean) {
+      esd.notifyEvent(event, if (changed) Some(value) else None);
+    }
+  }
 }

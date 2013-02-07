@@ -1,9 +1,9 @@
 package reactive.impl
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Reactive
 import reactive.Event
 
-trait StatefulReactiveDependant[A] extends ReactiveDependant[A] {
+trait StatefulReactiveDependant[A] extends EventStreamDependant[A] {
   this : Reactive[_] =>
   private val ordering = new EventOrderingCache[Option[A]](sourceDependencies) {
     override def eventReadyInOrder(event: Event, maybeValue: Option[A]) {

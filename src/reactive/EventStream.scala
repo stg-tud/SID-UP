@@ -7,8 +7,9 @@ import reactive.impl.MappedEventStream
 import reactive.impl.HoldSignal
 import impl.FilteredEventStream
 import scala.actors.threadpool.TimeoutException
+import remote.RemoteEventStream
 
-trait EventStream[+A] extends Reactive[A] {
+trait EventStream[+A] extends Reactive[A] with RemoteEventStream[A] {
   @throws(classOf[TimeoutException])
   def await(event: Event, timeout: Long = 0): Option[A]
   def hold[B >: A](initialValue: B): Signal[B]

@@ -3,16 +3,17 @@ package testtools
 import scala.concurrent.ops.spawn
 import reactive.Signal
 import reactive.impl.StatelessSignal
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
 import reactive.Event
+import reactive.SignalDependant
 
-class FakeNetwork[A](input: Signal[A]) extends StatelessSignal[A]("NetworkDelayed[" + input.name + "]", input.now) with ReactiveDependant[A] {
+class FakeNetwork[A](input: Signal[A]) extends StatelessSignal[A]("NetworkDelayed[" + input.name + "]", input.now) with SignalDependant[A] {
   input.addDependant(this);
   override def sourceDependencies = input.sourceDependencies
-  override def notifyEvent(event: Event, value: Option[A]) {
+  override def notifyEvent(event: Event, value: A, changed: Boolean) {
     spawn {
       Thread.sleep(500)
-      propagate(event, value)
+      propagate(event, if (changed) Some(value) else None)
     }
   }
 }

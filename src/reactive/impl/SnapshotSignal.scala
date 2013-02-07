@@ -4,7 +4,8 @@ import scala.collection.mutable
 import reactive.Signal
 import reactive.EventStream
 import reactive.Event
-import reactive.ReactiveDependant
+import reactive.EventStreamDependant
+import reactive.SignalDependant
 
 // TODO should not use signal.now, should implement dependency caching equivalent to FunctionalSignal instead
 class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.now) {
@@ -16,11 +17,8 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends State
   private val waitingForSignal = mutable.Set[Event]()
   private val ignoreForSignal = mutable.Set[Event]()
 
-  private val signalObserver = new ReactiveDependant[A] {
-    override def notifyEvent(event: Event, maybeValue: Option[A]) {
-      val value = maybeValue.getOrElse{
-       signal.now
-      }
+  private val signalObserver = new SignalDependant[A] {
+    override def notifyEvent(event: Event, value: A, changed: Boolean) {
       if (events.isConnectedTo(event)) {
         val shouldEmit = lock.synchronized {
           if (ignoreForSignal.remove(event)) {
@@ -37,11 +35,10 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends State
           propagate(event, Some(value));
         }
       }
-
     }
   }
   signal.addDependant(signalObserver);
-  private val eventsObserver = new ReactiveDependant[Any] {
+  private val eventsObserver = new EventStreamDependant[Any] {
     def notifyEvent(event: Event, maybeValue: Option[Any]) {
       maybeValue match {
         case None =>
