@@ -9,6 +9,7 @@ import scala.actors.threadpool.TimeoutException
 import reactive.Event
 import reactive.ReactiveDependant
 import reactive.Reactive
+import reactive.Var
 
 abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] {
   signal =>
@@ -98,7 +99,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     override def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
   }
   override def map[B](op: A => B): Signal[B] = changes.map(op).hold(op(now))
-  override def rmap[R <: Signal[_]](op: A => R): R = throw new UnsupportedOperationException
+  override def rmap[B](op: A => Signal[B]): Signal[B] = new FlattenSignal("bla", this, op);
   override def log = changes.fold(List(currentValue))((list, elem) => list :+ elem);
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
 }

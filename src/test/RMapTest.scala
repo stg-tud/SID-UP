@@ -16,44 +16,44 @@ class RMapTest extends FunSuite {
 
     var1.set(4);
     expectResult(4) { bar.now }
-    expectResult(2) { invocationCount }
+    expectResult(1) { invocationCount }
 
     foo.set(var2);
     expectResult(5) { bar.now }
-    expectResult(3) { invocationCount }
+    expectResult(2) { invocationCount }
 
     var1.set(7);
     expectResult(5) { bar.now }
-    expectResult(3) { invocationCount }
+    expectResult(2) { invocationCount }
 
     var2.set(6);
     expectResult(6) { bar.now }
-    expectResult(4) { invocationCount }
+    expectResult(2) { invocationCount }
 
     val t = new Transaction;
     t.set(var2, 0);
     t.set(foo, var1);
     t.commit();
     expectResult(7) { bar.now }
-    expectResult(5) { invocationCount }
+    expectResult(3) { invocationCount }
 
     t.set(var1, 0);
     t.set(var2, 8);
     t.set(foo, var2);
     t.commit();
     expectResult(8) { bar.now }
-    expectResult(6) { invocationCount }
+    expectResult(4) { invocationCount }
 
     var1.set(10);
     expectResult(8) { bar.now }
-    expectResult(6) { invocationCount }
+    expectResult(4) { invocationCount }
 
     var2.set(9);
     expectResult(9) { bar.now }
-    expectResult(7) { invocationCount }
+    expectResult(4) { invocationCount }
 
     foo.set(var1);
     expectResult(10) { bar.now }
-    expectResult(8) { invocationCount }
+    expectResult(5) { invocationCount }
   }
 }
