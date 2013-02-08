@@ -4,6 +4,7 @@ import scala.collection.mutable
 import reactive.EventStream
 import reactive.EventStreamDependant
 import reactive.Event
+import reactive.PropagationData
 
 class MergeStream[A](streams: EventStream[A]*) extends StatelessEventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with EventStreamDependant[A] {
   streams.foreach { _.addDependant(this) }
@@ -11,7 +12,8 @@ class MergeStream[A](streams: EventStream[A]*) extends StatelessEventStreamImpl[
 
   private val pending = mutable.Map[Event, (Int, Boolean)]()
 
-  override def notifyEvent(event: Event, maybeValue: Option[A]) {
+  override def notifyEvent(propagationData : PropagationData, maybeValue: Option[A]) {
+    // TODO need to assemble all propagation data before notifying
     if (shouldEmit(event, maybeValue.isDefined)) {
       propagate(event, maybeValue)
     }

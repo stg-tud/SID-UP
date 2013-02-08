@@ -10,11 +10,12 @@ import reactive.Signal
 import reactive.impl.SignalImpl
 import reactive.impl.StatelessSignal
 import reactive.SignalDependant
+import reactive.PropagationData
 
 class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends StatelessSignal[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
   val remoteConnection = new UnicastRemoteObject with SignalDependant[A] {
-    override def notifyEvent(event: Event, value : A, changed: Boolean) {
-      propagate(event, if(changed) Some(value) else None);
+    override def notifyEvent(propagationData : PropagationData, value : A, changed: Boolean) {
+      propagate(propagationData, if(changed) Some(value) else None);
     }
   }
 

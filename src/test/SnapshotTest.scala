@@ -4,7 +4,6 @@ import reactive.EventSource
 import reactive.Signal
 import reactive.Transaction
 import reactive.Reactive
-import testtools.Asserts
 import reactive.Lift._
 import reactive.LiftableWrappers._
 import org.scalatest.FunSuite

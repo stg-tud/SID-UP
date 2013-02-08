@@ -3,17 +3,19 @@ package reactive.impl
 import scala.collection.mutable
 import java.util.UUID
 import reactive.Event
+import reactive.PropagationData
 
 abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
   private val lastEvents = mutable.Map[UUID, UUID]()
   lastEvents ++= initialLastEvents
 
-  private case class EventRecord(event: Event, missingPredecessors: mutable.Set[UUID], data: T);
+  // TODO store received instead of missing, and update dependencies when an event gets released
+  private case class EventRecord(propagationData : PropagationData, missingPredecessors: mutable.Set[UUID], data: T);
   private val suspendedRecords = mutable.Map[UUID, List[EventRecord]]()
 
-  def eventReady(event: Event, data: T) = {
+  def eventReady(propagationData : PropagationData, data: T) = {
     suspendedRecords.synchronized {
-      val record = new EventRecord(event, calculateMissingPredecessors(event), data);
+      val record = new EventRecord(propagationData, calculateMissingPredecessors(propagationData.event), data);
       if (record.missingPredecessors.isEmpty) {
         Some(record);
       } else {
@@ -51,19 +53,19 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
     while (!readyEvents.isEmpty) {
       val record = readyEvents.head
       readyEvents = readyEvents.tail
-
-      eventReadyInOrder(record.event, record.data)
+      val event = record.propagationData.event
+      eventReadyInOrder(record.propagationData, record.data)
 
       suspendedRecords.synchronized {
-        record.event.sourcesAndPredecessors.keysIterator.foreach { source =>
-          if(lastEvents.contains(source)) lastEvents += (source -> record.event.uuid)
+        event.sourcesAndPredecessors.keysIterator.foreach { source =>
+          if(lastEvents.contains(source)) lastEvents += (source -> event.uuid)
         }
 
-        suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>
+        suspendedRecords.remove(event.uuid).flatten.foreach[Unit] { suspendedRecord =>
           if (suspendedRecord.missingPredecessors.size == 1) {
             readyEvents = suspendedRecord :: readyEvents;
           } else {
-            suspendedRecord.missingPredecessors -= record.event.uuid
+            suspendedRecord.missingPredecessors -= event.uuid
           }
         }
       }
@@ -74,7 +76,7 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
    *  for temporally related events, this will be invoked in order.
    *  for temporally unrelated events, this can be invoked concurrently.
    */
-  protected[this] def eventReadyInOrder(event: Event, data: T)
+  protected[this] def eventReadyInOrder(propagationData : PropagationData, data: T)
 }
 
 object EventOrderingCache {

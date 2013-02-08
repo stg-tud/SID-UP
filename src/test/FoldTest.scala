@@ -1,6 +1,5 @@
 package test
 import reactive.EventSource
-import testtools.Asserts
 import org.scalatest.FunSuite
 
 class FoldTest extends FunSuite {

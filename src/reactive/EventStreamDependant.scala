@@ -1,8 +1,6 @@
 package reactive
+import java.util.UUID
 
-@remote trait EventStreamDependant[-A] /*extends SignalDependant[A] {
-  override def notifyEvent(event : Event, value: A, changed: Boolean) {
-    notifyEvent(event, if(changed) Some(value) else None);
-  }*/{
-  def notifyEvent(event: Event, maybeValue : Option[A]);
+@remote trait EventStreamDependant[-A] {
+  def notifyEvent(propagationData : PropagationData, maybeValue : Option[A]);
 }

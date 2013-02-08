@@ -1,7 +1,6 @@
 package test
 import reactive.EventSource
 import reactive.Transaction
-import testtools.Asserts
 import org.scalatest.FunSuite
 
 class MergeTest extends FunSuite {

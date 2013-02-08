@@ -9,6 +9,8 @@ import reactive.EventStreamDependant
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import util.LockWithExecute._
 import reactive.Reactive
+import java.util.UUID
+import reactive.PropagationData
 
 abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
   private val dependencies = mutable.Set[EventStreamDependant[A]]()
@@ -23,10 +25,10 @@ abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) wi
       dependencies -= obs
     }
   }
-  protected def notifyDependants(event: Event, maybeValue: Option[A]) {
+  protected def notifyDependants(propagationData : PropagationData, maybeValue: Option[A]) {
     dependenciesLock.readLocked {
       Reactive.executePooled(dependencies, { x: EventStreamDependant[A] =>
-        x.notifyEvent(event, maybeValue)
+        x.notifyEvent(propagationData, maybeValue)
       });
     }
   }

@@ -1,7 +1,6 @@
 package test
 import reactive.Signal
 import reactive.Var
-import testtools.Asserts
 import reactive.Lift._
 import reactive.LiftableWrappers._
 import org.scalatest.FunSuite

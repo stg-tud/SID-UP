@@ -6,7 +6,6 @@ import reactive.Event
 import scala.collection.mutable
 import reactive.Signal
 import testtools.MessageMixup
-import testtools.Asserts
 import reactive.Lift._
 import reactive.LiftableWrappers._
 import org.scalatest.FunSuite

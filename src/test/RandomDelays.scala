@@ -7,7 +7,6 @@ import reactive.Lift._
 import java.text.SimpleDateFormat
 import java.util.Date
 import scala.actors.threadpool.AtomicInteger
-import testtools.Asserts
 import org.scalatest.FunSuite
 
 class RandomDelays extends FunSuite {

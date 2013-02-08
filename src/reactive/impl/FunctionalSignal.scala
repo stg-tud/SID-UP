@@ -6,6 +6,7 @@ import reactive.Event
 import reactive.EventStreamDependant
 import reactive.Reactive
 import reactive.SignalDependant
+import reactive.PropagationData
 
 class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => A, dependencies: Signal[_]*) extends {
   private val lastEventsLock = new Object
@@ -14,7 +15,7 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
   private val debug = false;
 
   private var ordering = new EventOrderingCache[Boolean](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, anyDependencyChanged: Boolean) {
+    override def eventReadyInOrder(propagationData : PropagationData, anyDependencyChanged: Boolean) {
       val cachedLastEvents = lastEventsLock.synchronized {
         dependencies.foreach { dependency =>
           if (dependency.isConnectedTo(event)) {
@@ -26,7 +27,7 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
 
       Reactive.executePooled {
         if (anyDependencyChanged) {
-          val newValue = op(new Signal.ReactiveEvaluationContext(event, cachedLastEvents))
+          val newValue = op(new Signal.ReactiveEvaluationContext(propagationData.event, cachedLastEvents))
           propagate(event, Some(newValue));
         } else {
           propagate(event, None);
