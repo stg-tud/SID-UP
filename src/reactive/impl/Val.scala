@@ -25,4 +25,5 @@ class Val[A](value: A) extends Signal[A] {
   override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = value
   override lazy val log = new Val(List(value))
   override def snapshot(when: EventStream[_]): Signal[A] = this
+  override def renotify(dep : SignalDependant[A], event : Event) = throw new UnsupportedOperationException
 }

@@ -82,6 +82,12 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     awaitInternal(event, timeout)._1
   }
 
+  override def renotify(dep: SignalDependant[A], event: Event) {
+    valHistory.get(event).foreach({ (value: A, changed: Boolean) =>
+      dep.notifyEvent(event, value, changed);
+    }.tupled)
+  }
+
   protected[this] def updateValue(event: Event)(calculateNewValue: A => A) {
     val (newValue, changed) = valHistory.synchronized {
       val newValue = calculateNewValue(currentValue);

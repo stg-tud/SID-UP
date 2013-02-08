@@ -10,10 +10,10 @@ import reactive.SignalDependant
 // - make thread safe
 // - make order preserving
 // - add source dependencies update
-// - wait for inner notification only if inner has not yet processed event (need to make this information accessible first)
+// - block duplicate renotification on inner change
 class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   var currentInner = outer.now;
-} with StatelessSignal[A](outer.name+".flatten", currentInner.now) {
+} with StatelessSignal[A](outer.name + ".flatten", currentInner.now) {
   override def sourceDependencies = Map()
 
   class LogEntry(val event: Event) {
@@ -25,10 +25,15 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
       receivedOuterNotification = Some(changed);
       if (changed) {
         currentInner.removeDependant(innerObserver)
+        affectsInner = value.isConnectedTo(event);
         currentInner = value
         currentInner.addDependant(innerObserver)
-        affectsInner = currentInner.isConnectedTo(event);
-        newValue = if (affectsInner) null else Some(currentInner.now)
+        if (affectsInner) {
+          newValue = null;
+          currentInner.renotify(innerObserver, event);
+        } else {
+          newValue = Some(currentInner.now)
+        }
       }
     }
     def receiveInnerNotification(maybeValue: Option[A]) {
@@ -61,7 +66,7 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   val innerObserver = new SignalDependant[A] {
     override def notifyEvent(event: Event, value: A, changed: Boolean) {
       val logEntry = getLogEntry(event);
-      logEntry.receiveInnerNotification(if(changed) Some(value) else None);
+      logEntry.receiveInnerNotification(if (changed) Some(value) else None);
       updated(logEntry);
     }
   }
@@ -70,7 +75,7 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   def updated(logEntry: LogEntry) {
     if (logEntry.isReady) {
       logEntries -= logEntry.event;
-      if(logEntry.newValue == null) throw new AssertionError("That should be impossible");
+      if (logEntry.newValue == null) throw new AssertionError("That should be impossible");
       propagate(logEntry.event, logEntry.newValue)
     }
   }

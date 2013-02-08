@@ -20,6 +20,7 @@ trait Signal[+A] extends Reactive[A] with RemoteSignal[A] {
 
   @throws(classOf[TimeoutException])
   def await(event: Event, timeout: Long = 0): A
+  def renotify(dep : SignalDependant[A], event : Event)
 
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
