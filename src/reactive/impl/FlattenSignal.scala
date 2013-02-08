@@ -18,11 +18,11 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
 
   class LogEntry(val event: Event) {
     val affectsOuter = outer.isConnectedTo(event)
-    var receivedOuterNotification: Option[Boolean] = None
+    var receivedOuterNotification = false
     var affectsInner = currentInner.isConnectedTo(event)
     var newValue: Option[A] = null
     def receiveOuterNotification(value: Signal[A], changed: Boolean) {
-      receivedOuterNotification = Some(changed);
+      receivedOuterNotification = true
       if (changed) {
         currentInner.removeDependant(innerObserver)
         affectsInner = value.isConnectedTo(event);
@@ -40,7 +40,7 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
       newValue = maybeValue;
     }
 
-    def isOuterReady = !affectsOuter || receivedOuterNotification.isDefined
+    def isOuterReady = !affectsOuter || receivedOuterNotification
     def isInnerReady = !affectsInner || newValue != null
     def isReady = isOuterReady && isInnerReady
   }
@@ -57,17 +57,21 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
 
   val outerObserver = new SignalDependant[Signal[A]] {
     override def notifyEvent(event: Event, value: Signal[A], changed: Boolean) {
-      val logEntry = getLogEntry(event);
-      logEntry.receiveOuterNotification(value, changed);
-      updated(logEntry);
+      logEntries.synchronized {
+        val logEntry = getLogEntry(event);
+        logEntry.receiveOuterNotification(value, changed);
+        updated(logEntry);
+      }
     }
   }
   outer.addDependant(outerObserver);
   val innerObserver = new SignalDependant[A] {
     override def notifyEvent(event: Event, value: A, changed: Boolean) {
-      val logEntry = getLogEntry(event);
-      logEntry.receiveInnerNotification(if (changed) Some(value) else None);
-      updated(logEntry);
+      logEntries.synchronized {
+        val logEntry = getLogEntry(event);
+        logEntry.receiveInnerNotification(if (changed) Some(value) else None);
+        updated(logEntry);
+      }
     }
   }
   currentInner.addDependant(innerObserver)
