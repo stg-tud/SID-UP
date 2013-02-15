@@ -1,6 +1,7 @@
 package test
 import org.scalatest.FunSuite
 import reactive.Var
+import testtools.Asserts
 import reactive.Transaction
 
 class RMapTest extends FunSuite {

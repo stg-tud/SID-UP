@@ -6,7 +6,6 @@ import reactive.EventStream
 import reactive.Event
 import reactive.EventStreamDependant
 import reactive.SignalDependant
-import reactive.PropagationData
 
 // TODO should not use signal.now, should implement dependency caching equivalent to FunctionalSignal instead
 class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends StatelessSignal[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.now) with SignalDependant[A] with EventStreamDependant[Any] {
@@ -17,34 +16,31 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends State
 
   private val lock = new Object();
   private val waitingForEventStream = mutable.Map[Event, A]()
-  private val waitingForSignal = mutable.Map[Event, PropagationData]()
+  private val waitingForSignal = mutable.Set[Event]()
   private val ignoreForSignal = mutable.Set[Event]()
 
-  override def notifyEvent(propagationData: PropagationData, value: A, changed: Boolean) {
-    val event = propagationData.event
+  override def notifyEvent(event: Event, value: A, changed: Boolean) {
     if (events.isConnectedTo(event)) {
-      val maybePropagationData = lock.synchronized {
+      val shouldEmit = lock.synchronized {
         if (ignoreForSignal.remove(event)) {
-          None
+          false
         } else {
-          waitingForSignal.remove(event) match {
-            case None =>
-              waitingForEventStream += (event -> value);
-              None
-            case x => x
+          val shouldEmit = waitingForSignal.remove(event);
+          if (!shouldEmit) {
+            waitingForEventStream += (event -> value);
           }
+          shouldEmit
         }
       }
-      maybePropagationData.foreach {
-        propagate(_, Some(value));
+      if (shouldEmit) {
+        propagate(event, Some(value));
       }
     }
   }
-  def notifyEvent(propagationData: PropagationData, maybeValue: Option[Any]) {
-    val event = propagationData.event;
+  def notifyEvent(event: Event, maybeValue: Option[Any]) {
     maybeValue match {
       case None =>
-        propagate(propagationData, None);
+        propagate(event, None);
         if (signal.isConnectedTo(event)) {
           lock.synchronized {
             if (waitingForEventStream.remove(event).isEmpty) {
@@ -56,12 +52,12 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends State
         if (signal.isConnectedTo(event)) {
           lock.synchronized {
             waitingForEventStream.remove(event) match {
-              case Some(value) => propagate(propagationData, Some(value));
-              case None => waitingForSignal += (event -> propagationData)
+              case Some(value) => propagate(event, Some(value));
+              case None => waitingForSignal += event
             }
           }
         } else {
-          propagate(propagationData, Some(signal.now));
+          propagate(event, Some(signal.now));
         }
     }
   }
