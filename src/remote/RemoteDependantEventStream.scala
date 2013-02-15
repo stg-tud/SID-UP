@@ -1,5 +1,6 @@
 package remote
 import util.SerializationSafe
+
 import reactive.Reactive
 import reactive.Event
 import reactive.Var
@@ -10,12 +11,11 @@ import reactive.Signal
 import reactive.EventStream
 import reactive.impl.ReactiveImpl
 import reactive.impl.StatelessEventStreamImpl
-import reactive.PropagationData
 
 class RemoteDependantEventStream[A: SerializationSafe](establishConnectionData: EstablishEventStreamConnectionData[A]) extends StatelessEventStreamImpl[A]("remote" + establishConnectionData.name) {
   val remoteConnection = new UnicastRemoteObject with EventStreamDependant[A] {
-    override def notifyEvent(propagationData : PropagationData, maybeValue: Option[A]) {
-      propagate(propagationData, maybeValue);
+    override def notifyEvent(event: Event, maybeValue: Option[A]) {
+      propagate(event, maybeValue);
     }
   }
 

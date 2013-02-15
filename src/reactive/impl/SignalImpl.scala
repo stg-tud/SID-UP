@@ -13,10 +13,6 @@ import reactive.Var
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import util.LockWithExecute._
 import reactive.SignalDependant
-import java.util.UUID
-import reactive.PropagationData
-import reactive.PropagationData
-import reactive.PropagationData
 
 abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] {
   signal =>
@@ -32,10 +28,10 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
       dependencies -= obs
     }
   }
-  protected def notifyDependants(propagationData : PropagationData, value: A, changed: Boolean) {
+  protected def notifyDependants(event: Event, value: A, changed: Boolean) {
     dependenciesLock.readLocked {
       Reactive.executePooled(dependencies, { x: SignalDependant[A] =>
-        x.notifyEvent(propagationData, value, changed)
+        x.notifyEvent(event, value, changed)
       });
     }
   }
@@ -48,21 +44,21 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   // Using a WeakHashMap works, but retains events unnecessarily long, which irrevokably bloats
   // each map's size. That is however a bunch of work, especially considering there can exist
   // multiple instances of the "same" event through back and forth network transfers
-  private val valHistory = new mutable.WeakHashMap[Event, (PropagationData, A, Boolean)]();
-  valHistory += (lastEvent -> ((new PropagationData(lastEvent, sourceDependencies.toList, Nil), currentValue, true)));
+  private val valHistory = new mutable.WeakHashMap[Event, (A, Boolean)]();
+  valHistory += (lastEvent -> (currentValue, true));
 
   override def reactive(context: Signal.ReactiveEvaluationContext) = {
     if (context.event == null) {
       currentValue;
     } else {
       valHistory.synchronized {
-        valHistory.get(context.event).getOrElse(valHistory(context.context(this)))._2
+        valHistory.get(context.event).getOrElse(valHistory(context.context(this)))._1
       }
     }
   }
 
   @throws(classOf[TimeoutException])
-  private def awaitInternal(event: Event, timeout: Long): (PropagationData, A, Boolean) = {
+  private def awaitInternal(event: Event, timeout: Long): (A, Boolean) = {
     if (!isConnectedTo(event)) {
       throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
     }
@@ -83,30 +79,30 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
    */
   @throws(classOf[TimeoutException])
   override def await(event: Event, timeout: Long = 0): A = {
-    awaitInternal(event, timeout)._2
+    awaitInternal(event, timeout)._1
   }
 
   override def renotify(dep: SignalDependant[A], event: Event) {
-    valHistory.get(event).foreach({ (propagationData : PropagationData, value: A, changed: Boolean) =>
-      dep.notifyEvent(propagationData, value, changed);
+    valHistory.get(event).foreach({ (value: A, changed: Boolean) =>
+      dep.notifyEvent(event, value, changed);
     }.tupled)
   }
 
-  protected[this] def updateValue(propagationData : PropagationData)(calculateNewValue: A => A) {
+  protected[this] def updateValue(event: Event)(calculateNewValue: A => A) {
     val (newValue, changed) = valHistory.synchronized {
       val newValue = calculateNewValue(currentValue);
-      _lastEvent = propagationData.event;
+      _lastEvent = event;
       val changed = !nullSafeEqual(currentValue, newValue)
       currentValue = newValue;
 
-      valHistory += (propagationData.event -> ((propagationData, newValue, changed)))
+      valHistory += (event -> ((newValue, changed)))
       valHistory.notifyAll();
       (newValue, changed)
     }
 
-    notifyDependants(propagationData : PropagationData, newValue, changed);
+    notifyDependants(event, newValue, changed);
     if (changed) {
-      notifyObservers(propagationData.event, newValue)
+      notifyObservers(event, newValue)
     }
   }
 
@@ -114,7 +110,7 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
     override val name = signal.name + ".changes"
     @throws(classOf[TimeoutException])
     override def await(event: Event, timeout: Long = 0): Option[A] = {
-      val (_, value, changed) = awaitInternal(event, timeout);
+      val (value, changed) = awaitInternal(event, timeout);
       if (changed) Some(value) else None
     }
     override def observe(obs: A => Unit) = signal.observe(obs)
@@ -138,8 +134,8 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
 
 object SignalImpl {
   class EventStreamDependantAsSignalDependant[A](esd: EventStreamDependant[A]) extends SignalDependant[A] {
-    override def notifyEvent(propagationData : PropagationData, value: A, changed: Boolean) {
-      esd.notifyEvent(propagationData, if (changed) Some(value) else None);
+    override def notifyEvent(event: Event, value: A, changed: Boolean) {
+      esd.notifyEvent(event, if (changed) Some(value) else None);
     }
   }
 }

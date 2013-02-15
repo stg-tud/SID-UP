@@ -10,17 +10,15 @@ import reactive.impl.SignalImpl
 import reactive.impl.StatelessSignal
 import scala.util.Random
 import reactive.SignalDependant
-import java.util.UUID
-import reactive.PropagationData
 
 class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer[" + input.name + "]", input.now) with SignalDependant[A] {
   input.addDependant(this);
-  val messages = mutable.MutableList[(PropagationData, Option[A])]()
+  val messages = mutable.MutableList[(Event, Option[A])]()
   override def sourceDependencies = input.sourceDependencies
-  override def notifyEvent(propagationData : PropagationData, value: A, changed : Boolean) {
+  override def notifyEvent(event: Event, value: A, changed: Boolean) {
     //    println("recording new value " + input.value + " for event " + event);
     messages.synchronized {
-      messages += ((propagationData, if (changed) Some(value) else None));
+      messages += ((event, if (changed) Some(value) else None));
     }
   }
 
@@ -30,9 +28,9 @@ class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer
       messages.clear()
       release
     }).foreach {
-      case (propagationData, maybeValue) =>
+      case (event, maybeValue) =>
         //      println("releasing new value " + value + " for event " + event);
-        propagate(propagationData, maybeValue);
+        propagate(event, maybeValue);
     }
   }
 }

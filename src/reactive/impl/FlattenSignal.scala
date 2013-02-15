@@ -5,7 +5,6 @@ import reactive.EventStreamDependant
 import reactive.Event
 import scala.collection.mutable
 import reactive.SignalDependant
-import reactive.PropagationData
 
 // TODOs:
 // - make thread safe
@@ -15,7 +14,7 @@ import reactive.PropagationData
 class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   var currentInner = outer.now;
 } with StatelessSignal[A](outer.name + ".flatten", currentInner.now) {
-  override def sourceDependencies = outer.sourceDependencies ++ currentInner.sourceDependencies
+  override def sourceDependencies = Map()
 
   class LogEntry(val event: Event) {
     val affectsOuter = outer.isConnectedTo(event)
@@ -57,9 +56,9 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   }
 
   val outerObserver = new SignalDependant[Signal[A]] {
-    override def notifyEvent(propagationData : PropagationData, value: Signal[A], changed: Boolean) {
+    override def notifyEvent(event: Event, value: Signal[A], changed: Boolean) {
       logEntries.synchronized {
-        val logEntry = getLogEntry(propagationData.event);
+        val logEntry = getLogEntry(event);
         logEntry.receiveOuterNotification(value, changed);
         updated(logEntry);
       }
@@ -67,9 +66,9 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   }
   outer.addDependant(outerObserver);
   val innerObserver = new SignalDependant[A] {
-    override def notifyEvent(propagationData : PropagationData, value: A, changed: Boolean) {
+    override def notifyEvent(event: Event, value: A, changed: Boolean) {
       logEntries.synchronized {
-        val logEntry = getLogEntry(propagationData.event);
+        val logEntry = getLogEntry(event);
         logEntry.receiveInnerNotification(if (changed) Some(value) else None);
         updated(logEntry);
       }
