@@ -4,6 +4,7 @@ currently broken:
     - exception handling
     - garbage collection of parts of the network
 
++   3   separate set of actually involved sources and source (ordering source?) predecessor map
 ++  15  dependency set changes
         -> Signal.rmap
 +   3   make an EventStream equivalent of HoldSignal
