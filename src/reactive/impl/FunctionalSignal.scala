@@ -2,19 +2,19 @@ package reactive.impl
 import scala.collection.mutable
 import java.util.UUID
 import reactive.Signal
-import reactive.Event
+import reactive.Transaction
 import reactive.EventStreamDependant
 import reactive.Reactive
 import reactive.SignalDependant
 
 class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => A, dependencies: Signal[_]*) extends {
   private val lastEventsLock = new Object
-  private var lastEvents = dependencies.foldLeft(Map[Signal[_], Event]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
-} with StatelessSignal[A](name, op(new Signal.ReactiveEvaluationContext(null, lastEvents))) with SignalDependant[Any] {
+  private var lastEvents = dependencies.foldLeft(Map[Signal[_], Transaction]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
+} with SignalImpl[A](name, op(new Signal.ReactiveEvaluationContext(null, lastEvents))) with SignalDependant[Any] {
   private val debug = false;
 
   private var ordering = new EventOrderingCache[Boolean](sourceDependencies) {
-    override def eventReadyInOrder(event: Event, anyDependencyChanged: Boolean) {
+    override def eventReadyInOrder(event: Transaction, anyDependencyChanged: Boolean) {
       val cachedLastEvents = lastEventsLock.synchronized {
         dependencies.foreach { dependency =>
           if (dependency.isConnectedTo(event)) {
@@ -45,7 +45,7 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
 
   dependencies.foreach { _.addDependant(this) }
 
-  override def notifyEvent(event: Event, value : Any, changed : Boolean) {
+  override def notifyEvent(event: Transaction, value : Any, changed : Boolean) {
     updateLog.synchronized {
       updateLog.get(event) match {
         case Some(logEntry) =>
@@ -74,7 +74,7 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
    * and whether or not any of the dependencies that did already send a
    * notification has actually changed it's value
    */
-  private val updateLog = mutable.Map[Event, UpdateLogEntry]()
+  private val updateLog = mutable.Map[Transaction, UpdateLogEntry]()
 
   override def sourceDependencies = dependencies.foldLeft(Map[UUID, UUID]()) { (accu, dep) => accu ++ dep.sourceDependencies }
 }

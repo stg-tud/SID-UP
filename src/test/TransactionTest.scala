@@ -1,7 +1,7 @@
 package test
 import reactive.Var
 import reactive.Signal
-import reactive.Transaction
+import reactive.TransactionBuilder
 import testtools.Asserts
 import reactive.Lift._
 import reactive.LiftableWrappers._
@@ -18,7 +18,7 @@ class TransactionTest extends FunSuite {
     var1.set(4);
     var2.set(4);
 
-    val transaction = new Transaction();
+    val transaction = new TransactionBuilder();
 
     transaction.set(var1, 5);
     transaction.set(var2, 5);

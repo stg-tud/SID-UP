@@ -1,7 +1,7 @@
 package test
 
 import reactive.Var
-import reactive.Transaction
+import reactive.TransactionBuilder
 import reactive.Signal
 import testtools.MessageMixup
 import reactive.Reactive
@@ -27,7 +27,7 @@ class TransactionWithPartialMessageMixupTest extends FunSuite {
       val outputLog = output.log
       // initial value 1+2=3
 
-      val transaction = new Transaction();
+      val transaction = new TransactionBuilder();
       val touch = false;
 
       Reactive.withThreadPoolSize(4) {

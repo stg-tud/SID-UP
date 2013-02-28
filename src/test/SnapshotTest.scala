@@ -2,7 +2,7 @@ package test
 import reactive.Var
 import reactive.EventSource
 import reactive.Signal
-import reactive.Transaction
+import reactive.TransactionBuilder
 import reactive.Reactive
 import testtools.Asserts
 import reactive.Lift._
@@ -45,7 +45,7 @@ class SnapshotTest extends FunSuite {
     expectResult(List(1, 4, 6)) { snapshotLog.now };
     expectResult(List(2, 4, 5, 8, 10, 12)) { mergedLog.now };
 
-    val transaction = new Transaction
+    val transaction = new TransactionBuilder
     transaction.set(var1, 5);
     transaction.set(events, new Object);
     transaction.commit();

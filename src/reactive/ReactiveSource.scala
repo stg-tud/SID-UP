@@ -1,19 +1,16 @@
 package reactive
 import java.util.UUID
+import commit.CommitVote
+import commit.Committable
 
-trait ReactiveSource[A] {
-  self: Reactive[A] =>
-
-  private val transaction = new Transaction();
+trait ReactiveSource[-A] extends Reactive[A] with Committable {
+  private val transaction = new TransactionBuilder();
   protected def emit(value: A) = {
     transaction.set(this, value);
     transaction.commit();
   }
 
   val uuid = UUID.randomUUID();
-  protected[reactive] var lastEventId = UUID.randomUUID();
-  protected[reactive] val lock = new Object()
-  protected[reactive] def emit(event: Event, maybeValue: Option[A])
-
-  override def sourceDependencies = Map(uuid -> lastEventId);
+  override val sourceDependencies = Set(uuid);
+  def prepareCommit(event: Transaction, commitVote : CommitVote, value: A)
 }

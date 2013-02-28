@@ -1,19 +1,19 @@
 package reactive.impl
+
 import reactive.EventStream
 import java.util.UUID
-import reactive.Event
-import reactive.EventStreamDependant
+import reactive.Transaction
 import reactive.Signal
+import remote.RemoteReactiveDependant
 
 object NothingEventStream extends EventStream[Nothing] {
-  override val sourceDependencies = Map[UUID, UUID]()
+  override val sourceDependencies = Set[UUID]()
   override val name = "NothingEventStream"
-  override def await(event: Event, timeout: Long = 0): Option[Nothing] = throw new IllegalArgumentException("NothingEventStream cannot emit");
-  override def addDependant(obs: EventStreamDependant[Nothing]) = {}
-  override def removeDependant(obs: EventStreamDependant[Nothing]) = {}
+  override def addDependant(obs: RemoteReactiveDependant[Nothing]) = {}
+  override def removeDependant(obs: RemoteReactiveDependant[Nothing]) = {}
   override def observe(obs: Nothing => Unit) = {}
   override def unobserve(obs: Nothing => Unit) = {}
-  
+
   override def hold[B >: Nothing](initialValue: B): Signal[B] = new Val(initialValue)
   override def map[B](op: Nothing => B): EventStream[B] = this
   override def merge[B >: Nothing](streams: EventStream[B]*): EventStream[B] = if (streams.length == 1) streams.head else streams.head.merge(streams.tail: _*)

@@ -2,7 +2,7 @@ package reactive.impl
 
 import reactive.Signal
 import reactive.EventStreamDependant
-import reactive.Event
+import reactive.Transaction
 import scala.collection.mutable
 import reactive.SignalDependant
 
@@ -13,10 +13,10 @@ import reactive.SignalDependant
 // - block duplicate renotification on inner change
 class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   var currentInner = outer.now;
-} with StatelessSignal[A](outer.name + ".flatten", currentInner.now) {
+} with Signal[A](outer.name + ".flatten", currentInner.now) {
   override def sourceDependencies = Map()
 
-  class LogEntry(val event: Event) {
+  class LogEntry(val event: Transaction) {
     val affectsOuter = outer.isConnectedTo(event)
     var receivedOuterNotification = false
     var affectsInner = currentInner.isConnectedTo(event)
@@ -45,9 +45,9 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
     def isReady = isOuterReady && isInnerReady
   }
 
-  val logEntries = mutable.Map[Event, LogEntry]()
+  val logEntries = mutable.Map[Transaction, LogEntry]()
 
-  def getLogEntry(event: Event) = {
+  def getLogEntry(event: Transaction) = {
     logEntries.get(event).getOrElse {
       val entry = new LogEntry(event);
       logEntries += (event -> entry);
@@ -56,7 +56,7 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   }
 
   val outerObserver = new SignalDependant[Signal[A]] {
-    override def notifyEvent(event: Event, value: Signal[A], changed: Boolean) {
+    override def notifyEvent(event: Transaction, value: Signal[A], changed: Boolean) {
       logEntries.synchronized {
         val logEntry = getLogEntry(event);
         logEntry.receiveOuterNotification(value, changed);
@@ -66,7 +66,7 @@ class FlattenSignal[A](outer: Signal[Signal[A]]) extends {
   }
   outer.addDependant(outerObserver);
   val innerObserver = new SignalDependant[A] {
-    override def notifyEvent(event: Event, value: A, changed: Boolean) {
+    override def notifyEvent(event: Transaction, value: A, changed: Boolean) {
       logEntries.synchronized {
         val logEntry = getLogEntry(event);
         logEntry.receiveInnerNotification(if (changed) Some(value) else None);

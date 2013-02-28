@@ -1,62 +1,34 @@
 package reactive.impl
 
-import scala.collection.mutable
 import reactive.EventStream
-import reactive.Event
-import scala.actors.threadpool.TimeoutException
+import reactive.Transaction
 import reactive.Signal
-import reactive.EventStreamDependant
-import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import util.LockWithExecute._
-import reactive.Reactive
+import commit.CommitVote
 
 abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
-  private val dependencies = mutable.Set[EventStreamDependant[A]]()
-  private val dependenciesLock = new ReentrantReadWriteLock;
-  override def addDependant(obs: EventStreamDependant[A]) {
-    dependenciesLock.writeLocked {
-      dependencies += obs
-    }
-  }
-  override def removeDependant(obs: EventStreamDependant[A]) {
-    dependenciesLock.writeLocked {
-      dependencies -= obs
-    }
-  }
-  protected def notifyDependants(event: Event, maybeValue: Option[A]) {
-    dependenciesLock.readLocked {
-      Reactive.executePooled(dependencies, { x: EventStreamDependant[A] =>
-        x.notifyEvent(event, maybeValue)
-      });
+  private var currentTransaction: Transaction = _
+  private var currentEvent: A = _
+  def prepareCommit(transaction: Transaction, commitVotes: Iterable[CommitVote], event: A) {
+    if (lock.writeLock.lockOrFail(transaction)) {
+      currentTransaction = transaction;
+      currentEvent = event
+      prepareDependants(transaction, commitVotes, event);
+    } else {
+      commitVotes.foreach { _.no }
     }
   }
 
-  private val valHistory = new mutable.WeakHashMap[Event, Option[A]]();
-
-  protected[this] def maybeNotifyObservers(event: Event, value: Option[A]) {
-    valHistory.synchronized {
-      valHistory += (event -> value)
-      valHistory.notifyAll();
-    }
-    value.foreach { notifyObservers(event, _); }
+  override def commit {
+    commitDependants()
+    notifyObservers(currentTransaction, currentEvent)
+    lock.writeLock.release(currentTransaction)
   }
 
-  @throws(classOf[TimeoutException])
-  override def await(event: Event, timeout: Long = 0): Option[A] = {
-    if (!isConnectedTo(event)) {
-      throw new IllegalArgumentException("illegal wait: " + event + " will not update this reactive.");
-    }
-    valHistory.synchronized {
-      var value = valHistory.get(event);
-      val end = System.currentTimeMillis() + timeout;
-      while (value.isEmpty) {
-        if (timeout > 0 && end < System.currentTimeMillis()) throw new TimeoutException(name + " timed out waiting for " + event);
-        valHistory.wait(timeout);
-        value = valHistory.get(event);
-      }
-      value
-    }.get
+  override def rollback {
+    rollbackDependants()
+    lock.writeLock.release(currentTransaction)
   }
+
   override def hold[B >: A](initialValue: B): Signal[B] = new HoldSignal(this, initialValue);
   override def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
   override def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream((this +: streams): _*);

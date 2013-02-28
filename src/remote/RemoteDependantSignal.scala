@@ -1,7 +1,7 @@
 package remote
 import util.SerializationSafe
 import reactive.Reactive
-import reactive.Event
+import reactive.Transaction
 import reactive.Var
 import java.rmi.server.UnicastRemoteObject
 import java.util.UUID
@@ -13,7 +13,7 @@ import reactive.SignalDependant
 
 class RemoteDependantSignal[A: SerializationSafe](establishConnectionData: EstablishSignalConnectionData[A]) extends StatelessSignal[A]("remote" + establishConnectionData.name, establishConnectionData.value) {
   val remoteConnection = new UnicastRemoteObject with SignalDependant[A] {
-    override def notifyEvent(event: Event, value : A, changed: Boolean) {
+    override def notifyEvent(event: Transaction, value : A, changed: Boolean) {
       propagate(event, if(changed) Some(value) else None);
     }
   }

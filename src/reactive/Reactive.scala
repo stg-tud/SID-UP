@@ -12,7 +12,9 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import remote.RemoteEventStream
+import remote.RemoteReactive
+import locks.TransactionReentrantReadWriteLock
+import remote.RemoteReactiveDependant
 
 /**
  *  Note: while this class implements a remote interface, it doesn't actually
@@ -20,13 +22,13 @@ import remote.RemoteEventStream
  *  implemented only to provide a remote-capable wrapper to just forward all
  *  method invocations.
  */
-trait Reactive[+A] {
+trait Reactive[+A] extends RemoteReactive[A] {
   val name: String;
-  def log : Signal[List[A]]
+  def log: Signal[List[A]]
   // TODO should be package protected 
-  def sourceDependencies: Map[UUID, UUID]
+  def sourceDependencies: Set[UUID]
   // TODO should be package protected 
-  def isConnectedTo(event: Event): Boolean = !(event.sourcesAndPredecessors.keySet & sourceDependencies.keySet).isEmpty
+  def isConnectedTo(event: Transaction): Boolean = !(event.sources & sourceDependencies).isEmpty
   // TODO should be package protected 
   def observe(obs: A => Unit)
   // TODO should be package protected 
@@ -75,7 +77,7 @@ object Reactive {
       }
     }
   }
-  def executePooled[A](dependencies: Iterable[A], op: A => Unit) {
+  def executePooledForeach[A](dependencies: Iterable[A])(op: A => Unit) {
     if (!dependencies.isEmpty) {
       lock.synchronized {
         if (pool == null) {

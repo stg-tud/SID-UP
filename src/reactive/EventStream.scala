@@ -7,11 +7,9 @@ import reactive.impl.MappedEventStream
 import reactive.impl.HoldSignal
 import impl.FilteredEventStream
 import scala.actors.threadpool.TimeoutException
-import remote.RemoteEventStream
+import remote.RemoteReactive
 
-trait EventStream[+A] extends Reactive[A] with RemoteEventStream[A] {
-  @throws(classOf[TimeoutException])
-  def await(event: Event, timeout: Long = 0): Option[A]
+trait EventStream[+A] extends Reactive[A] {
   def hold[B >: A](initialValue: B): Signal[B]
   def map[B](op: A => B): EventStream[B]
   def merge[B >: A](streams: EventStream[B]*): EventStream[B]

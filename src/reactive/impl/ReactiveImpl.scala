@@ -13,16 +13,42 @@ import scala.actors.threadpool.Executors
 import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import remote.RemoteEventStream
+import remote.RemoteReactive
 import scala.actors.threadpool.locks.ReadWriteLock
 import reactive.Reactive
-import reactive.Event
-import reactive.EventStreamDependant
+import reactive.Transaction
+import locks.TransactionReentrantReadWriteLock
+import commit.CommitVote
+import commit.DelegateCountdownAggregateCommitVote
+import remote.RemoteReactiveDependant
+import commit.ForkCommitVote
 
 abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
+  val lock = new TransactionReentrantReadWriteLock[Transaction]()
 
-  def sourceDependencies: Map[UUID, UUID]
-  //  protected[reactive] def level: Int;
+  private val dependencies = mutable.Set[RemoteReactiveDependant[A]]()
+
+  override def addDependant(obs: RemoteReactiveDependant[A]) {
+    dependencies += obs
+  }
+  override def removeDependant(obs: RemoteReactiveDependant[A]) {
+    dependencies -= obs
+  }
+  protected def prepareDependants(event: Transaction, commitVotes: Iterable[CommitVote], value: A) {
+    val fork = if (commitVotes.size == 1) commitVotes.head else new ForkCommitVote(commitVotes)
+    if (dependencies.size == 1) {
+      dependencies.head.prepareCommit(event, fork, value);
+    } else {
+      val aggregator = new DelegateCountdownAggregateCommitVote(dependencies.size, fork);
+      Reactive.executePooledForeach(dependencies) { _.prepareCommit(event, aggregator, value) };
+    }
+  }
+  protected def commitDependants() {
+    Reactive.executePooledForeach(dependencies) { _.commit }
+  }
+  protected def rollbackDependants() {
+    Reactive.executePooledForeach(dependencies) { _.rollback }
+  }
 
   // ====== Observing stuff ======
 
@@ -39,7 +65,7 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     }
   }
 
-  protected def notifyObservers(event: Event, value: A) {
+  protected def notifyObservers(event: Transaction, value: A) {
     observersLock.readLocked {
       observers.foreach { _(value) }
     }

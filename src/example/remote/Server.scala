@@ -2,7 +2,7 @@ package example.remote
 
 import java.rmi.server.UnicastRemoteObject
 import reactive.Reactive
-import remote.RemoteEventStream
+import remote.RemoteReactive
 import example.ResourceAllocationExample
 import java.rmi.Naming
 import java.rmi.registry.LocateRegistry

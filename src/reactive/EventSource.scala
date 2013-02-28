@@ -5,7 +5,7 @@ import reactive.impl.EventSourceImpl
 import reactive.impl.EventSourceImpl
 
 trait EventSource[A] extends EventStream[A] with ReactiveSource[A] {
-  def <<(value: A) : Event
+  def <<(value: A)
 }
 
 object EventSource {

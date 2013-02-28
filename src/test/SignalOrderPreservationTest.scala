@@ -2,7 +2,7 @@ package test
 
 import reactive.Var
 import reactive.Reactive
-import reactive.Event
+import reactive.Transaction
 import scala.collection.mutable
 import reactive.Signal
 import testtools.MessageMixup

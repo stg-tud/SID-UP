@@ -2,7 +2,7 @@ package test
 import org.scalatest.FunSuite
 import reactive.Var
 import testtools.Asserts
-import reactive.Transaction
+import reactive.TransactionBuilder
 
 class RMapTest extends FunSuite {
   test("rmap works") {
@@ -30,7 +30,7 @@ class RMapTest extends FunSuite {
     expectResult(6) { bar.now }
     expectResult(2) { invocationCount }
 
-    val t = new Transaction;
+    val t = new TransactionBuilder;
     t.set(var2, 0);
     t.set(foo, var1);
     t.commit();

@@ -2,13 +2,16 @@ package reactive.impl
 
 import scala.collection.immutable.Map
 import reactive.EventStream
-import reactive.EventStreamDependant
-import reactive.Event
+import reactive.Transaction
+import remote.RemoteReactiveDependant
+import commit.CommitVote
 
-class FilteredEventStream[A](from: EventStream[A], op: A => Boolean) extends StatelessEventStreamImpl[A]("filtered(" + from.name + ", " + op + ")") with EventStreamDependant[A] {
+class FilteredEventStream[A](from: EventStream[A], op: A => Boolean) extends EventStreamImpl[A]("filtered(" + from.name + ", " + op + ")") with RemoteReactiveDependant[A] {
   from.addDependant(this);
   override def sourceDependencies = from.sourceDependencies;
-  override def notifyEvent(event: Event, maybeValue: Option[A]) {
-    propagate(event, maybeValue.filter(op));
+  override def prepareCommit(transaction: Transaction, commitVote : CommitVote, value: A) {
+    if(op(value)) {
+      prepareCommit(transaction, Iterable(commitVote), value)
+    }
   }
 }

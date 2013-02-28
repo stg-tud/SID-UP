@@ -2,18 +2,18 @@ package testtools
 
 import scala.concurrent.ops.spawn
 import reactive.Signal
-import reactive.impl.StatelessSignal
-import reactive.EventStreamDependant
-import reactive.Event
-import reactive.SignalDependant
+import reactive.Transaction
+import reactive.impl.SignalImpl
+import remote.RemoteReactiveDependant
+import commit.CommitVote
 
-class FakeNetwork[A](input: Signal[A]) extends StatelessSignal[A]("NetworkDelayed[" + input.name + "]", input.now) with SignalDependant[A] {
+class FakeNetwork[A](input: Signal[A]) extends SignalImpl[A]("NetworkDelayed[" + input.name + "]", input.now) with RemoteReactiveDependant[A] {
   input.addDependant(this);
   override def sourceDependencies = input.sourceDependencies
-  override def notifyEvent(event: Event, value: A, changed: Boolean) {
+  override def prepareCommit(event: Transaction, commitVote: CommitVote, value: A) {
     spawn {
       Thread.sleep(500)
-      propagate(event, if (changed) Some(value) else None)
+      prepareCommit(event, commitVote, { _ => value })
     }
   }
 }
