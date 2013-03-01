@@ -1,6 +1,6 @@
 package commit
 
-@remote trait Committable {
-  def commit
-  def rollback
+@remote trait Committable[A] {
+  def commit(tid : A)
+  def rollback(tid : A)
 }

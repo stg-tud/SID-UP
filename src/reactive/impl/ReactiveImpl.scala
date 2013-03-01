@@ -17,37 +17,67 @@ import remote.RemoteReactive
 import scala.actors.threadpool.locks.ReadWriteLock
 import reactive.Reactive
 import reactive.Transaction
-import locks.TransactionReentrantReadWriteLock
 import commit.CommitVote
-import commit.DelegateCountdownAggregateCommitVote
 import remote.RemoteReactiveDependant
+import commit.CountdownAggregateCommitVote
 import commit.ForkCommitVote
+import commit.Committable
+import util.Multiset
+import commit.Committable
+import commit.Committable
+import locks.BinaryTransactionReentrantReadWriteLock
 
-abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
-  val lock = new TransactionReentrantReadWriteLock[Transaction]()
-
-  private val dependencies = mutable.Set[RemoteReactiveDependant[A]]()
+abstract class ReactiveImpl[A](val name: String) extends Reactive[A] with Committable[Transaction] {
+  val lock = new BinaryTransactionReentrantReadWriteLock[Transaction]()
+  private val dependants = mutable.Set[RemoteReactiveDependant[A]]()
 
   override def addDependant(obs: RemoteReactiveDependant[A]) {
-    dependencies += obs
+    dependants += obs
   }
   override def removeDependant(obs: RemoteReactiveDependant[A]) {
-    dependencies -= obs
+    dependants -= obs
   }
-  protected def prepareDependants(event: Transaction, commitVotes: Iterable[CommitVote], value: A) {
-    val fork = if (commitVotes.size == 1) commitVotes.head else new ForkCommitVote(commitVotes)
-    if (dependencies.size == 1) {
-      dependencies.head.prepareCommit(event, fork, value);
-    } else {
-      val aggregator = new DelegateCountdownAggregateCommitVote(dependencies.size, fork);
-      Reactive.executePooledForeach(dependencies) { _.prepareCommit(event, aggregator, value) };
+
+  private var sourceDependencies = Multiset[UUID]()
+  private var newSourceDependencies = Multiset[UUID]()
+  private var sourceDependenciesDiff = Multiset[UUID]()
+  private def finalizeDependenciesDiff = {
+    newSourceDependencies = sourceDependencies ++ sourceDependenciesDiff;
+    sourceDependenciesDiff = Multiset[UUID]()
+    newSourceDependencies.signum -- sourceDependencies.signum
+  }
+  protected def dependencyChange(transaction: Transaction, commitVote: CommitVote[Transaction], change: Multiset[UUID]) {
+    if (!change.isEmpty) {
+      if (lock.writeLockOrFail(transaction)) {
+        sourceDependenciesDiff ++= change
+        commitVote.registerCommitable(this)
+      } else {
+        commitVote.no()
+      }
     }
   }
-  protected def commitDependants() {
-    Reactive.executePooledForeach(dependencies) { _.commit }
+
+  override def commit(tid: Transaction) {
+    sourceDependencies = newSourceDependencies
   }
-  protected def rollbackDependants() {
-    Reactive.executePooledForeach(dependencies) { _.rollback }
+
+  protected def notifyDependants(transaction: Transaction, commitVotes: Iterable[CommitVote[Transaction]], maybeValue: Option[A]) {
+    val fork = if (commitVotes.size == 1) commitVotes.head else new ForkCommitVote(commitVotes)
+    val commit = new Committable[Transaction] {
+      override def commit(tid: Transaction) {
+
+      }
+      override def rollback(tid: Transaction) {
+
+      }
+    }
+    if (dependants.size == 0) {
+      fork.yes(commit);
+    } else {
+      val aggregator = new CountdownAggregateCommitVote(transaction, fork, dependants.size + 1);
+      aggregator.yes(commit);
+      Reactive.executePooledForeach(dependants) { _.notify(transaction, aggregator, value) };
+    }
   }
 
   // ====== Observing stuff ======

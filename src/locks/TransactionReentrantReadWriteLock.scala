@@ -25,12 +25,21 @@ class TransactionReentrantReadWriteLock[A] {
       }
     }
 
+    override def isHeld(tid: A) = {
+      lock.synchronized {
+        readers.contains(tid)
+      }
+    }
+
     override def release(tid: A) {
-      val count = readers(tid) - 1
-      if (count == 0) {
-        readers -= tid
-      } else {
-        readers += tid -> count
+      lock.synchronized {
+        assert(isHeld(tid));
+        val count = readers(tid) - 1
+        if (count == 0) {
+          readers -= tid
+        } else {
+          readers += tid -> count
+        }
       }
     }
   }
@@ -56,8 +65,12 @@ class TransactionReentrantReadWriteLock[A] {
       }
     }
 
+    override def isHeld(tid: A) = {
+      writerCount > 0 && writer.equals(tid);
+    }
+
     override def release(tid: A) {
-      assert(writer.equals(tid))
+      assert(isHeld(tid));
       writerCount -= 1
     }
   }

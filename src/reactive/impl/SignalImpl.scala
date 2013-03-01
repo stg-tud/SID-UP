@@ -5,9 +5,10 @@ import reactive.Signal
 import reactive.EventStream
 import reactive.Transaction
 import reactive.Reactive
-import commit.DelegateCountdownAggregateCommitVote
 import commit.CommitVote
 import remote.RemoteReactiveDependant
+import util.Multiset
+import java.util.UUID
 
 abstract class SignalImpl[A](name: String, private var currentValue: A) extends ReactiveImpl[A](name) with Signal[A] {
   signal =>
@@ -16,40 +17,26 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   private var currentTransaction: Transaction = _
   private var newValue: A = _
   private var changed: Boolean = _
-  def prepareCommit(transaction: Transaction, commitVotes: Iterable[CommitVote], calculateNewValue: A => A) {
+  def prepareCommit(transaction: Transaction, commitVotes: Iterable[CommitVote[Transaction]], calculateNewValue: A => A) {
     if (lock.writeLock.lockOrFail(transaction)) {
       currentTransaction = transaction;
       newValue = calculateNewValue(currentValue);
       changed = !nullSafeEqual(currentValue, newValue)
       if (changed) {
-        prepareDependants(transaction, commitVotes, newValue);
+        notifyDependants(transaction, commitVotes, (newValue, changed));
+      } else {
+        lock.writeLock.release(transaction);
+        commitVotes.foreach { _.unaffected() }
       }
     } else {
-      commitVotes.foreach{_.no}
+      commitVotes.foreach { _.no }
     }
-  }
-
-  override def commit {
-    if (changed) {
-      currentValue = newValue
-      commitDependants()
-      notifyObservers(currentTransaction, currentValue)
-    }
-    lock.writeLock.release(currentTransaction)
-  }
-
-  override def rollback {
-    if (changed) {
-      rollbackDependants()
-    }
-    lock.writeLock.release(currentTransaction)
   }
 
   override val changes: EventStream[A] = new EventStream[A] {
     override val name = signal.name + ".changes"
     override def observe(obs: A => Unit) = signal.observe(obs)
     override def unobserve(obs: A => Unit) = signal.unobserve(obs)
-    override def sourceDependencies = signal.sourceDependencies
     override def addDependant(dependant: RemoteReactiveDependant[A]) { signal.addDependant(dependant) }
     override def removeDependant(dependant: RemoteReactiveDependant[A]) { signal.addDependant(dependant) }
     override def hold[B >: A](initialValue: B): Signal[B] = if (nullSafeEqual(initialValue, currentValue)) signal else new HoldSignal(this, initialValue);

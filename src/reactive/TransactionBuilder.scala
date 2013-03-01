@@ -5,6 +5,7 @@ import scala.collection.SortedSet
 import scala.collection.immutable.TreeMap
 import commit.CountdownAggregateCommitVote
 import commit.CommitVote
+import commit.Committable
 
 class TransactionBuilder {
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
@@ -30,23 +31,22 @@ class TransactionBuilder {
     val transaction = new Transaction(boxSet.map(_.uuid));
 
     def retryCommit() {
-      val commitVote = new CountdownAggregateCommitVote(boxSet.size) {
-        override def success {
-          reset()
-          Reactive.executePooledForeach(boxSet) { _.commit }
+      val commitVote = new CountdownAggregateCommitVote[Transaction](transaction, new CommitVote[Transaction] {
+        override def yes(committable : Committable[Transaction]) {
+          committable.commit(transaction);
         }
-
-        override def failure {
-          Reactive.executePooledForeach(boxSet) { _.rollback }
+        override def unaffected() {}
+        override def no() {
+          retryCommit()
         }
-      }
+      }, boxSet.size);
       Reactive.executePooledForeach(boxSet) { setBoxFromMap(_, transaction, commitVote) }
     }
 
     retryCommit()
   }
 
-  private def setBoxFromMap[A](box: ReactiveSource[A], transaction: Transaction, commitVote: CommitVote) {
+  private def setBoxFromMap[A](box: ReactiveSource[A], transaction: Transaction, commitVote: CommitVote[Transaction]) {
     box.prepareCommit(transaction, commitVote, boxes(box).asInstanceOf[A])
   }
 }

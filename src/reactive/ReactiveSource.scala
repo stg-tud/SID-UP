@@ -3,7 +3,7 @@ import java.util.UUID
 import commit.CommitVote
 import commit.Committable
 
-trait ReactiveSource[-A] extends Reactive[A] with Committable {
+trait ReactiveSource[-A] extends Reactive[A] with Committable[Transaction] {
   private val transaction = new TransactionBuilder();
   protected def emit(value: A) = {
     transaction.set(this, value);
@@ -11,6 +11,5 @@ trait ReactiveSource[-A] extends Reactive[A] with Committable {
   }
 
   val uuid = UUID.randomUUID();
-  override val sourceDependencies = Set(uuid);
-  def prepareCommit(event: Transaction, commitVote : CommitVote, value: A)
+  def prepareCommit(event: Transaction, commitVote : CommitVote[Transaction], value: A)
 }

@@ -1,6 +1,7 @@
 package commit
 
-@remote trait CommitVote {
-	def yes
-	def no
+@remote trait CommitVote[A] {
+  def registerCommitable(committable: Committable[A])
+  def yes()
+  def no()
 }

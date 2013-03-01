@@ -4,29 +4,15 @@ import reactive.EventStream
 import reactive.Transaction
 import reactive.Signal
 import commit.CommitVote
+import reactive.Reactive
 
 abstract class EventStreamImpl[A](name: String) extends ReactiveImpl[A](name) with EventStream[A] {
-  private var currentTransaction: Transaction = _
-  private var currentEvent: A = _
-  def prepareCommit(transaction: Transaction, commitVotes: Iterable[CommitVote], event: A) {
-    if (lock.writeLock.lockOrFail(transaction)) {
-      currentTransaction = transaction;
-      currentEvent = event
-      prepareDependants(transaction, commitVotes, event);
+  def prepareCommit(transaction: Transaction, commitVotes: Iterable[CommitVote[Transaction]], event: A) {
+    if (lock.writeLockOrFail(transaction)) {
+      notifyDependants(transaction, commitVotes, Some(event));
     } else {
-      commitVotes.foreach { _.no }
+      Reactive.executePooledForeach(commitVotes) { _.no() };
     }
-  }
-
-  override def commit {
-    commitDependants()
-    notifyObservers(currentTransaction, currentEvent)
-    lock.writeLock.release(currentTransaction)
-  }
-
-  override def rollback {
-    rollbackDependants()
-    lock.writeLock.release(currentTransaction)
   }
 
   override def hold[B >: A](initialValue: B): Signal[B] = new HoldSignal(this, initialValue);

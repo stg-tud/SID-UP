@@ -13,7 +13,6 @@ import scala.actors.threadpool.ExecutorService
 import scala.collection.mutable.Stack
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import remote.RemoteReactive
-import locks.TransactionReentrantReadWriteLock
 import remote.RemoteReactiveDependant
 
 /**
@@ -25,13 +24,7 @@ import remote.RemoteReactiveDependant
 trait Reactive[+A] extends RemoteReactive[A] {
   val name: String;
   def log: Signal[List[A]]
-  // TODO should be package protected 
-  def sourceDependencies: Set[UUID]
-  // TODO should be package protected 
-  def isConnectedTo(event: Transaction): Boolean = !(event.sources & sourceDependencies).isEmpty
-  // TODO should be package protected 
   def observe(obs: A => Unit)
-  // TODO should be package protected 
   def unobserve(obs: A => Unit)
 }
 

@@ -11,7 +11,7 @@ class VarImpl[A](name: String, initialValue: A) extends SignalImpl[A](name, init
     emit(value);
   }
 
-  override def prepareCommit(transaction: Transaction, commitVote: CommitVote, newValue: A) {
+  override def prepareCommit(transaction: Transaction, commitVote: CommitVote[Transaction], newValue: A) {
     prepareCommit(transaction, Iterable(commitVote), { _ => newValue });
   }
 }
