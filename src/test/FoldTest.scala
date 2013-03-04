@@ -15,7 +15,8 @@ class FoldTest extends FunSuite {
     in << 10
     val lastEvent = in << 2
 
-    val result = out.await(lastEvent);
+    Thread.sleep(10);
+    val result = out.now;
     expectResult(List(Nil, List(1), List(5, 1), List(10, 5, 1), List(10, 10, 5, 1), List(2, 10, 10, 5, 1))) { log.now }
     expectResult(List(2, 10, 10, 5, 1)) { result }
   }

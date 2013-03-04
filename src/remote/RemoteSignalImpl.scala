@@ -1,7 +1,7 @@
 package remote
+
 import util.SerializationSafe
 import reactive.Signal
-import reactive.SignalDependant
 
 class RemoteSignalImpl[A: SerializationSafe](local: Signal[A]) extends RemoteSignal[A] {
   def makeConnectionData = new EstablishSignalConnectionData(this, local.name, local.now, local.sourceDependencies)

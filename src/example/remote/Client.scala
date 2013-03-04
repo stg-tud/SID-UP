@@ -5,7 +5,7 @@ import example.ResourceAllocationExample
 import example.ResourceAllocationExample.ServerFactory
 import reactive.Reactive
 import javax.swing.JOptionPane
-import remote.RemoteSignal._
+import remote.RemoteReactive._
 import java.awt.event.WindowListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent

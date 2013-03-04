@@ -72,9 +72,9 @@ class RandomDelays extends FunSuite {
       println
 
       timeStampPrint("updating source...");
-      val event = s.set(2)
+      s.set(2)
       timeStampPrint("waiting for propagation to complete...");
-      c.await(event);
+      Thread.sleep(10);
       timeStampPrint("waiting period completed.");
       // sleep a bit more because the changed value might still have to be propagated to the log
       Thread.sleep(100);
@@ -85,9 +85,9 @@ class RandomDelays extends FunSuite {
       println
 
       timeStampPrint("updating source...");
-      val event2 = s.set(4);
+      s.set(4);
       timeStampPrint("waiting for propagation to complete...");
-      c.await(event2)
+      Thread.sleep(10);
       timeStampPrint("waiting period completed.");
       // sleep a bit more because the changed value might still have to be propagated to the log
       Thread.sleep(100);
@@ -99,9 +99,9 @@ class RandomDelays extends FunSuite {
 
       timeStampPrint("updating source twice ...");
       s.set(5);
-      val event3 = s.set(7);
+      s.set(7);
       timeStampPrint("waiting for propagation to complete...");
-      c.await(event3)
+      Thread.sleep(10);
       timeStampPrint("waiting period completed, terminating thread pool.");
       // sleep a bit more because the changed value might still have to be propagated to the log
       Thread.sleep(100);
