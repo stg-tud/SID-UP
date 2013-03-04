@@ -6,12 +6,11 @@ import reactive.Var
 import reactive.Transaction
 import commit.CommitVote
 
-class VarImpl[A](name: String, initialValue: A) extends SignalImpl[A](name, initialValue) with Var[A] {
+class VarImpl[A](name: String, initialValue: A) extends SignalImpl[A](name, initialValue) with ReactiveSourceImpl[A] with Var[A] {
   def set(value: A) {
     emit(value);
   }
 
   override def prepareCommit(transaction: Transaction, commitVote: CommitVote[Transaction], newValue: A) {
-    prepareCommit(transaction, Iterable(commitVote), { _ => newValue });
   }
 }

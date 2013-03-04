@@ -4,21 +4,21 @@ import scala.collection.mutable
 import reactive.Reactive
 import reactive.Var
 import reactive.Transaction
-import reactive.EventStreamDependant
 import reactive.Signal
 import reactive.impl.SignalImpl
-import reactive.impl.StatelessSignal
 import scala.util.Random
-import reactive.SignalDependant
+import remote.RemoteReactiveDependant
+import util.Multiset
+import commit.CommitVote
+import java.util.UUID
 
-class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer[" + input.name + "]", input.now) with SignalDependant[A] {
+class MessageMixup[A](input: Signal[A]) extends SignalImpl[A]("NetworkMixer[" + input.name + "]", input.now) with RemoteReactiveDependant[A] {
   input.addDependant(this);
-  val messages = mutable.MutableList[(Transaction, Option[A])]()
-  override def sourceDependencies = input.sourceDependencies
-  override def notifyEvent(event: Transaction, value: A, changed: Boolean) {
-    //    println("recording new value " + input.value + " for event " + event);
+  
+  val messages = mutable.MutableList[(Transaction, CommitVote[Transaction], Multiset[UUID], Option[A])]()
+  override def notify(transaction: Transaction, commitVote: CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A]) {
     messages.synchronized {
-      messages += ((event, if (changed) Some(value) else None));
+      messages += ((transaction, commitVote, sourceDependenciesDiff, maybeValue));
     }
   }
 
@@ -27,10 +27,6 @@ class MessageMixup[A](input: Signal[A]) extends StatelessSignal[A]("NetworkMixer
       val release = messages.toList;
       messages.clear()
       release
-    }).foreach {
-      case (event, maybeValue) =>
-        //      println("releasing new value " + value + " for event " + event);
-        propagate(event, maybeValue);
-    }
+    }).foreach { { notifyDependants(_,_,_,_) }.tupled }
   }
 }

@@ -11,5 +11,5 @@ trait ReactiveSource[-A] extends Reactive[A] with Committable[Transaction] {
   }
 
   val uuid = UUID.randomUUID();
-  def prepareCommit(event: Transaction, commitVote : CommitVote[Transaction], value: A)
+  def prepareCommit(transaction: Transaction, commitVote : CommitVote[Transaction], value: A)
 }

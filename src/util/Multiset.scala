@@ -1,6 +1,6 @@
 package util
 
-class Multiset[A] private (private val underlying: scala.collection.Map[A, Int], val size: Int) {
+class Multiset[+A] private (private val underlying: scala.collection.Map[A, Int], val size: Int) {
   def apply(value: A) = {
     get(value);
   }
@@ -58,6 +58,7 @@ class Multiset[A] private (private val underlying: scala.collection.Map[A, Int],
 }
 
 object Multiset {
+  val empty = Multiset[Nothing]()
   def apply[A](values: (A, Int)*): Multiset[A] = new Multiset(Map(values: _*).withDefaultValue(0), values.map(_._2).foldLeft(0)(_ + _))
   def apply[A](map: scala.collection.Map[A, Int]): Multiset[A] = apply(map.toSeq: _*)
 }

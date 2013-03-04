@@ -1,13 +1,14 @@
 package locks
 
 import scala.collection.mutable
+import commit.CommitVote
 
 // binary as in doesn't keep count, lock-lock-unlock means it's unlocked.
-class BinaryTransactionReentrantReadWriteLock[A] {
+class BinaryTransactionReentrantReadWriteLock[A](name : String = null) {
   private val lock = new Object();
   private val readers = mutable.Set[A]()
   private var writer: Option[A] = None;
-  def readLockOrFail(tid: A) = {
+  def tryReadLock(tid: A) = {
     lock.synchronized {
       if (readers.contains(tid)) {
         true
@@ -20,7 +21,7 @@ class BinaryTransactionReentrantReadWriteLock[A] {
     }
   }
 
-  def writeLockOrFail(tid: A) = {
+  def tryWriteLock(tid: A) = {
     lock.synchronized {
       if (writer.isDefined) {
         writer.get.equals(tid)
@@ -37,6 +38,36 @@ class BinaryTransactionReentrantReadWriteLock[A] {
     }
   }
 
+  def readLockOrFail(tid : A) {
+   if(!tryReadLock(tid)) {
+     lockAcquisitionFailure();
+   }
+  }
+  
+  def withReadLockOrVoteNo(tid : A, commitVote : CommitVote[A])(op : => Unit) {
+    if(tryReadLock(tid)) {
+      op;
+    } else {
+      commitVote.no
+    }
+  }
+  
+  def writeLockOrFail(tid : A) {
+    if(!tryWriteLock(tid)) {
+      lockAcquisitionFailure();
+    }
+  }
+  
+  def withWriteLockOrVoteNo(tid : A, commitVote : CommitVote[A])(op : => Unit) {
+    if(tryWriteLock(tid)) {
+      op;
+    } else {
+      commitVote.no
+    }
+  }
+  
+  private def lockAcquisitionFailure() = throw new LockAcquisitionFailure(name)
+  
   def release(tid: A) {
     lock.synchronized {
       writer match {
