@@ -52,7 +52,6 @@ class TransactionReentrantReadWriteLock[A] {
             writer = tid;
             writerCount = 1;
             true
-            true
           } else {
             false
           }

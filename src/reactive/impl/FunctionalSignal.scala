@@ -3,13 +3,14 @@ import scala.collection.mutable
 import java.util.UUID
 import reactive.Signal
 import reactive.Transaction
-import reactive.EventStreamDependant
 import reactive.Reactive
-import reactive.SignalDependant
 
-class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => A, dependencies: Signal[_]*) extends {
-  private val lastEventsLock = new Object
-  private var lastEvents = dependencies.foldLeft(Map[Signal[_], Transaction]()) { (map, dependency) => map + (dependency -> dependency.lastEvent) }
+class FunctionalSignal[A](name: String, op: Transaction => A, dependencies: Signal[_]*) extends {
+  
+  private var lastValues = {
+   val transaction = new Transaction()
+    dependencies.foldLeft(Map[Signal[Any], Any]()) { (map, dependency) => map + (dependency -> dependency.apply) }
+  }
 } with SignalImpl[A](name, op(new Signal.ReactiveEvaluationContext(null, lastEvents))) with SignalDependant[Any] {
   private val debug = false;
 
@@ -75,6 +76,4 @@ class FunctionalSignal[A](name: String, op: Signal.ReactiveEvaluationContext => 
    * notification has actually changed it's value
    */
   private val updateLog = mutable.Map[Transaction, UpdateLogEntry]()
-
-  override def sourceDependencies = dependencies.foldLeft(Map[UUID, UUID]()) { (accu, dep) => accu ++ dep.sourceDependencies }
 }

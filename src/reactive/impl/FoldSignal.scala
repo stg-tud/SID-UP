@@ -13,6 +13,7 @@ class FoldSignal[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A)
   override def notify(transaction: Transaction, commitVote: CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[B]) {
     if(maybeValue.isDefined) {
       lock.withReadLockOrVoteNo(transaction, commitVote) {
+        commitVote.registerCommitable(this)
         notifyDependants(transaction, commitVote, sourceDependenciesDiff, maybeValue.map{ op(now, _) });
       }
     } else {

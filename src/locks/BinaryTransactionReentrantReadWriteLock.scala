@@ -48,7 +48,7 @@ class BinaryTransactionReentrantReadWriteLock[A](name : String = null) {
     if(tryReadLock(tid)) {
       op;
     } else {
-      commitVote.no
+      commitVote.no(tid)
     }
   }
   
@@ -62,7 +62,7 @@ class BinaryTransactionReentrantReadWriteLock[A](name : String = null) {
     if(tryWriteLock(tid)) {
       op;
     } else {
-      commitVote.no
+      commitVote.no(tid)
     }
   }
   

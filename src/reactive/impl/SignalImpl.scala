@@ -15,12 +15,16 @@ abstract class SignalImpl[A](name: String, private var currentValue: A) extends 
   signal =>
 
   override def now = currentValue
-  
+  override def apply()(implicit transaction: Transaction): A = {
+    lock.readLockOrFail(transaction);
+    currentValue
+  }
   private var newValue: A = _
 
   protected def notifyDependants(transaction: Transaction, commitVote : CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A]) {
     if(maybeValue.isDefined) {
       lock.withWriteLockOrVoteNo(transaction, commitVote){
+        commitVote.registerCommitable(this)
         val propagate = maybeValue.filterNot(_.equals(currentValue)) 
         newValue = propagate.get
         super.notifyDependants(transaction, commitVote, sourceDependenciesDiff, propagate);
