@@ -1,14 +1,12 @@
-package reactive.impl
+package reactive
+package impl
 
-import remote.RemoteReactiveDependant
-import reactive.ReactiveSource
-import commit.CommitVote
-import reactive.Transaction
+import Reactive._
 import util.Multiset
 
 trait ReactiveSourceImpl[A] extends ReactiveSource[A] {
   self : ReactiveImpl[A] =>
-  def prepareCommit(transaction: Transaction, commitVote : CommitVote[Transaction], value: A) {
-    notifyDependants(transaction, commitVote, Multiset.empty, Some(value))
+  def update(newValue: A)(implicit t : Txn) {
+    notifyDependants(Multiset.empty, Some(newValue))
   }
 }

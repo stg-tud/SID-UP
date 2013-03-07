@@ -1,57 +1,46 @@
-package reactive.impl
+package reactive
+package impl
 
-import scala.collection.mutable
+import Reactive._
 import util.Multiset
-import commit.Committable
-import locks.BinaryTransactionReentrantReadWriteLock
-import reactive.Reactive
-import reactive.Transaction
-import remote.RemoteReactiveDependant
-import commit.CountdownAggregateCommitVote
-import commit.CommitVote
 import java.util.UUID
+import dctm.vars.TransactionalVariable
+import remote.RemoteReactiveDependant
+import dctm.vars.TransactionExecutor
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import scala.collection.mutable
 import util.LockWithExecute._
 
-abstract class ReactiveImpl[A](val name: String) extends Reactive[A] with Committable[Transaction] {
-  val lock = new BinaryTransactionReentrantReadWriteLock[Transaction]()
-  private val dependants = mutable.Set[RemoteReactiveDependant[A]]()
+abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
+  private val dependants = new TransactionalVariable[Set[RemoteReactiveDependant[A]], Transaction](Set());
 
-  override def addDependant(obs: RemoteReactiveDependant[A]) {
-    dependants += obs
+  override def addDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
+    dependants.transform { _ + obs }
+    sourceDependencies.get.signum
   }
-  override def removeDependant(obs: RemoteReactiveDependant[A]) {
-    dependants -= obs
-  }
-
-  private var sourceDependencies = Multiset[UUID]()
-  
-  private var newSourceDependencies : Multiset[UUID] = _;
-
-  override def commit(tid: Transaction) {
-    sourceDependencies = newSourceDependencies
+  override def removeDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
+    dependants.transform { _ - obs }
+    sourceDependencies.get.signum
   }
 
-  protected def notifyDependants(transaction: Transaction, commitVote : CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A]) {
-    if(maybeValue.isDefined || !sourceDependencies.isEmpty) {
-      lock.withWriteLockOrVoteNo(transaction, commitVote) {
-	    commitVote.registerCommitable(this);
-	    newSourceDependencies = sourceDependencies ++ sourceDependenciesDiff
-	    val aggregatedDependencyDiff = newSourceDependencies.signum.diff(sourceDependencies.signum)
-	    val mustNotify = !dependants.isEmpty && (maybeValue.isDefined || !aggregatedDependencyDiff.isEmpty)
-	    
-	    if (mustNotify) {
-	      if(dependants.size == 1) {
-	        dependants.head.notify(transaction, commitVote, aggregatedDependencyDiff, maybeValue);
-	      } else {
-			  val aggregator = new CountdownAggregateCommitVote(transaction, commitVote, dependants.size + 1);
-			  Reactive.executePooledForeach(dependants) { _.notify(transaction, aggregator, aggregatedDependencyDiff, maybeValue) };
-	      }
-	    } else {
-	      commitVote.yes()
-	    }
+  private val sourceDependencies = new TransactionalVariable[Multiset[UUID], Transaction](Multiset())
+
+  protected def notifyDependants(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A])(implicit t: Txn) {
+    if (maybeValue.isDefined || !sourceDependenciesDiff.isEmpty) {
+      val sourceDependencyChange = sourceDependencies.transform { _ ++ sourceDependenciesDiff }
+      val aggregatedDependencyDiff = sourceDependencyChange._2.signum.diff(sourceDependencyChange._1.signum)
+
+      val dependants = this.dependants.get()
+      val mustNotify = !dependants.isEmpty && (maybeValue.isDefined || !aggregatedDependencyDiff.isEmpty)
+
+      if (mustNotify) {
+        if (dependants.size == 1) {
+          dependants.head.notify(aggregatedDependencyDiff, maybeValue);
+        } else {
+          TransactionExecutor.spawnSubtransactions(dependants) { _.notify(aggregatedDependencyDiff, maybeValue) };
+        }
       }
-    } 
+    }
   }
 
   // ====== Observing stuff ======

@@ -9,7 +9,7 @@ import reactive.impl.SignalImpl
 import scala.util.Random
 import remote.RemoteReactiveDependant
 import util.Multiset
-import commit.CommitVote
+import dctm.commit.CommitVote
 import java.util.UUID
 
 class MessageMixup[A](input: Signal[A]) extends SignalImpl[A]("NetworkMixer[" + input.name + "]", input.now) with RemoteReactiveDependant[A] {

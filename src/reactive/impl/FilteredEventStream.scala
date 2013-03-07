@@ -1,16 +1,16 @@
-package reactive.impl
+package reactive
+package impl
 
-import reactive.EventStream
-import reactive.Transaction
-import remote.RemoteReactiveDependant
-import commit.CommitVote
+import Reactive._
 import util.Multiset
 import java.util.UUID
 
-class FilteredEventStream[A](from: EventStream[A], op: A => Boolean) extends EventStreamImpl[A]("filtered(" + from.name + ", " + op + ")") with RemoteReactiveDependant[A] {
-  from.addDependant(this);
- 
-  override def notify(transaction: Transaction, commitVote : CommitVote[Transaction], sourceDependencyChange : Multiset[UUID], maybeValue: Option[A]) {
-    notifyDependants(transaction, commitVote, sourceDependencyChange, maybeValue.filter(op))
+class FilteredEventStream[A](from: EventStream[A], op: A => Boolean, it: Txn) extends EventStreamImpl[A]("filtered(" + from.name + ", " + op + ")") with RemoteReactiveDependantImpl[A] {
+  TransactionBuilder.retryUntilSuccessWithLocalTransactionIfNeeded(it) {
+	  connect(_, from);
+  }
+  
+  override def notify(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A])(implicit t: Txn) {
+    notifyDependants(sourceDependenciesDiff, maybeValue.filter(op))
   }
 }

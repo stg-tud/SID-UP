@@ -1,23 +1,26 @@
-package reactive.impl
+package reactive
+package impl
 
-import reactive.EventStream
-import reactive.Transaction
-import remote.RemoteReactiveDependant
-import commit.CommitVote
+import Reactive._
 import util.Multiset
 import java.util.UUID
 
-class FoldSignal[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A) extends SignalImpl[A]("fold(" + source.name + ")", initialValue) with RemoteReactiveDependant[B] {
-  source.addDependant(this)
+class FoldSignal[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A, it: Txn) extends SignalImpl[A]("fold(" + source.name + ")", initialValue) with RemoteReactiveDependantImpl[B] {
+  TransactionBuilder.retryUntilSuccessWithLocalTransactionIfNeeded(it) {
+    connect(_, source)
+  }
 
-  override def notify(transaction: Transaction, commitVote: CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[B]) {
-    if(maybeValue.isDefined) {
-      lock.withReadLockOrVoteNo(transaction, commitVote) {
-        commitVote.registerCommitable(this)
-        notifyDependants(transaction, commitVote, sourceDependenciesDiff, maybeValue.map{ op(now, _) });
-      }
+  override def notify(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[B])(implicit t: Txn) {
+    if (maybeValue.isDefined) {
+      notifyDependants(sourceDependenciesDiff, maybeValue.map { op(this(), _) });
     } else {
-      super.notifyDependants(transaction, commitVote, sourceDependenciesDiff, None);
+      super.notifyDependants(sourceDependenciesDiff, None);
     }
+  }
+}
+
+object FoldSignal {
+  def apply[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A) = {
+
   }
 }

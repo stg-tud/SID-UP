@@ -1,11 +1,9 @@
 package reactive
 
 import java.util.UUID
-import scala.collection.SortedSet
 import scala.collection.immutable.TreeMap
-import commit.CountdownAggregateCommitVote
-import commit.CommitVote
-import commit.Committable
+import dctm.vars.TransactionExecutor
+import Reactive._
 
 class TransactionBuilder {
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
@@ -28,25 +26,20 @@ class TransactionBuilder {
 
   def commit() {
     val boxSet = boxes.keySet
-    val transaction = new Transaction(boxSet.map(_.uuid));
-
-    def retryCommit() {
-      val commitVote = new CountdownAggregateCommitVote[Transaction](transaction, new CommitVote[Transaction] {
-        override def yes(committable : Committable[Transaction]) {
-          committable.commit(transaction);
-        }
-        override def unaffected() {}
-        override def no() {
-          retryCommit()
-        }
-      }, boxSet.size);
-      Reactive.executePooledForeach(boxSet) { setBoxFromMap(_, transaction, commitVote) }
+    val sourceIds = boxSet.map(_.uuid);
+    new TransactionExecutor[Transaction] {
+      override def newTransactionId = new Transaction(sourceIds);
+    }.retryUntilSuccess { implicit t =>
+      TransactionExecutor.spawnSubtransactions(boxSet) { setBoxFromMap(t, _) }
     }
-
-    retryCommit()
   }
 
-  private def setBoxFromMap[A](box: ReactiveSource[A], transaction: Transaction, commitVote: CommitVote[Transaction]) {
-    box.prepareCommit(transaction, commitVote, boxes(box).asInstanceOf[A])
+  private def setBoxFromMap[A](t: Txn, box: ReactiveSource[A]) {
+    box.update(t, boxes(box).asInstanceOf[A])
   }
+}
+
+object TransactionBuilder extends TransactionExecutor[Transaction] {
+  private val empty = Set[UUID]()
+  override def newTransactoinId = new Transaction(empty)
 }

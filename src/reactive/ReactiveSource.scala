@@ -1,9 +1,10 @@
 package reactive
-import java.util.UUID
-import commit.CommitVote
-import commit.Committable
 
-trait ReactiveSource[-A] extends Reactive[A] with Committable[Transaction] {
+import java.util.UUID
+import dctm.vars.TransactionExecutionContext
+import Reactive._
+
+trait ReactiveSource[-A] extends Reactive[A] {
   private val transaction = new TransactionBuilder();
   protected def emit(value: A) = {
     transaction.set(this, value);
@@ -11,5 +12,5 @@ trait ReactiveSource[-A] extends Reactive[A] with Committable[Transaction] {
   }
 
   val uuid = UUID.randomUUID();
-  def prepareCommit(transaction: Transaction, commitVote : CommitVote[Transaction], value: A)
+  def update(implicit t : Txn, value: A)
 }

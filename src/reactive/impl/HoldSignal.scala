@@ -1,16 +1,18 @@
-package reactive.impl
+package reactive
+package impl
 
-import reactive.EventStream
-import reactive.Transaction
-import remote.RemoteReactiveDependant
-import commit.CommitVote
+import Reactive._
 import util.Multiset
 import java.util.UUID
 
-class HoldSignal[A](override val changes: EventStream[A], initialValue: A) extends SignalImpl[A]("hold(" + changes.name + ")", initialValue) with RemoteReactiveDependant[A] {
-  changes.addDependant(this);
+class HoldSignal[A](override val changes: EventStream[A], initialValue: A, t: Txn) extends SignalImpl[A]("hold(" + changes.name + ")", initialValue) with RemoteReactiveDependantImpl[A] {
+  if(t == null) {
+    TransactionBuilder.retryUntilSuccess { t => connect(t, changes); }
+  } else {
+    connect(t, changes);
+  }
 
-  override def notify(transaction: Transaction, commitVote: CommitVote[Transaction], sourceDependencyDiff : Multiset[UUID], value: Option[A]) {
-    notifyDependants(transaction, commitVote, sourceDependencyDiff, value);
+  override def notify(sourceDependencyDiff: Multiset[UUID], value: Option[A])(implicit t: Txn) {
+    notifyDependants(sourceDependencyDiff, value);
   }
 }

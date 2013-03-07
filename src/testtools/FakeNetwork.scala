@@ -5,7 +5,7 @@ import reactive.Signal
 import reactive.Transaction
 import reactive.impl.SignalImpl
 import remote.RemoteReactiveDependant
-import commit.CommitVote
+import dctm.commit.CommitVote
 import util.Multiset
 import java.util.UUID
 
