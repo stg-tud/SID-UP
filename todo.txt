@@ -7,6 +7,7 @@ currently broken:
 +   3   separate set of actually involved sources and source (ordering source?) predecessor map
 ++  15  dependency set changes
         -> Signal.rmap
+0   2   make an ListMergeEventStream that merges multiple concurrently ocurring events into a single event of a list of events
 +   3   make an EventStream equivalent of HoldSignal
         -> possibly replace HoldSignal by this eventStream.hold(initialValue)
         -> use for eventstream lifting functions

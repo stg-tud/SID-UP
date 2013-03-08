@@ -18,7 +18,7 @@ class SignalOrderPreservationTest extends FunSuite {
     val inputLog = input.log
 
     val screwedUpThroughNetwork = new MessageMixup(input);
-    val networkLog = screwedUpThroughNetwork.log;
+    val networkLog = (screwedUpThroughNetwork : Signal[Int]).log;
 
     val direct = add(input, 1: Signal[Int]);
     val directLog = direct.log

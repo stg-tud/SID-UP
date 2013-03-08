@@ -9,6 +9,7 @@ import java.util.Date
 import scala.actors.threadpool.AtomicInteger
 import testtools.Asserts
 import org.scalatest.FunSuite
+import dctm.vars.TransactionExecutor
 
 class RandomDelays extends FunSuite {
   val format = new SimpleDateFormat("[mm:ss.SSS] ")
@@ -35,7 +36,7 @@ class RandomDelays extends FunSuite {
   }
 
   test("randomly delayed messages don't screw up evaluation order") {
-    Reactive.withThreadPoolSize(4) {
+    TransactionExecutor.withThreadPoolSize(4) {
       val s = Var("S", 1);
 
       def modulo(name: String) = { (x: Int, y: Int) => log(name); x % y };
