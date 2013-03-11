@@ -3,12 +3,12 @@ package reactive.impl
 import scala.collection.mutable
 import reactive.Signal
 import reactive.EventStream
+import reactive.Reactive._
 import reactive.Transaction
 import remote.RemoteReactiveDependant
-import remote.RemoteReactiveDependant
+import dctm.vars.TransactionExecutor
 
-// TODO should not use signal.now, should implement dependency caching equivalent to FunctionalSignal instead
-class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.now) {
+class SnapshotSignal[A](signal: Signal[A], events: EventStream[_], t : Txn) extends SignalImpl[A]("snapshot(" + signal.name + ")on(" + events.name + ")", signal.now) {
 
   private val lock = new Object();
   private val waitingForEventStream = mutable.Map[Transaction, A]()

@@ -4,8 +4,9 @@ import java.util.UUID
 import reactive.Signal
 import reactive.Transaction
 import reactive.Reactive
+import dctm.vars.TransactionExecutionContext
 
-class FunctionalSignal[A](name: String, op: Transaction => A, dependencies: Signal[_]*) extends {
+class FunctionalSignal[A](name: String, op: TransactionExecutionContext[Transaction] => A, dependencies: Signal[_]*) extends {
   
   private var lastValues = {
    val transaction = new Transaction()

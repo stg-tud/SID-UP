@@ -1,5 +1,5 @@
 package remote
-import reactive.Transaction
+import reactive.Reactive._
 import java.util.UUID
 import util.Multiset
 import dctm.vars.TransactionExecutionContext

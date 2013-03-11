@@ -1,7 +1,7 @@
 package testtools
 
 import scala.collection.mutable
-import reactive.Reactive
+import reactive.Reactive._
 import reactive.Var
 import reactive.Transaction
 import reactive.Signal
@@ -9,16 +9,15 @@ import reactive.impl.SignalImpl
 import scala.util.Random
 import remote.RemoteReactiveDependant
 import util.Multiset
-import dctm.commit.CommitVote
 import java.util.UUID
 
 class MessageMixup[A](input: Signal[A]) extends SignalImpl[A]("NetworkMixer[" + input.name + "]", input.now) with RemoteReactiveDependant[A] {
   input.addDependant(this);
-  
-  val messages = mutable.MutableList[(Transaction, CommitVote[Transaction], Multiset[UUID], Option[A])]()
-  override def notify(transaction: Transaction, commitVote: CommitVote[Transaction], sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A]) {
+
+  val messages = mutable.MutableList[(Txn, Multiset[UUID], Option[A])]()
+  override def notify(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A])(t: Txn) {
     messages.synchronized {
-      messages += ((transaction, commitVote, sourceDependenciesDiff, maybeValue));
+      messages += ((t, sourceDependenciesDiff, maybeValue));
     }
   }
 
@@ -27,6 +26,9 @@ class MessageMixup[A](input: Signal[A]) extends SignalImpl[A]("NetworkMixer[" + 
       val release = messages.toList;
       messages.clear()
       release
-    }).foreach { { notifyDependants(_,_,_,_) }.tupled }
+    }).foreach {
+      case (t: Txn, sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A]) =>
+        notifyDependants(sourceDependenciesDiff, maybeValue)(t)
+    }
   }
 }

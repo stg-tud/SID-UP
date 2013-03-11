@@ -15,7 +15,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   signal =>
 
   private val value = new TransactionalVariable[A, Transaction](initialValue);
-  override def now = TransactionBuilder.retryUntilSuccess(this()(_))
+  override def now = value.lastCommitted
   override def apply()(implicit t: Txn): A = {
     value.get()
   }
