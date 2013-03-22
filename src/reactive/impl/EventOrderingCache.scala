@@ -59,13 +59,13 @@ abstract class EventOrderingCache[T](initialLastEvents: Map[UUID, UUID]) {
           if(lastEvents.contains(source)) lastEvents += (source -> record.event.uuid)
         }
 
-        suspendedRecords.remove(record.event.uuid).flatten.foreach[Unit] { suspendedRecord =>
+        suspendedRecords.remove(record.event.uuid).foreach{_.foreach[Unit] { suspendedRecord =>
           if (suspendedRecord.missingPredecessors.size == 1) {
             readyEvents = suspendedRecord :: readyEvents;
           } else {
             suspendedRecord.missingPredecessors -= record.event.uuid
           }
-        }
+        }}
       }
     }
   }
