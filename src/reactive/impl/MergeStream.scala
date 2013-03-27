@@ -1,24 +1,26 @@
-package reactive.impl
+package reactive
+package impl
+
 import java.util.UUID
 import scala.collection.mutable
-import reactive.EventStream
-import reactive.EventStreamDependant
-import reactive.Transaction
+import Reactive._
+import util.Multiset
 
-class MergeStream[A](streams: EventStream[A]*) extends EventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with EventStreamDependant[A] {
-  streams.foreach { _.addDependant(this) }
-  override def sourceDependencies = streams.foldLeft(Map[UUID, UUID]()) { (accu, dep) => accu ++ dep.sourceDependencies }
+class MergeStream[A](streams: Iterable[EventStream[A]], it: Txn) extends EventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with RemoteReactiveDependantImpl[A] {
+  TransactionBuilder.retryUntilSuccessWithLocalTransactionIfNeeded(it) { t =>
+	  streams.foreach { connect(t, _) }
+  }
 
-  private val pending = mutable.Map[Transaction, (Int, Boolean)]()
+  private val pending = mutable.Map[Transaction, (Int, Option[A])]()
 
-  override def notifyEvent(event: Transaction, maybeValue: Option[A]) {
+  override def notify(sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A])(implicit t : Txn) {
+    val (pendingNotifications: Int, toEmit: Option[A]) = pending.get(t.tid).getOrElse((sourceDependencies.get(), false))
     if (shouldEmit(event, maybeValue.isDefined)) {
       propagate(event, maybeValue)
     }
   }
   private def shouldEmit(event: Transaction, canEmit: Boolean): Boolean = {
     pending.synchronized {
-      val (pendingNotifications: Int, hasEmitted: Boolean) = pending.get(event).getOrElse((streams.count { _.isConnectedTo(event) }, false))
       if (pendingNotifications == 1) {
         pending -= event;
         !hasEmitted

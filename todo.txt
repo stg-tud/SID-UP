@@ -1,12 +1,23 @@
-currently broken:
-    - late signal creation from remote
-    - signal creation when the system is active
+==== New algorithm ====
+
+Diffusing Computation, running inside a transaction
+Node graph is acyclic => it's ok to return all signals at once.
+Every Node only returns all it's signals at once => can use regular bag instead of cornet
+Returning Signal is either YES or NO (possibly use YES, RETRY, ABORT instead?)
+All returned signals of one node are identical:
+    - YES only if the node's computation was successful (no lock conflict) and all successors replied YES (commit vote)
+    - NO in all other cases (retry vote)
+Every node is either a constant (Val, NothingEventStream), a source (Var, EventSource) or a dependent node (all others).
+    - every constant has an empty set of source dependencies
+    - every source has an id, which is at the same time it's singleton set of source dependencies
+    - every dependent node's source dependencies set is the union of all it's dependencies source dependency sets.
+
+==== Other thoughts ====
+
+currently not supported:
     - exception handling
     - garbage collection of parts of the network
 
-+   3   separate set of actually involved sources and source (ordering source?) predecessor map
-++  15  dependency set changes
-        -> Signal.rmap
 0   2   make an ListMergeEventStream that merges multiple concurrently ocurring events into a single event of a list of events
 +   3   make an EventStream equivalent of HoldSignal
         -> possibly replace HoldSignal by this eventStream.hold(initialValue)
@@ -16,8 +27,6 @@ currently broken:
 +   ??  implement more funny event things
         -> and-event
         -> "not" event??
-+   5   proper solution for source dependencies / late reactive creation
-        -> Map[UUID, UUID] to Map[UUID, (UUID, Set[UUID])] of lastEvent and set of early-propagated events per source? 
 +   10  implement proper demo application (CRUD??)
 +   3   omitting of pointless recalculations, e.g. if the currently unaccessed else part of an if condition changed
         -> requires profiling of previous evaluation, thus requires sequential evaluation.

@@ -23,7 +23,14 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
     sourceDependencies.get.signum
   }
 
-  protected val sourceDependencies = new TransactionalVariable[Multiset[UUID], Transaction](Multiset())
+  private val sourceDependencies = new TransactionalVariable[Map[UUID, Set[UUID]], Transaction](Map())
+  
+  protected def getExpectedNotificationCount(implicit t : Txn) = {
+    val deps = sourceDependencies.get();
+    t.tid.sources.foldLeft(Set[UUID]()) { (set, source) =>
+      set ++ deps(source)
+    }.size
+  }
 
   protected def notifyDependants(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A])(implicit t: Txn) {
     if (maybeValue.isDefined || !sourceDependenciesDiff.isEmpty) {
