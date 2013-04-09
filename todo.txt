@@ -12,6 +12,13 @@ Every node is either a constant (Val, NothingEventStream), a source (Var, EventS
     - every source has an id, which is at the same time it's singleton set of source dependencies
     - every dependent node's source dependencies set is the union of all it's dependencies source dependency sets.
 
+Use Notify/No incremental?
+    - one "NO" invalidates a previous notify, but does not cancel the transaction
+    - might allow for partial rollback/retries
+
+implementation thoughts:
+- implement non-transactional to see if it works, then make it transactional afterwards
+
 ==== Other thoughts ====
 
 currently not supported:

@@ -12,5 +12,6 @@ trait ReactiveSource[-A] extends Reactive[A] {
   }
 
   val uuid = UUID.randomUUID();
+  override val sourceDependencies = Set(uuid)
   def update(implicit t : Txn, value: A)
 }

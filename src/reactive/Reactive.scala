@@ -3,6 +3,7 @@ package reactive
 import remote.RemoteReactive
 import dctm.vars.TransactionExecutionContext
 import Reactive._
+import java.util.UUID
 
 /**
  *  Note: while this class implements a remote interface, it doesn't actually
@@ -12,6 +13,7 @@ import Reactive._
  */
 trait Reactive[+A] extends RemoteReactive[A] {
   val name: String;
+  def sourceDependencies(implicit t: Txn) : Set[UUID]
   def log(implicit t: Txn = null): Signal[List[A]]
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)

@@ -2,7 +2,6 @@ package reactive
 package impl
 
 import Reactive._
-import util.Multiset
 import java.util.UUID
 import dctm.vars.TransactionalVariable
 import remote.RemoteReactiveDependant
@@ -16,11 +15,11 @@ abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
 
   override def addDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
     dependants.transform { _ + obs }
-    sourceDependencies.get.signum
+    sourceDependencies
   }
   override def removeDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
     dependants.transform { _ - obs }
-    sourceDependencies.get.signum
+    sourceDependencies
   }
 
   private val sourceDependencies = new TransactionalVariable[Map[UUID, Set[UUID]], Transaction](Map())

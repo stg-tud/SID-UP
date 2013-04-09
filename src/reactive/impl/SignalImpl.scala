@@ -37,7 +37,7 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
     override def removeDependant(dependant: RemoteReactiveDependant[A])(implicit t: Txn) { signal.addDependant(dependant) }
     override def hold[B >: A](initialValue: B)(t: Txn): Signal[B] = if (Util.nullSafeEqual(initialValue, now)) signal else new HoldSignal(this, initialValue, t);
     override def map[B](op: A => B)(t: Txn): EventStream[B] = new MappedEventStream(this, op, t);
-    override def merge[B >: A](streams: EventStream[B]*)(t: Txn): EventStream[B] = new MergeStream((this +: streams): _*);
+    override def merge[B >: A](streams: EventStream[B]*)(t: Txn): EventStream[B] = new MergeStream(this :: streams.toList, t);
     override def fold[B](initialValue: B)(op: (B, A) => B)(t: Txn): Signal[B] = new FoldSignal(initialValue, this, op, t);
     override def log(t: Txn) = fold(List[A]())((list, elem) => list :+ elem)(t)
     override def filter(op: A => Boolean)(t: Txn): EventStream[A] = new FilteredEventStream(this, op, t);
@@ -46,5 +46,5 @@ abstract class SignalImpl[A](name: String, initialValue: A) extends ReactiveImpl
   override def rmap[B](op: A => Signal[B])(t: Txn): Signal[B] = map(op)(t).flatten
   override def flatten[B](implicit evidence: A <:< Signal[B], t: Txn): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]]);
   override def log(t: Txn) = TransactionBuilder.retryUntilSuccessWithLocalTransactionIfNeeded(t) { t => new FoldSignal(List(this()(t)), changes, ((list: List[A], elem: A) => list :+ elem), t); }
-  override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
+  override def snapshot(when: EventStream[_])(t : Txn): Signal[A] = new SnapshotSignal(this, when, t);
 }
