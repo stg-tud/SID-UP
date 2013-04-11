@@ -16,7 +16,6 @@
     <data key="d7"/>
     <node id="n0">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="73.0" width="214.0" x="36.0" y="172.0"/>
@@ -39,7 +38,6 @@ sourceDependencies : Set[ID]</y:AttributeLabel>
     </node>
     <node id="n1">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="55.0" width="171.0" x="376.0" y="297.0"/>
@@ -61,7 +59,6 @@ sourceDependencies : Set[ID]</y:AttributeLabel>
     </node>
     <node id="n2">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="91.0" width="179.0" x="163.0" y="466.0"/>
@@ -84,7 +81,6 @@ sourceDependencies := Set(id)</y:AttributeLabel>
     </node>
     <node id="n3">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="116.0" width="185.0" x="369.0" y="751.5625"/>
@@ -110,7 +106,6 @@ sourceDependencies :=
     </node>
     <node id="n4">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="55.0" width="78.0" x="712.0" y="228.5"/>
@@ -132,7 +127,6 @@ sourceDependencies :=
     </node>
     <node id="n5">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="132.0" x="922.0" y="234.5"/>
@@ -154,7 +148,6 @@ sourceDependencies :=
     </node>
     <node id="n6">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="55.0" width="84.0" x="624.0" y="338.5"/>
@@ -176,7 +169,6 @@ sourceDependencies :=
     </node>
     <node id="n7">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="158.0" x="794.0" y="344.5"/>
@@ -198,7 +190,6 @@ sourceDependencies :=
     </node>
     <node id="n8">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="78.0" x="627.0" y="466.0"/>
@@ -220,7 +211,6 @@ sourceDependencies :=
     </node>
     <node id="n9">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="124.0" x="811.0" y="466.0"/>
@@ -242,7 +232,6 @@ sourceDependencies :=
     </node>
     <node id="n10">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="140.0" width="179.0" x="372.0" y="517.0"/>
@@ -268,7 +257,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n11">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="55.0" width="179.0" x="372.0" y="408.0"/>
@@ -290,7 +278,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n12">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="118.0" x="607.0" y="607.0"/>
@@ -312,7 +299,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n13">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="132.0" x="600.0" y="711.0"/>
@@ -334,7 +320,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n14">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="132.0" x="600.0" y="763.0"/>
@@ -356,7 +341,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n15">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="132.0" x="600.0" y="815.0"/>
@@ -378,7 +362,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n16">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="132.0" x="600.0" y="867.0"/>
@@ -400,7 +383,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n17">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="203.0" x="771.5" y="711.0"/>
@@ -422,7 +404,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n18">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="203.0" x="771.5" y="763.0"/>
@@ -444,7 +425,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n19">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="203.0" x="771.5" y="815.0"/>
@@ -466,7 +446,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n20">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="203.0" x="771.5" y="867.0"/>
@@ -488,7 +467,6 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n21">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="171.0" x="787.5" y="607.0"/>
@@ -510,10 +488,9 @@ reverse : T =&gt; U</y:AttributeLabel>
     </node>
     <node id="n22">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="105.5" width="231.0" x="1333.0" y="172.0"/>
+          <y:Geometry height="105.5" width="231.0" x="1364.1075268817206" y="187.98303999999996"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="153.16357421875" x="38.918212890625" y="3.0">ReactiveNotification[+T]<y:LabelModel>
@@ -536,10 +513,9 @@ sourceDependenciesChanged : Boolean
     </node>
     <node id="n23">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="74.0" width="147.0" x="1270.0" y="302.5"/>
+          <y:Geometry height="74.0" width="147.0" x="1301.1075268817206" y="318.48303999999996"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="138.69091796875" x="4.154541015625" y="3.0">SignalNotification[+T]<y:LabelModel>
@@ -560,10 +536,9 @@ valueChanged : Boolean
     </node>
     <node id="n24">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="60.0" width="147.0" x="1480.0" y="309.49999999999994"/>
+          <y:Geometry height="60.0" width="147.0" x="1511.1075268817206" y="325.4830399999999"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="135.08544921875" x="5.957275390625" y="3.0">EventNotification[+T]<y:LabelModel>
@@ -582,10 +557,9 @@ valueChanged : Boolean
     </node>
     <node id="n25">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="64.03392000000002" width="158.0" x="1076.6" y="307.48304"/>
+          <y:Geometry height="64.03392000000002" width="158.0" x="1107.7075268817205" y="323.46608"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="131.10546875" x="13.447265625" y="3.0">SignalDependent[-T]<y:LabelModel>
@@ -604,10 +578,9 @@ valueChanged : Boolean
     </node>
     <node id="n26">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="64.03392000000002" width="181.0" x="1657.0" y="307.48303999999996"/>
+          <y:Geometry height="64.03392000000002" width="181.0" x="1688.1075268817206" y="323.4660799999999"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="171.578125" x="4.7109375" y="3.0">EventStreamDependent[-T]<y:LabelModel>
@@ -626,10 +599,9 @@ valueChanged : Boolean
     </node>
     <node id="n27">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="295.0" width="729.5" x="1083.75" y="385.5"/>
+          <y:Geometry height="295.0" width="729.5" x="1114.8575268817206" y="418.48865752988047"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="283.322265625" modelName="custom" textColor="#000000" visible="true" width="720.431640625" x="4.5341796875" y="5.8388671875">variant a)
@@ -662,10 +634,73 @@ disadvantage: even less uniform treatment of signals and event streams<y:LabelMo
     </node>
     <node id="n28">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="105.5" width="231.0" x="1333.0" y="705.5"/>
+          <y:Geometry height="72.205551128818" width="141.1824169986719" x="1319.9730248896888" y="739.494275059761"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="128.97265625" x="6.1048803743359485" y="3.0">ReactiveNotification<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
+            <y:AttributeLabel>transactionId: ID
+origins : Set[ID]</y:AttributeLabel>
+            <y:MethodLabel/>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n29">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="64.03392000000002" width="167.06278884462154" x="1491.1554418883607" y="743.58009062417"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="124.64990234375" x="21.20644325043577" y="3.0">ReactiveDependent<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
+            <y:AttributeLabel/>
+            <y:MethodLabel>notify(ReactiveNotification[T])</y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n30">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="43.0" width="132.0" x="600.0" y="919.0"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="102.21728515625" x="14.891357421875" y="3.0">FlattenSignal[T]<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
+            <y:AttributeLabel/>
+            <y:MethodLabel> </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n31">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="105.5" width="231.0" x="1067.5" y="739.494275059761"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="153.16357421875" x="38.918212890625" y="3.0">ReactiveNotification[+T]<y:LabelModel>
@@ -686,12 +721,11 @@ sourceDependenciesChanged : Boolean
         </y:UMLClassNode>
       </data>
     </node>
-    <node id="n29">
+    <node id="n32">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="74.0" width="147.0" x="1270.0" y="836.0"/>
+          <y:Geometry height="74.0" width="147.0" x="1004.5000000000001" y="869.994275059761"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="138.69091796875" x="4.154541015625" y="3.0">SignalNotification[+T]<y:LabelModel>
@@ -710,12 +744,11 @@ valueChanged : Boolean
         </y:UMLClassNode>
       </data>
     </node>
-    <node id="n30">
+    <node id="n33">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="60.0" width="147.0" x="1480.0" y="843.0"/>
+          <y:Geometry height="60.0" width="147.0" x="1214.5" y="876.994275059761"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="135.08544921875" x="5.957275390625" y="3.0">EventNotification[+T]<y:LabelModel>
@@ -732,12 +765,11 @@ valueChanged : Boolean
         </y:UMLClassNode>
       </data>
     </node>
-    <node id="n31">
+    <node id="n34">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="64.03392000000002" width="158.0" x="1076.6" y="840.9830400000001"/>
+          <y:Geometry height="64.03392000000002" width="158.0" x="999.0000000000001" y="1060.1944742629485"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="131.10546875" x="13.447265625" y="3.0">SignalDependent[-T]<y:LabelModel>
@@ -754,12 +786,11 @@ valueChanged : Boolean
         </y:UMLClassNode>
       </data>
     </node>
-    <node id="n32">
+    <node id="n35">
       <data key="d4"/>
-      <data key="d5"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="64.03392000000002" width="181.0" x="1657.0" y="840.98304"/>
+          <y:Geometry height="64.03392000000002" width="181.0" x="1197.5" y="1060.1944742629485"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="171.578125" x="4.7109375" y="3.0">EventStreamDependent[-T]<y:LabelModel>
@@ -776,9 +807,87 @@ valueChanged : Boolean
         </y:UMLClassNode>
       </data>
     </node>
+    <node id="n36">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="64.03392000000002" width="167.06278884462154" x="1093.7186055776892" y="1154.2283942629483"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="145.578125" x="10.742331922310768" y="3.0">ReactiveDependent[-T]<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
+            <y:AttributeLabel/>
+            <y:MethodLabel>notify(ReactiveNotification[T])</y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n37">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="64.03392000000002" width="103.54685258964139" x="1125.4765737051794" y="966.1605542629483"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="83.4599609375" x="10.043445826070695" y="3.0">Irrelevant[-T]<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="true">
+            <y:AttributeLabel/>
+            <y:MethodLabel>notify(Nothing)</y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n38">
+      <data key="d4"/>
+      <data key="d5"/>
+      <data key="d6">
+        <y:UMLNoteNode>
+          <y:Geometry height="306.55376344086017" width="522.5" x="202.5" y="1039.6961361984322"/>
+          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="298.0234375" modelName="custom" textColor="#000000" visible="true" width="504.279296875" x="9.1103515625" y="4.265162970430083">Reactive:
+	- sourceDependencies
+	- (inTxn) depChanged : Boolean
+	
+Signal[T]
+	- value : T
+	- (inTxn) changed : Boolean
+
+Eventstream[T]
+	- (inTxn) maybeEvent : Option[T]
+
+FlattenSignal[T]
+	- can receive:
+		- inner =&gt; forward notification
+		- outer =&gt; connect with new inner, send new notification
+		- inner outer =&gt; record first, drop recorded, proceed with outer
+		- inner outer =&gt; record first, drop recorded, proceed with outer
+		- outer inner =&gt; connect with new inner, wait for notification, modify dependencies and forward
+		- inner outer inner =&gt; record first, drop recorded, proceed with outer inner
+		- outer inner inner?<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+        </y:UMLNoteNode>
+      </data>
+    </node>
     <edge id="e0" source="n1" target="n0">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -793,7 +902,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e1" source="n2" target="n0">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -807,7 +915,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e2" source="n3" target="n0">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -822,7 +929,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e3" source="n4" target="n0">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -836,7 +942,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e4" source="n5" target="n0">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -850,7 +955,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e5" source="n10" target="n2">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -864,7 +968,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e6" source="n11" target="n2">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -878,7 +981,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e7" source="n10" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -890,7 +992,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e8" source="n12" target="n10">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -904,7 +1005,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e9" source="n12" target="n13">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -916,7 +1016,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e10" source="n13" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-66.017578125" sy="0.0" tx="0.0" ty="0.0"/>
@@ -928,7 +1027,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e11" source="n14" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -940,7 +1038,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e12" source="n15" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -952,7 +1049,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e13" source="n16" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-66.017578125" sy="0.0" tx="0.0" ty="0.0"/>
@@ -964,7 +1060,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e14" source="n21" target="n10">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="24.14583333333337" ty="0.0">
@@ -978,7 +1073,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e15" source="n21" target="n17">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -990,7 +1084,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e16" source="n17" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1005,7 +1098,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e17" source="n18" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1019,7 +1111,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e18" source="n19" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="30.14583333333337" ty="0.0">
@@ -1033,7 +1124,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e19" source="n20" target="n3">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1048,7 +1138,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e20" source="n8" target="n11">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1062,7 +1151,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e21" source="n9" target="n11">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1076,7 +1164,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e22" source="n6" target="n1">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1090,7 +1177,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e23" source="n7" target="n1">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="8.145833333333371" ty="0.0">
@@ -1104,7 +1190,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e24" source="n6" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1118,7 +1203,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e25" source="n8" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1132,7 +1216,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e26" source="n12" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1146,7 +1229,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e27" source="n13" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1160,7 +1242,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e28" source="n14" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="-11.9375">
@@ -1174,7 +1255,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e29" source="n15" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1188,7 +1268,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e30" source="n16" target="n4">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1202,7 +1281,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e31" source="n7" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1216,7 +1294,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e32" source="n9" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1230,7 +1307,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e33" source="n21" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1244,7 +1320,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e34" source="n17" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1258,7 +1333,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e35" source="n18" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1272,7 +1346,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e36" source="n19" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1286,7 +1359,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e37" source="n20" target="n5">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1300,7 +1372,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e38" source="n23" target="n22">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1312,7 +1383,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e39" source="n24" target="n22">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1324,7 +1394,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e40" source="n26" target="n24">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1336,7 +1405,6 @@ valueChanged : Boolean
     </edge>
     <edge id="e41" source="n25" target="n23">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1348,6 +1416,87 @@ valueChanged : Boolean
     </edge>
     <edge id="e42" source="n29" target="n28">
       <data key="d8"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="plain"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e43" source="n30" target="n4">
+      <data key="d8"/>
+      <data key="d9"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="-16.314049937849063">
+            <y:Point x="751.0" y="940.5"/>
+          </y:Path>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="white_delta"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e44" source="n30" target="n3">
+      <data key="d8"/>
+      <data key="d9"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="-66.017578125" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="white_delta"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e45" source="n32" target="n31">
+      <data key="d8"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="white_delta"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e46" source="n33" target="n31">
+      <data key="d8"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="white_delta"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e47" source="n35" target="n33">
+      <data key="d8"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="plain"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e48" source="n34" target="n32">
+      <data key="d8"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="plain"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e49" source="n36" target="n34">
+      <data key="d8"/>
       <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
@@ -1358,7 +1507,7 @@ valueChanged : Boolean
         </y:PolyLineEdge>
       </data>
     </edge>
-    <edge id="e43" source="n30" target="n28">
+    <edge id="e50" source="n36" target="n35">
       <data key="d8"/>
       <data key="d9"/>
       <data key="d10">
@@ -1370,26 +1519,26 @@ valueChanged : Boolean
         </y:PolyLineEdge>
       </data>
     </edge>
-    <edge id="e44" source="n32" target="n30">
+    <edge id="e51" source="n34" target="n37">
       <data key="d8"/>
       <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
           <y:LineStyle color="#000000" type="dashed" width="1.0"/>
-          <y:Arrows source="none" target="plain"/>
+          <y:Arrows source="none" target="white_delta"/>
           <y:BendStyle smoothed="false"/>
         </y:PolyLineEdge>
       </data>
     </edge>
-    <edge id="e45" source="n31" target="n29">
+    <edge id="e52" source="n35" target="n37">
       <data key="d8"/>
       <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
           <y:LineStyle color="#000000" type="dashed" width="1.0"/>
-          <y:Arrows source="none" target="plain"/>
+          <y:Arrows source="none" target="white_delta"/>
           <y:BendStyle smoothed="false"/>
         </y:PolyLineEdge>
       </data>
