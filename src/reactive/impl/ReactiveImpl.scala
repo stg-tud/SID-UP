@@ -1,74 +1,38 @@
 package reactive
 package impl
 
-import Reactive._
 import java.util.UUID
-import dctm.vars.TransactionalVariable
-import remote.RemoteReactiveDependant
-import dctm.vars.TransactionExecutor
-import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import scala.collection.mutable
-import util.LockWithExecute._
+import util.MutableValue
 
-abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
-  private val dependants = new TransactionalVariable[Set[RemoteReactiveDependant[A]], Transaction](Set());
-
-  override def addDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
-    dependants.transform { _ + obs }
-    sourceDependencies
-  }
-  override def removeDependant(obs: RemoteReactiveDependant[A])(implicit t: Txn) = {
-    dependants.transform { _ - obs }
-    sourceDependencies
-  }
-
-  private val sourceDependencies = new TransactionalVariable[Map[UUID, Set[UUID]], Transaction](Map())
+abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies : Set[UUID]) extends Reactive[A, N] {
+  protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
+  override def sourceDependencies = _sourceDependencies.current
   
-  protected def getExpectedNotificationCount(implicit t : Txn) = {
-    val deps = sourceDependencies.get();
-    t.tid.sources.foldLeft(Set[UUID]()) { (set, source) =>
-      set ++ deps(source)
-    }.size
+  override def isConnectedTo(transaction : Transaction) = ! (transaction.sources & sourceDependencies).isEmpty
+  private var dependants = Set[ReactiveDependant[N]]()
+
+  override def addDependant(dependant : ReactiveDependant[N]) {
+    dependants += dependant
   }
-
-  protected def notifyDependants(sourceDependenciesDiff: Multiset[UUID], maybeValue: Option[A])(implicit t: Txn) {
-    if (maybeValue.isDefined || !sourceDependenciesDiff.isEmpty) {
-      val sourceDependencyChange = sourceDependencies.transform { _ ++ sourceDependenciesDiff }
-      val aggregatedDependencyDiff = sourceDependencyChange._2.signum.diff(sourceDependencyChange._1.signum)
-
-      val dependants = this.dependants.get()
-      val mustNotify = !dependants.isEmpty && (maybeValue.isDefined || !aggregatedDependencyDiff.isEmpty)
-
-      if (mustNotify) {
-        if (dependants.size == 1) {
-          dependants.head.notify(aggregatedDependencyDiff, maybeValue);
-        } else {
-          TransactionExecutor.spawnSubtransactions(dependants) { _.notify(aggregatedDependencyDiff, maybeValue) };
-        }
-      }
-    }
+  override def removeDependant(dependant : ReactiveDependant[N]) {
+    dependants -= dependant
   }
-
+  
+  def publish(notification : N) {
+    dependants.foreach(_.notify(notification));
+  }
   // ====== Observing stuff ======
 
   private val observers = mutable.Set[A => Unit]()
-  private val observersLock = new ReentrantReadWriteLock
   def observe(obs: A => Unit) {
-    observersLock.writeLocked {
-      observers += obs
-    }
+    observers += obs
   }
   def unobserve(obs: A => Unit) {
-    observersLock.writeLocked {
-      observers -= obs
-    }
+    observers -= obs
   }
 
   protected def notifyObservers(event: Transaction, value: A) {
-    observersLock.readLocked {
-      observers.foreach { _(value) }
-    }
+    observers.foreach { _(value) }
   }
-
-  override def toString = name
 }

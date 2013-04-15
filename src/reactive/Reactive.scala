@@ -1,24 +1,14 @@
 package reactive
 
-import remote.RemoteReactive
-import dctm.vars.TransactionExecutionContext
-import Reactive._
 import java.util.UUID
+import reactive.signals.Signal
 
-/**
- *  Note: while this class implements a remote interface, it doesn't actually
- *  provide remoting capabilities for performance reasons. The interface is
- *  implemented only to provide a remote-capable wrapper to just forward all
- *  method invocations.
- */
-trait Reactive[+A] extends RemoteReactive[A] {
-  val name: String;
-  def sourceDependencies(implicit t: Txn) : Set[UUID]
-  def log(implicit t: Txn = null): Signal[List[A]]
+trait Reactive[+A, +N <: ReactiveNotification[A]] {
+  protected[reactive] def sourceDependencies : Set[UUID]
+  protected[reactive] def isConnectedTo(transaction : Transaction) : Boolean
+  protected[reactive] def addDependant(dependant : ReactiveDependant[N])
+  protected[reactive] def removeDependant(dependant : ReactiveDependant[N])
+//  def log: Signal[List[A]]
   def observe(obs: A => Unit)
   def unobserve(obs: A => Unit)
-}
-
-object Reactive {
-  type Txn = TransactionExecutionContext[Transaction]
 }

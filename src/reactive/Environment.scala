@@ -1,6 +1,9 @@
 package reactive
 
-import scala.concurrent.ops.spawn
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+import reactive.signals.Var
+import reactive.signals.Signal
 
 object Environment extends App {
   lazy val timestamp: Signal[Long] = {
@@ -9,14 +12,14 @@ object Environment extends App {
       def run {
         while (true) {
           while (millis.asInstanceOf[Signal[Long]].now < System.currentTimeMillis()) {
-            millis.set(millis.asInstanceOf[Signal[Long]].now + 1);
+            millis << millis.asInstanceOf[Signal[Long]].now + 1;
           }
           Thread.sleep(1);
         }
       }
     }, "millis");
     thread.setDaemon(true);
-    spawn { Thread.sleep(100); thread.start(); }
+    future { Thread.sleep(100); thread.start(); }
     millis;
   }
 }

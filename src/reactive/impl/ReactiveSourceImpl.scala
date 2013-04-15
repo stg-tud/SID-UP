@@ -1,12 +1,17 @@
 package reactive
 package impl
 
-import Reactive._
-import util.Multiset
+import java.util.UUID
+import util.Update
 
-trait ReactiveSourceImpl[A] extends ReactiveSource[A] {
-  self : ReactiveImpl[A] =>
-  def update(newValue: A)(implicit t : Txn) {
-    notifyDependants(Multiset.empty, Some(newValue))
+trait ReactiveSourceImpl[A, N <: ReactiveNotification[A]] extends ReactiveSource[A, N] {
+  override val uuid = UUID.randomUUID();
+  override val sourceDependencies = Set(uuid)
+  protected val noDependencyChange = new Update(sourceDependencies, sourceDependencies, false)
+  override def isConnectedTo(transaction : Transaction) = transaction.sources.contains(uuid)
+  private lazy val transaction = new TransactionBuilder();
+  override def << (value: A) {
+    transaction.set(this, value);
+    transaction.commit();
   }
 }
