@@ -8,7 +8,7 @@ import reactive.events.NothingEventStream
 class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, SignalNotification[A]] {
   override val now = value
   override def apply()(implicit t: Transaction) = value
-  //  override lazy val log = new Val(List(value))
+  override lazy val log = new Val(List(value))
   override val changes: EventStream[A] = NothingEventStream
   override def map[B](op: A => B): Signal[B] = new Val(op(value))
   //  override def rmap[B](op: A => Signal[B]): Signal[B] = op(value);

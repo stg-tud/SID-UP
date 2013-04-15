@@ -1,20 +1,19 @@
-//package reactive
-//package signals.impl
-//
-//import Reactive._
-//import reactive.events.EventStream
-//import reactive.impl.RemoteReactiveDeimport reactive.signals.impl.SignalImpl
-//pendantImpl
-//import reactive.impl.SignalImpl
-//
-//class HoldSignal[A](override val changes: EventStream[A], initialValue: A, t: Txn) extends SignalImpl[A]("hold(" + changes.name + ")", initialValue) with RemoteReactiveDependantImpl[A] {
-//  if(t == null) {
-//    TransactionBuilder.retryUntilSuccess { t => connect(t, changes); }
-//  } else {
-//    connect(t, changes);
-//  }
-//
-//  override def notify(sourceDependencyDiff: Multiset[UUID], value: Option[A])(implicit t: Txn) {
-//    notifyDependants(sourceDependencyDiff, value);
-//  }
-//}
+package reactive
+package signals
+package impl
+
+import reactive.events.EventStream
+import reactive.events.EventNotification
+
+class HoldSignal[A](override val changes: EventStream[A], initialValue: A) extends SignalImpl[A](changes.sourceDependencies, initialValue) with EventStream.Dependant[A] {
+  changes.addDependant(this);
+  override def notify(notification: EventNotification[A]) {
+    val dependencyUpdate = notification.sourceDependenciesUpdate.applyTo(_sourceDependencies)
+    val valueUpdate = if (notification.maybeValue.isDefined) {
+      value.update(notification.maybeValue.get);
+    } else {
+      value.noChangeUpdate
+    }
+    publish(new SignalNotification(notification.transaction, dependencyUpdate, valueUpdate))
+  }
+}

@@ -22,6 +22,6 @@ abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) ext
   override def map[B](op: A => B): Signal[B] = new MapSignal(this, op)
 //  override def rmap[B](op: A => Signal[B]): Signal[B] = map(op)(t).flatten
 //  override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]]);
-//  override def log = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem));
+  override def log = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem));
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
 }
