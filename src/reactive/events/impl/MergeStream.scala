@@ -6,9 +6,9 @@ import java.util.UUID
 import util.TransactionalAccumulator
 
 class MergeStream[A](streams: Iterable[EventStream[A]]) extends EventStreamImpl[A](streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies }) with EventStream.Dependant[A] {
-  streams.foreach { _.addDependant(this) }
+  streams.foreach { _.addDependant(None, this) }
   private val accumulator = new TransactionalAccumulator[(Boolean, Option[A])] {
-    override val initialValue = (false, None)
+    override def initialValue(transaction: Transaction) = (false, None)
     override def expectedTickCount(transaction: Transaction) = streams.count(_.isConnectedTo(transaction))
   }
 

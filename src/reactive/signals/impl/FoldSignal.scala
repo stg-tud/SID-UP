@@ -6,7 +6,7 @@ import reactive.events.EventStream
 import reactive.events.EventNotification
 
 class FoldSignal[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A) extends SignalImpl[A](source.sourceDependencies, initialValue) with EventStream.Dependant[B] {
-  source.addDependant(this)
+  source.addDependant(None, this)
 
   override def notify(notification: EventNotification[B]) {
     val dependencyUpdate = notification.sourceDependenciesUpdate.applyTo(_sourceDependencies);

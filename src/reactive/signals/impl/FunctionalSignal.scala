@@ -8,10 +8,10 @@ import util.Util
 import util.TransactionalAccumulator
 
 class FunctionalSignal[A](op: Transaction => A, dependencies: Signal[_]*) extends SignalImpl[A](dependencies.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies }, op(null)) with Signal.Dependant[Any] {
-  dependencies.foreach { _.addDependant(this) }
+  dependencies.foreach { _.addDependant(None, this) }
   private val accumulator = new TransactionalAccumulator[(Boolean, Boolean)] {
     override def expectedTickCount(transaction: Transaction) = dependencies.count(_.isConnectedTo(transaction))
-    override val initialValue = (false, false)
+    override def initialValue(transaction: Transaction) = (false, false)
   }
 
   override def notify(notification: SignalNotification[Any]) {

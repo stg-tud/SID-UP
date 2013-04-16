@@ -8,13 +8,13 @@ abstract class TransactionalAccumulator[A] {
   private var value: A = _
 
   protected def expectedTickCount(transaction : Transaction) : Int
-  protected def initialValue : A
+  protected def initialValue(transaction : Transaction) : A
   
   def tickAndGetIfCompleted[B](transaction: Transaction)(op: A => A) : Option[A] = {
     if (pendingTicks == 0) {
       currentTransaction = transaction
       pendingTicks = expectedTickCount(transaction)
-      value = initialValue
+      value = initialValue(transaction)
     } else {
       checkTransaction(transaction)
     }

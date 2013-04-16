@@ -6,23 +6,28 @@ import scala.collection.mutable
 import util.MutableValue
 import util.TransactionalTransientVariable
 
-abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies : Set[UUID]) extends Reactive[A, N] {
+abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies: Set[UUID]) extends Reactive[A, N] {
   protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
   override def sourceDependencies = _sourceDependencies.current
-  
-  override def isConnectedTo(transaction : Transaction) = ! (transaction.sources & sourceDependencies).isEmpty
+
+  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
   private var dependants = Set[ReactiveDependant[N]]()
 
-  override def addDependant(dependant : ReactiveDependant[N]) {
+  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) = {
     dependants += dependant
+    maybeTransaction.flatMap { _lastNotification.getIfSet(_) }
   }
-  override def removeDependant(dependant : ReactiveDependant[N]) {
+  override def maybeNotification(transaction : Transaction) = {
+    _lastNotification.getIfSet(transaction)
+  }
+
+  override def removeDependant(dependant: ReactiveDependant[N]) {
     dependants -= dependant
   }
-  
-  protected val lastNotification = new TransactionalTransientVariable[N]
-  def publish(notification : N) {
-    lastNotification.set(notification.transaction, notification)
+
+  protected val _lastNotification = new TransactionalTransientVariable[N]
+  def publish(notification: N) {
+    _lastNotification.set(notification.transaction, notification)
     dependants.foreach(_.notify(notification));
   }
   // ====== Observing stuff ======

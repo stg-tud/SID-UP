@@ -8,11 +8,11 @@ import util.TransactionalAccumulator
 
 class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A](events.sourceDependencies, signal.now) with ReactiveDependant[ReactiveNotification[Any]] {
   private val deps = Iterable(signal, events)
-  deps.foreach { _.addDependant(this) }
+  deps.foreach { _.addDependant(None, this) }
   
   private val accumulator = new TransactionalAccumulator[Boolean] {
     override def expectedTickCount(transaction: Transaction) = deps.count(_.isConnectedTo(transaction))
-    override val initialValue = false
+    override def initialValue(transaction: Transaction) = false
   }
 
   override def notify(notification: ReactiveNotification[Any]) {

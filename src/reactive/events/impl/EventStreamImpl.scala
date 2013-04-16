@@ -11,7 +11,7 @@ import util.TransactionalAccumulator
 import util.TransactionalTransientVariable
 
 abstract class EventStreamImpl[A](sourceDependencies: Set[UUID]) extends ReactiveImpl[A, EventNotification[A]](sourceDependencies) with EventStream[A] {
-  def apply()(implicit t: Transaction): Option[A] = lastNotification.get(t).maybeValue
+  def apply()(implicit t: Transaction): Option[A] = _lastNotification.get(t).maybeValue
   override def hold[B >: A](initialValue: B): Signal[B] = new HoldSignal(this, initialValue);
   override def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
   override def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream(this :: streams.toList);

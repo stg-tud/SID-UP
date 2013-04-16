@@ -3,20 +3,32 @@ package signals
 package impl
 
 import util.MutableValue
+import util.TransactionalTransientVariable
 
+// TODO
 class FlattenSignal[A](val outer: Signal[Signal[A]]) extends {
-  val inner = new MutableValue(outer.now)
-} with SignalImpl[A](outer.sourceDependencies ++ inner.current.sourceDependencies, inner.current.now) {
-  outer.addDependant(new Signal.Dependant[Signal[A]]{
-    override def notify(notification : SignalNotification[Signal[A]]) { 
-      
+  var inner = outer.now
+} with SignalImpl[A](outer.sourceDependencies ++ inner.sourceDependencies, inner.now) {
+  private val outerNotification = new TransactionalTransientVariable[SignalNotification[Signal[A]]]
+
+  outer.addDependant(None, new Signal.Dependant[Signal[A]] {
+    override def notify(notification: SignalNotification[Signal[A]]) {
+      if(notification.valueUpdate.changed) {
+        inner.removeDependant(innerDependant)
+      }
+      outerNotification.set(notification.transaction, notification);
     }
   })
   val innerDependant = new Signal.Dependant[A] {
-    override def notify(notification : SignalNotification[A]) {
-      
+    override def notify(notification: SignalNotification[A]) {
+      if(outer.isConnectedTo(notification.transaction)) {
+        
+      }
     }
   }
-  inner.current.addDependant(innerDependant)
-  
+  inner.addDependant(None, innerDependant)
+
+  def publish() {
+
+  }
 }
