@@ -6,13 +6,15 @@ import scala.collection.mutable
 import reactive.events.EventStream
 
 class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A](events.sourceDependencies, signal.now) with ReactiveDependant[ReactiveNotification[Any]] {
+  private val deps = Iterable(signal, events)
+  deps.foreach { _.addDependant(this) }
   private var pending = 0;
   private var anyDependencyChange = false
   private var eventFired = false
 
   override def notify(notification: ReactiveNotification[Any]) {
     if (pending == 0) {
-      pending = Iterable(signal, events).count(_.isConnectedTo(notification.transaction))
+      pending = deps.count(_.isConnectedTo(notification.transaction))
       anyDependencyChange = false
     }
 

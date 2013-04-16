@@ -1,34 +1,35 @@
-//package reactive
-//package events.impl
-//import scala.collection.mutable
-//import Reactive._
-//import reactive.events.EventStream
-//import reactive.Transaction
-//import reacimport reactive.events.impl.EventStreamImpl
-//tive.impl.RemoteReactiveDependantImpl
-//
-//class MergeStream[A](streams: Iterable[EventStream[A]], it: Txn) extends EventStreamImpl[A]("merge(" + streams.map { _.name }.mkString(", ") + ")") with RemoteReactiveDependantImpl[A] {
-//  TransactionBuilder.retryUntilSuccessWithLocalTransactionIfNeeded(it) { t =>
-//	  streams.foreach { connect(t, _) }
-//  }
-//
-//  private val pending = mutable.Map[Transaction, (Int, Option[A])]()
-//
-//  override def notify(sourceDependenciesDiff : Multiset[UUID], maybeValue: Option[A])(implicit t : Txn) {
-//    val (pendingNotifications: Int, toEmit: Option[A]) = pending.get(t.tid).getOrElse((sourceDependencies.get(), false))
-//    if (shouldEmit(event, maybeValue.isDefined)) {
-//      propagate(event, maybeValue)
-//    }
-//  }
-//  private def shouldEmit(event: Transaction, canEmit: Boolean): Boolean = {
-//    pending.synchronized {
-//      if (pendingNotifications == 1) {
-//        pending -= event;
-//        !hasEmitted
-//      } else {
-//        pending += (event -> ((pendingNotifications - 1, hasEmitted || canEmit)));
-//        !hasEmitted && canEmit
-//      }
-//    }
-//  }
-//}
+package reactive
+package events
+package impl
+
+import java.util.UUID
+
+
+class MergeStream[A](streams: Iterable[EventStream[A]]) extends EventStreamImpl[A](streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies }) with EventStream.Dependant[A] {
+  streams.foreach{ _.addDependant(this) }
+  private var pending = 0;
+  private var anyDependencyChange : Boolean = _
+  private var event : Option[A] = _
+
+  override def notify(notification: EventNotification[A]) {
+    if (pending == 0) {
+      pending = streams.count(_.isConnectedTo(notification.transaction))
+      anyDependencyChange = false
+      event = None
+    }
+    
+    anyDependencyChange |= notification.sourceDependenciesUpdate.changed
+    if(notification.maybeValue.isDefined) event = notification.maybeValue
+    pending -= 1;
+    
+    if (pending == 0) {
+      val sourceDependencyUpdate = if (anyDependencyChange) {
+        _sourceDependencies.update(streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies })
+      } else {
+        _sourceDependencies.noChangeUpdate
+      }
+
+      publish(new EventNotification(notification.transaction, sourceDependencyUpdate, event))
+    }
+  }
+}
