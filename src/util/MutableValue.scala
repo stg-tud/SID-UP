@@ -8,8 +8,13 @@ class MutableValue[A](private var value: A) {
     val oldValue = value
     value = newValue
     _noChangeUpdate = null
-    new Update(oldValue, newValue, Util.nullSafeEqual(oldValue, newValue))
+    new Update(oldValue, newValue, !Util.nullSafeEqual(oldValue, newValue))
   }
+  
+  def transform(op : A => A) = {
+    update(op(current()))
+  }
+  
   def noChangeUpdate = {
     if (_noChangeUpdate == null) {
       _noChangeUpdate = new Update(value, value, false);
