@@ -3,33 +3,28 @@ package events
 package impl
 
 import java.util.UUID
-
+import util.TransactionalAccumulator
 
 class MergeStream[A](streams: Iterable[EventStream[A]]) extends EventStreamImpl[A](streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies }) with EventStream.Dependant[A] {
-  streams.foreach{ _.addDependant(this) }
-  private var pending = 0;
-  private var anyDependencyChange : Boolean = _
-  private var event : Option[A] = _
+  streams.foreach { _.addDependant(this) }
+  private val accumulator = new TransactionalAccumulator[(Boolean, Option[A])] {
+    override val initialValue = (false, None)
+    override def expectedTickCount(transaction: Transaction) = streams.count(_.isConnectedTo(transaction))
+  }
 
   override def notify(notification: EventNotification[A]) {
-    if (pending == 0) {
-      pending = streams.count(_.isConnectedTo(notification.transaction))
-      anyDependencyChange = false
-      event = None
-    }
-    
-    anyDependencyChange |= notification.sourceDependenciesUpdate.changed
-    if(notification.maybeValue.isDefined) event = notification.maybeValue
-    pending -= 1;
-    
-    if (pending == 0) {
-      val sourceDependencyUpdate = if (anyDependencyChange) {
-        _sourceDependencies.update(streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies })
-      } else {
-        _sourceDependencies.noChangeUpdate
-      }
+    accumulator.tickAndGetIfCompleted(notification.transaction) {
+      case (anyDependencyChanged, event) =>
+        (anyDependencyChanged || notification.sourceDependenciesUpdate.changed, event.orElse(notification.maybeValue))
+    } foreach {
+      case (anyDependencyChanged, event) =>
+        val sourceDependencyUpdate = if (anyDependencyChanged) {
+          _sourceDependencies.update(streams.foldLeft(Set[UUID]()) { (set, dep) => set ++ dep.sourceDependencies })
+        } else {
+          _sourceDependencies.noChangeUpdate
+        }
 
-      publish(new EventNotification(notification.transaction, sourceDependencyUpdate, event))
+        publish(new EventNotification(notification.transaction, sourceDependencyUpdate, event))
     }
   }
 }

@@ -18,4 +18,5 @@ class FlattenSignal[A](val outer: Signal[Signal[A]]) extends {
     }
   }
   inner.current.addDependant(innerDependant)
+  
 }

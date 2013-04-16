@@ -4,6 +4,7 @@ package impl
 import java.util.UUID
 import scala.collection.mutable
 import util.MutableValue
+import util.TransactionalTransientVariable
 
 abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies : Set[UUID]) extends Reactive[A, N] {
   protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
@@ -19,7 +20,9 @@ abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDepend
     dependants -= dependant
   }
   
+  protected val lastNotification = new TransactionalTransientVariable[N]
   def publish(notification : N) {
+    lastNotification.set(notification.transaction, notification)
     dependants.foreach(_.notify(notification));
   }
   // ====== Observing stuff ======
