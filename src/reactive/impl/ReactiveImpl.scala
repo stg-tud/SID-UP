@@ -13,9 +13,9 @@ abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDepend
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
   private var dependants = Set[ReactiveDependant[N]]()
 
-  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) = {
+  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) {
     dependants += dependant
-    maybeTransaction.flatMap { _lastNotification.getIfSet(_) }
+    maybeTransaction.flatMap { _lastNotification.getIfSet(_) }.foreach { dependant.notify(_) }
   }
   override def maybeNotification(transaction : Transaction) = {
     _lastNotification.getIfSet(transaction)
