@@ -18,7 +18,13 @@ class TransactionalTransientVariable[A] {
   }
 
   def getIfSet(transaction: Transaction) = {
-    if (currentTransaction == null) {
+    // TODO: this should be the implementation (requires above todo)
+//    if (currentTransaction == null) {
+//      None
+//    } else {
+//      Some(get(transaction))
+//    }
+    if(currentTransaction == null || !currentTransaction.equals(transaction)) {
       None
     } else {
       Some(get(transaction))
@@ -26,6 +32,6 @@ class TransactionalTransientVariable[A] {
   }
 
   private def checkTransaction(transaction: Transaction) {
-    if (!transaction.equals(transaction)) throw new IllegalStateException("Wrong transaction")
+    if (!currentTransaction.equals(transaction)) throw new IllegalStateException("Wrong transaction")
   }
 }

@@ -9,4 +9,7 @@ class Transaction(val sources: scala.collection.Set[UUID]) {
   override def hashCode() = {
     uuid.hashCode()
   }
+  override def toString() = {
+    "Transaction(id="+uuid+",sources="+sources+")" 
+  }
 }
