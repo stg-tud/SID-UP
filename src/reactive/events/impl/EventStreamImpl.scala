@@ -18,4 +18,9 @@ abstract class EventStreamImpl[A](sourceDependencies: Set[UUID]) extends Reactiv
   override def fold[B](initialValue: B)(op: (B, A) => B): Signal[B] = new FoldSignal(initialValue, this, op);
   override def log = fold(List[A]())((list, elem) => list :+ elem)
   override def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
+
+  override def publish(notification: EventNotification[A]) {
+    super.publish(notification)
+    notification.maybeValue.foreach { notifyObservers(_) };
+  }
 }

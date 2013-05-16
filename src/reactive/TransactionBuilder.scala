@@ -5,16 +5,16 @@ import scala.collection.immutable.TreeMap
 
 class TransactionBuilder {
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
-  private var boxes = new TreeMap[ReactiveSource[_, _], Any]()(new Ordering[ReactiveSource[_, _]] {
-    override def compare(a: ReactiveSource[_, _], b: ReactiveSource[_, _]) = a.uuid.compareTo(b.uuid)
+  private var boxes = new TreeMap[ReactiveSource[_], Any]()(new Ordering[ReactiveSource[_]] {
+    override def compare(a: ReactiveSource[_], b: ReactiveSource[_]) = a.uuid.compareTo(b.uuid)
   })
 
-  def set[A](box: ReactiveSource[A, _ <: ReactiveNotification[A]], value: A) = {
+  def set[A](box: ReactiveSource[A], value: A) = {
     boxes += box -> value;
     this
   }
 
-  def forget[A](box: ReactiveSource[A, _]) {
+  def forget[A](box: ReactiveSource[A]) {
     boxes -= box;
   }
 
@@ -34,7 +34,7 @@ class TransactionBuilder {
     boxSet.foreach(setBoxFromMap(transaction, _));
   }
 
-  private def setBoxFromMap[A](t: Transaction, box: ReactiveSource[A, _]) {
+  private def setBoxFromMap[A](t: Transaction, box: ReactiveSource[A]) {
     box.emit(t, boxes(box).asInstanceOf[A])
   }
 }

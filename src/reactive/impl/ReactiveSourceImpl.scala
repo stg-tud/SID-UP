@@ -4,7 +4,8 @@ package impl
 import java.util.UUID
 import util.Update
 
-trait ReactiveSourceImpl[A, N <: ReactiveNotification[A]] extends ReactiveSource[A, N] {
+trait ReactiveSourceImpl[A] extends ReactiveSource[A] {
+  self : Reactive[_, _] =>
   override val uuid = UUID.randomUUID();
   override val sourceDependencies = Set(uuid)
   protected val noDependencyChange = new Update(sourceDependencies, sourceDependencies, false)

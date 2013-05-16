@@ -40,7 +40,7 @@ abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDepend
     observers -= obs
   }
 
-  protected def notifyObservers(event: Transaction, value: A) {
+  protected def notifyObservers(value: A) {
     observers.foreach { _(value) }
   }
 }

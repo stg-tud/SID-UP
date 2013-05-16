@@ -8,4 +8,5 @@ object LiftableWrappers {
   val max = math.max((_: Int), (_: Int))
   val rprint = Lift.signalSink1 { Console.print(_: Any) }
   val rprintln = Lift.signalSink1 { Console.println(_: Any) }
+  def ifThenElse[A] = { (condition: Boolean, ifTrue: A, ifFalse: A) => if (condition) ifTrue else ifFalse }
 }
