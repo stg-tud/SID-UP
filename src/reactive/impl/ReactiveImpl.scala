@@ -1,70 +1,46 @@
-package reactive.impl
+package reactive
+package impl
 
-import scala.collection.mutable
-import scala.concurrent.ops.spawn
-import util.ToStringHelper._
-import util.Util._
-import util.LockWithExecute._
 import java.util.UUID
-import scala.concurrent.ThreadPoolRunner
-import scala.actors.threadpool.Executor
-import scala.actors.scheduler.ExecutorScheduler
-import scala.actors.threadpool.Executors
-import scala.actors.threadpool.ExecutorService
-import scala.collection.mutable.Stack
-import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import remote.RemoteEventStream
-import scala.actors.threadpool.locks.ReadWriteLock
-import reactive.Reactive
-import reactive.Event
-import reactive.EventStreamDependant
+import scala.collection.mutable
+import util.MutableValue
+import util.TransactionalTransientVariable
 
-abstract class ReactiveImpl[A](val name: String) extends Reactive[A] {
+abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies: Set[UUID]) extends Reactive[A, N] {
+  protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
+  override def sourceDependencies = _sourceDependencies.current
 
-  def sourceDependencies: Map[UUID, UUID]
-  //  protected[reactive] def level: Int;
+  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
+  private var dependants = Set[ReactiveDependant[N]]()
 
+  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) {
+    dependants += dependant
+    maybeTransaction.flatMap { _lastNotification.getIfSet(_) }.foreach { dependant.notify(_) }
+  }
+  override def maybeNotification(transaction : Transaction) = {
+    _lastNotification.getIfSet(transaction)
+  }
+
+  override def removeDependant(dependant: ReactiveDependant[N]) {
+    dependants -= dependant
+  }
+
+  protected val _lastNotification = new TransactionalTransientVariable[N]
+  def publish(notification: N) {
+    _lastNotification.set(notification.transaction, notification)
+    dependants.foreach(_.notify(notification));
+  }
   // ====== Observing stuff ======
 
   private val observers = mutable.Set[A => Unit]()
-  private val observersLock = new ReentrantReadWriteLock
   def observe(obs: A => Unit) {
-    observersLock.writeLocked {
-      observers += obs
-    }
+    observers += obs
   }
   def unobserve(obs: A => Unit) {
-    observersLock.writeLocked {
-      observers -= obs
-    }
+    observers -= obs
   }
 
-  protected def notifyObservers(event: Event, value: A) {
-    observersLock.readLocked {
-      observers.foreach { _(value) }
-    }
+  protected def notifyObservers(value: A) {
+    observers.foreach { _(value) }
   }
-
-  override def toString = name
-  // ====== Printing stuff ======
-  //
-  //  override def toString = name;
-  //  def toElaborateString: String = {
-  //    return toString(new StringBuilder(), 0, new java.util.HashSet[Reactive[_]]).toString;
-  //  }
-  //  def toString(builder: StringBuilder, depth: Int, done: java.util.Set[Reactive[_]]): StringBuilder = {
-  //    indent(builder, depth).append("<").append(getClass().getSimpleName().toLowerCase());
-  //    if (done.add(this)) {
-  //      builder.append(" name=\"").append(name) /*.append("\" level=\"").append(level)*/ .append("\">\n");
-  //      listTag(builder, depth + 1, "observers", observers) {
-  //        x => indent(builder, depth + 2).append("<observer>").append(x.toString()).append("</observer>\n");
-  //      }
-  //      listTag(builder, depth + 1, "dependencies", dependencies) {
-  //        _.toString(builder, depth + 2, done);
-  //      }
-  //    } else {
-  //      builder.append(" backref=\"").append(name).append("\"/>\n");
-  //    }
-  //    return builder;
-  //  }
 }
