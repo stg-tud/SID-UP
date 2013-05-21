@@ -9,6 +9,7 @@ import reactive.signals.impl.FoldSignal
 import reactive.signals.impl.HoldSignal
 import util.TransactionalAccumulator
 import util.TransactionalTransientVariable
+import util.TicketAccumulator
 
 abstract class EventStreamImpl[A](sourceDependencies: Set[UUID]) extends ReactiveImpl[A, EventNotification[A]](sourceDependencies) with EventStream[A] {
   def apply()(implicit t: Transaction): Option[A] = _lastNotification.get(t).maybeValue
@@ -19,8 +20,8 @@ abstract class EventStreamImpl[A](sourceDependencies: Set[UUID]) extends Reactiv
   override def log = fold(List[A]())((list, elem) => list :+ elem)
   override def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
 
-  override def publish(notification: EventNotification[A]) {
-    super.publish(notification)
+  override def publish(notification: EventNotification[A], replyChannels : TicketAccumulator.Receiver*) {
+    super.publish(notification, replyChannels :_*)
     notification.maybeValue.foreach { notifyObservers(_) };
   }
 }

@@ -12,6 +12,7 @@ import reactive.events.impl.MappedEventStream
 import reactive.events.impl.ChangesEventStream
 import util.MutableValue
 import util.MutableValue
+import util.TicketAccumulator
 
 abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) extends ReactiveImpl[A, SignalNotification[A]](sourceDependencies) with Signal[A] {
   signal =>
@@ -27,8 +28,8 @@ abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) ext
   override def log = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem));
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
   
-  override def publish(notification: SignalNotification[A]) {
-    super.publish(notification)
+  override def publish(notification: SignalNotification[A], replyChannels : TicketAccumulator.Receiver*) {
+    super.publish(notification, replyChannels :_*)
     if(notification.valueUpdate.changed) {
       notifyObservers(notification.valueUpdate.newValue);
     }

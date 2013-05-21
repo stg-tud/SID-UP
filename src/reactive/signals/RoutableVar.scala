@@ -3,6 +3,7 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
+import util.TicketAccumulator
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -24,7 +25,7 @@ object RoutableVar {
     // a Var[Signal[A]] with delegates of all ReactiveSource[Signal[A]] input methods
     val _input = Var(value);
     override def <<(value: Signal[A]) = _input.<<(value)
-    override protected[reactive] def emit(transaction: Transaction, value: Signal[A]) = _input.emit(transaction, value)
+    override protected[reactive] def emit(transaction: Transaction, value: Signal[A], replyChannels: TicketAccumulator.Receiver*) = _input.emit(transaction, value, replyChannels: _*)
     override protected[reactive] val uuid: UUID = _input.uuid
 
     // the flattened Signal[A] with delegates of all Signal[A] output methods
@@ -32,7 +33,6 @@ object RoutableVar {
     protected[reactive] override def sourceDependencies: Set[UUID] = _output.sourceDependencies
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
     protected[reactive] override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[SignalNotification[A]]) = _output.addDependant(maybeTransaction, dependant)
-    protected[reactive] override def maybeNotification(transaction: Transaction): Option[SignalNotification[A]] = _output.maybeNotification(transaction)
     protected[reactive] override def removeDependant(dependant: ReactiveDependant[SignalNotification[A]]) = _output.removeDependant(dependant)
     override def log: Signal[List[A]] = _output.log
     override def observe(obs: A => Unit) = _output.observe(obs)

@@ -1,5 +1,7 @@
 package reactive
 
+import util.TicketAccumulator
+
 trait ReactiveDependant[-N] {
-	def notify(notification : N)
+	def notify(replyChannel : TicketAccumulator.Receiver, notification : N)
 }
