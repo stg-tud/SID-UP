@@ -41,6 +41,7 @@ object RoutableVar {
     override def apply()(implicit t: Transaction): A = _output.apply()
     override def changes: EventStream[A] = _output.changes
     override def map[B](op: A => B): Signal[B] = _output.map(op)
+    override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
   }

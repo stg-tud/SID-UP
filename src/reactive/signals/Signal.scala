@@ -8,7 +8,7 @@ trait Signal[+A] extends Reactive[A, SignalNotification[A]] {
   def apply()(implicit t: Transaction): A
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
-  //  def rmap[B](op: A => Signal[B]): Signal[B]
+  def flatMap[B](op: A => Signal[B]): Signal[B]
   def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];
   def snapshot(when: EventStream[_]): Signal[A]
 }
