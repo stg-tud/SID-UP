@@ -21,6 +21,8 @@ class MutableValue[A](private var value: A) {
     }
     _noChangeUpdate
   }
+  
+  override def toString = "MutableValue("+value+")"
 }
 
 case class Update[+A](val oldValue: A, val newValue: A, changed: Boolean) {
