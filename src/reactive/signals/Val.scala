@@ -4,8 +4,9 @@ package signals
 import reactive.Transaction
 import reactive.events.EventStream
 import reactive.events.NothingEventStream
+import util.Update
 
-class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, SignalNotification[A]] {
+class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, A, Update[A]] {
   override val now = value
   override def apply()(implicit t: Transaction) = value
   override lazy val log = new Val(List(value))

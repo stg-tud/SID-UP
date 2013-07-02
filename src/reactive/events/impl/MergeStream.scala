@@ -13,10 +13,10 @@ class MergeStream[A](streams: Iterable[EventStream[A]]) extends EventStreamImpl[
     override def expectedTickCount(transaction: Transaction) = streams.count(_.isConnectedTo(transaction))
   }
 
-  override def notify(replyChannel : TicketAccumulator.Receiver, notification: EventNotification[A]) {
+  override def notify(replyChannel : TicketAccumulator.Receiver, notification: EventStream.Notification[A]) {
     accumulator.tickAndGetIfCompleted(notification.transaction) {
       case (anyDependencyChanged, event, replyChannels) =>
-        (anyDependencyChanged || notification.sourceDependenciesUpdate.changed, event.orElse(notification.maybeValue), replyChannel :: replyChannels)
+        (anyDependencyChanged || notification.sourceDependenciesUpdate.changed, event.orElse(notification.pulse), replyChannel :: replyChannels)
     } foreach {
       case (anyDependencyChanged, event, replyChannels) =>
         val sourceDependencyUpdate = if (anyDependencyChanged) {
@@ -25,7 +25,7 @@ class MergeStream[A](streams: Iterable[EventStream[A]]) extends EventStreamImpl[
           _sourceDependencies.noChangeUpdate
         }
 
-        publish(new EventNotification(notification.transaction, sourceDependencyUpdate, event), replyChannels :_*)
+        publish(new EventStream.Notification(notification.transaction, sourceDependencyUpdate, event), replyChannels :_*)
     }
   }
 }

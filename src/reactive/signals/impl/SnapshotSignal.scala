@@ -6,8 +6,9 @@ import scala.collection.mutable
 import reactive.events.EventStream
 import util.TransactionalAccumulator
 import util.TicketAccumulator
+import util.Update
 
-class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A](events.sourceDependencies, signal.now) with ReactiveDependant[ReactiveNotification[Any]] {
+class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A](events.sourceDependencies, signal.now) with ReactiveDependant[Any] {
   private val deps = Iterable(signal, events)
   deps.foreach { _.addDependant(None, this) }
   
@@ -32,7 +33,7 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
         value.noChangeUpdate
       }
 
-      publish(new SignalNotification(notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels :_*)
+      publish(new ReactiveNotification[Update[A]](notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels :_*)
     }
   }
 }

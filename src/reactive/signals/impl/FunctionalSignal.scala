@@ -15,10 +15,10 @@ class FunctionalSignal[A](op: Transaction => A, dependencies: Signal[_]*) extend
     override def initialValue(transaction: Transaction) = (false, false, Nil)
   }
 
-  override def notify(replyChannel: TicketAccumulator.Receiver, notification: SignalNotification[Any]) {
+  override def notify(replyChannel: TicketAccumulator.Receiver, notification: Signal.Notification[Any]) {
     accumulator.tickAndGetIfCompleted(notification.transaction) {
       case (anyDependencyChange, anyValueChange, replyChannels) =>
-        (anyDependencyChange || notification.sourceDependenciesUpdate.changed, anyValueChange || notification.valueUpdate.changed, replyChannel :: replyChannels)
+        (anyDependencyChange || notification.sourceDependenciesUpdate.changed, anyValueChange || notification.pulse.changed, replyChannel :: replyChannels)
     } foreach {
       case (anyDependencyChange, anyValueChange, replyChannels) =>
         val sourceDependencyUpdate = if (anyDependencyChange) {
@@ -33,7 +33,7 @@ class FunctionalSignal[A](op: Transaction => A, dependencies: Signal[_]*) extend
           value.noChangeUpdate
         }
 
-        publish(new SignalNotification(notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels: _*)
+        publish(new Signal.Notification(notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels: _*)
     }
   }
 }

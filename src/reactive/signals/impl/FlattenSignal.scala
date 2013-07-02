@@ -13,22 +13,22 @@ class FlattenSignal[A](val outer: Signal[Signal[A]]) extends {
   var inner: Signal[A] = outer.now
   //} with SignalImpl[A](outer.sourceDependencies ++ inner.get.sourceDependencies, Left(inner.get.now)) {
 } with SignalImpl[A](outer.sourceDependencies ++ inner.sourceDependencies, inner.now) {
-  private val outerNotification = new TransactionalTransientVariable[(TicketAccumulator.Receiver, SignalNotification[Signal[A]])]
+  private val outerNotification = new TransactionalTransientVariable[(TicketAccumulator.Receiver, Signal.Notification[Signal[A]])]
 
   outer.addDependant(None, new Signal.Dependant[Signal[A]] {
-    override def notify(replyChannel: TicketAccumulator.Receiver, notification: SignalNotification[Signal[A]]) {
-      if (notification.valueUpdate.changed) {
+    override def notify(replyChannel: TicketAccumulator.Receiver, notification: Signal.Notification[Signal[A]]) {
+      if (notification.pulse.changed) {
         inner.removeDependant(innerDependant)
-        inner = notification.valueUpdate.newValue
+        inner = notification.pulse.newValue
         inner.addDependant(Some(notification.transaction), innerDependant) match {
           case Some(innerNotification) =>
-            publish(new SignalNotification(
+            publish(new Signal.Notification(
               notification.transaction,
               _sourceDependencies.update(notification.sourceDependenciesUpdate.newValue ++ innerNotification.sourceDependenciesUpdate.newValue),
-              value.update(innerNotification.valueUpdate.newValue)), replyChannel);
+              value.update(innerNotification.pulse.newValue)), replyChannel);
           case None =>
             if (!inner.isConnectedTo(notification.transaction)) {
-              publish(new SignalNotification(notification.transaction,
+              publish(new Signal.Notification(notification.transaction,
                 _sourceDependencies.update(inner.sourceDependencies ++ notification.sourceDependenciesUpdate.newValue),
                 value.update(inner()(notification.transaction))), replyChannel)
             } else {
@@ -41,21 +41,21 @@ class FlattenSignal[A](val outer: Signal[Signal[A]]) extends {
     }
   })
   val innerDependant = new Signal.Dependant[A] {
-    override def notify(replyChannel: TicketAccumulator.Receiver, notification: SignalNotification[A]) {
+    override def notify(replyChannel: TicketAccumulator.Receiver, notification: Signal.Notification[A]) {
       if (outer.isConnectedTo(notification.transaction)) {
         replyChannel(COMMIT)
         outerNotification.getIfSet(notification.transaction).foreach {
           case (outerReplyChannel, outerNotification) =>
-            publish(new SignalNotification(
+            publish(new Signal.Notification(
               notification.transaction,
               _sourceDependencies.update(outerNotification.sourceDependenciesUpdate.newValue ++ notification.sourceDependenciesUpdate.newValue),
-              value.update(notification.valueUpdate.newValue)), outerReplyChannel);
+              value.update(notification.pulse.newValue)), outerReplyChannel);
         }
       } else {
-        publish(new SignalNotification(
+        publish(new Signal.Notification(
           notification.transaction,
           notification.sourceDependenciesUpdate.applyToMapped(_sourceDependencies, { _ ++ outer.sourceDependencies }),
-          notification.valueUpdate.applyTo(value)), replyChannel)
+          notification.pulse.applyTo(value)), replyChannel)
       }
     }
   }

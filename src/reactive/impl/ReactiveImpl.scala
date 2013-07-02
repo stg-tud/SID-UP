@@ -7,25 +7,25 @@ import util.MutableValue
 import util.TransactionalTransientVariable
 import util.TicketAccumulator
 
-abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDependencies: Set[UUID]) extends Reactive[A, N] {
+abstract class ReactiveImpl[O, V, P](initialSourceDependencies: Set[UUID]) extends Reactive[O, V, P] {
   private val accu = new TicketAccumulator
   protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
   override def sourceDependencies = _sourceDependencies.current
 
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
-  private var dependants = Set[ReactiveDependant[N]]()
+  private var dependants = Set[ReactiveDependant[P]]()
 
-  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) = {
+  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[P]) = {
     dependants += dependant
     maybeTransaction.flatMap { _lastNotification.getIfSet(_) }
   }
 
-  override def removeDependant(dependant: ReactiveDependant[N]) {
+  override def removeDependant(dependant: ReactiveDependant[P]) {
     dependants -= dependant
   }
 
-  protected val _lastNotification = new TransactionalTransientVariable[N]
-  def publish(notification: N, replyChannels : TicketAccumulator.Receiver*) {
+  protected val _lastNotification = new TransactionalTransientVariable[ReactiveNotification[P]]
+  def publish(notification: ReactiveNotification[P], replyChannels : TicketAccumulator.Receiver*) {
     if(replyChannels.isEmpty) throw new IllegalArgumentException("Requires at least one reply channel!");
     _lastNotification.set(notification.transaction, notification)
     accu.initializeForNotification(dependants.size)(replyChannels :_*)
@@ -33,15 +33,15 @@ abstract class ReactiveImpl[A, N <: ReactiveNotification[A]](initialSourceDepend
   }
   // ====== Observing stuff ======
 
-  private val observers = mutable.Set[A => Unit]()
-  def observe(obs: A => Unit) {
+  private val observers = mutable.Set[O => Unit]()
+  def observe(obs: O => Unit) {
     observers += obs
   }
-  def unobserve(obs: A => Unit) {
+  def unobserve(obs: O => Unit) {
     observers -= obs
   }
 
-  protected def notifyObservers(value: A) {
+  protected def notifyObservers(value: O) {
     observers.foreach { _(value) }
   }
 }

@@ -3,7 +3,7 @@ package events
 
 import reactive.signals.Signal
 
-trait EventStream[+A] extends Reactive[A, EventNotification[A]] {
+trait EventStream[+A] extends Reactive[A, Unit, Option[A]] {
   def apply()(implicit t: Transaction): Option[A]
   def hold[B >: A](initialValue: B): Signal[B]
   def map[B](op: A => B): EventStream[B]
@@ -13,5 +13,6 @@ trait EventStream[+A] extends Reactive[A, EventNotification[A]] {
 }
 
 object EventStream {
-  type Dependant[-A] = ReactiveDependant[EventNotification[A]]
+  type Notification[A] = ReactiveNotification[Option[A]]
+  type Dependant[A] = ReactiveDependant[Option[A]]
 }

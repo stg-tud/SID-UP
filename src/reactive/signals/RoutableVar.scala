@@ -4,6 +4,7 @@ package signals;
 import reactive.events.EventStream
 import java.util.UUID
 import util.TicketAccumulator
+import util.Update
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -32,8 +33,8 @@ object RoutableVar {
     val _output = _input.flatten
     protected[reactive] override def sourceDependencies: Set[UUID] = _output.sourceDependencies
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
-    protected[reactive] override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[SignalNotification[A]]) = _output.addDependant(maybeTransaction, dependant)
-    protected[reactive] override def removeDependant(dependant: ReactiveDependant[SignalNotification[A]]) = _output.removeDependant(dependant)
+    protected[reactive] override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[Update[A]]) = _output.addDependant(maybeTransaction, dependant)
+    protected[reactive] override def removeDependant(dependant: ReactiveDependant[Update[A]]) = _output.removeDependant(dependant)
     override def log: Signal[List[A]] = _output.log
     override def observe(obs: A => Unit) = _output.observe(obs)
     override def unobserve(obs: A => Unit) = _output.unobserve(obs)

@@ -5,7 +5,6 @@ package impl
 import java.util.UUID
 import reactive.impl.ReactiveImpl
 import reactive.events.EventStream
-import reactive.events.EventNotification
 import util.Util
 import reactive.events.impl.FilteredEventStream
 import reactive.events.impl.MappedEventStream
@@ -13,8 +12,9 @@ import reactive.events.impl.ChangesEventStream
 import util.MutableValue
 import util.MutableValue
 import util.TicketAccumulator
+import util.Update
 
-abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) extends ReactiveImpl[A, SignalNotification[A]](sourceDependencies) with Signal[A] {
+abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) extends ReactiveImpl[A, A, Update[A]](sourceDependencies) with Signal[A] {
   protected val value = new MutableValue[A](initialValue)
   override def now = value.current
  // TODO this should respect the transaction stuff..
@@ -27,10 +27,10 @@ abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) ext
   override def log = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem));
   override def snapshot(when: EventStream[_]): Signal[A] = new SnapshotSignal(this, when);
   
-  override def publish(notification: SignalNotification[A], replyChannels : TicketAccumulator.Receiver*) {
+  override def publish(notification: ReactiveNotification[Update[A]], replyChannels : TicketAccumulator.Receiver*) {
     super.publish(notification, replyChannels :_*)
-    if(notification.valueUpdate.changed) {
-      notifyObservers(notification.valueUpdate.newValue);
+    if(notification.pulse.changed) {
+      notifyObservers(notification.pulse.newValue);
     }
   }
 }

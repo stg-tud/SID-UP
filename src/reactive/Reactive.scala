@@ -3,12 +3,12 @@ package reactive
 import java.util.UUID
 import reactive.signals.Signal
 
-trait Reactive[+A, +N <: ReactiveNotification[A]] {
+trait Reactive[+O, +V, +P] {
   protected[reactive] def sourceDependencies: Set[UUID]
   protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
-  protected[reactive] def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[N]) : Option[N]
-  protected[reactive] def removeDependant(dependant: ReactiveDependant[N])
-  def log: Signal[List[A]]
-  def observe(obs: A => Unit)
-  def unobserve(obs: A => Unit)
+  protected[reactive] def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[P]) : Option[ReactiveNotification[P]]
+  protected[reactive] def removeDependant(dependant: ReactiveDependant[P])
+  def log: Signal[List[O]]
+  def observe(obs: O => Unit)
+  def unobserve(obs: O => Unit)
 }

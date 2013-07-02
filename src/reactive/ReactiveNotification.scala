@@ -1,9 +1,6 @@
 package reactive
 
+import util.Update;
 import java.util.UUID
-import util.Update
 
-trait ReactiveNotification[+T]{
-  val transaction : Transaction
-  val sourceDependenciesUpdate : Update[Set[UUID]]
-}
+case class ReactiveNotification[+P](transaction : Transaction, sourceDependenciesUpdate : Update[Set[UUID]], pulse : P)

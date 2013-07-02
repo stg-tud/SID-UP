@@ -2,8 +2,9 @@ package reactive
 package signals
 
 import reactive.events.EventStream
+import util.Update
 
-trait Signal[+A] extends Reactive[A, SignalNotification[A]] {
+trait Signal[+A] extends Reactive[A, A, Update[A]] {
   def now: A
   def apply()(implicit t: Transaction): A
   def changes: EventStream[A]
@@ -14,7 +15,8 @@ trait Signal[+A] extends Reactive[A, SignalNotification[A]] {
 }
 
 object Signal {
-  type Dependant[-A] = ReactiveDependant[SignalNotification[A]]
+  type Notification[A] = ReactiveNotification[Update[A]]
+  type Dependant[A] = ReactiveDependant[Update[A]]
 //  def opWithCatch[A](op: => A): Either[A, Throwable] = try {
 //    Left(op)
 //  } catch {

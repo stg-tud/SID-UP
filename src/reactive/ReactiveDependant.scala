@@ -1,7 +1,9 @@
 package reactive
 
 import util.TicketAccumulator
+import util.Update
+import java.util.UUID
 
-trait ReactiveDependant[-N] {
-	def notify(replyChannel : TicketAccumulator.Receiver, notification : N)
+trait ReactiveDependant[-P] {
+	def notify(replyChannel : TicketAccumulator.Receiver, notification : ReactiveNotification[P])
 }
