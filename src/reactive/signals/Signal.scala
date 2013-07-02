@@ -5,8 +5,7 @@ import reactive.events.EventStream
 import util.Update
 
 trait Signal[+A] extends Reactive[A, A, Update[A]] {
-  def now: A
-  def apply()(implicit t: Transaction): A
+  def apply()(implicit t : Transaction) : A = transientPulse(t).map(_.pulse.newValue).getOrElse(now);
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def flatMap[B](op: A => Signal[B]): Signal[B]
@@ -15,8 +14,8 @@ trait Signal[+A] extends Reactive[A, A, Update[A]] {
 }
 
 object Signal {
-  type Notification[A] = ReactiveNotification[Update[A]]
-  type Dependant[A] = ReactiveDependant[Update[A]]
+  type Notification[+A] = ReactiveNotification[Update[A]]
+  type Dependant[-A] = ReactiveDependant[Update[A]]
 //  def opWithCatch[A](op: => A): Either[A, Throwable] = try {
 //    Left(op)
 //  } catch {

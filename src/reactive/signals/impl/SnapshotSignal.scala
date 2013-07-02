@@ -27,7 +27,7 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
         _sourceDependencies.noChangeUpdate
       }
 
-      val valueUpdate = if (events.isConnectedTo(notification.transaction) && events()(notification.transaction).isDefined) {
+      val valueUpdate = if (events.isConnectedTo(notification.transaction) && events.transientPulse(notification.transaction).isDefined) {
         value.update(signal()(notification.transaction))
       } else {
         value.noChangeUpdate

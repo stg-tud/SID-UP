@@ -25,6 +25,7 @@ abstract class ReactiveImpl[O, V, P](initialSourceDependencies: Set[UUID]) exten
   }
 
   protected val _lastNotification = new TransactionalTransientVariable[ReactiveNotification[P]]
+  override def transientPulse(t: Transaction) = _lastNotification.getIfSet(t);
   def publish(notification: ReactiveNotification[P], replyChannels : TicketAccumulator.Receiver*) {
     if(replyChannels.isEmpty) throw new IllegalArgumentException("Requires at least one reply channel!");
     _lastNotification.set(notification.transaction, notification)
