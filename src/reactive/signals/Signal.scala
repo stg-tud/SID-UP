@@ -5,7 +5,7 @@ import reactive.events.EventStream
 import util.Update
 
 trait Signal[+A] extends Reactive[A, A, Update[A]] {
-  def apply()(implicit t : Transaction) : A = transientPulse(t).map(_.pulse.newValue).getOrElse(now);
+  def apply()(implicit t : Transaction) : A
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def flatMap[B](op: A => Signal[B]): Signal[B]
