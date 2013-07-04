@@ -11,6 +11,7 @@ trait Signal[+A] extends Reactive[A, A, Update[A]] {
   def flatMap[B](op: A => Signal[B]): Signal[B]
   def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];
   def snapshot(when: EventStream[_]): Signal[A]
+  def pulse(when: EventStream[_]): EventStream[A]
 }
 
 object Signal {

@@ -1,5 +1,5 @@
 package reactive
-package signals
+package events
 package impl
 
 import scala.collection.mutable
@@ -7,8 +7,9 @@ import reactive.events.EventStream
 import util.TransactionalAccumulator
 import util.TicketAccumulator
 import util.Update
+import reactive.signals.Signal
 
-class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends SignalImpl[A](events.sourceDependencies, signal.now) with ReactiveDependant[Any] {
+class PulseEventStream[A](signal: Signal[A], events: EventStream[_]) extends EventStreamImpl[A](events.sourceDependencies) with ReactiveDependant[Any] {
   private val deps = Iterable(signal, events)
   deps.foreach { _.addDependant(None, this) }
 
@@ -30,12 +31,12 @@ class SnapshotSignal[A](signal: Signal[A], events: EventStream[_]) extends Signa
         }
 
         val valueUpdate = if (events.isConnectedTo(notification.transaction) && events.transientPulse(notification.transaction).isDefined) {
-          value.update(signal()(notification.transaction))
+          Some(signal()(notification.transaction))
         } else {
-          value.noChangeUpdate
+          None
         }
 
-        publish(new Signal.Notification(notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels: _*)
+        publish(new EventStream.Notification(notification.transaction, sourceDependencyUpdate, valueUpdate), replyChannels: _*)
     }
   }
 }

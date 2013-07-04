@@ -39,12 +39,13 @@ object RoutableVar {
     override def observe(obs: A => Unit) = _output.observe(obs)
     override def unobserve(obs: A => Unit) = _output.unobserve(obs)
     override def now: A = _output.now
-    override def apply()(implicit t : Transaction) = _output.apply()
+    override def apply()(implicit t: Transaction) = _output.apply()
     override def transientPulse(t: Transaction) = _output.transientPulse(t)
     override def changes: EventStream[A] = _output.changes
     override def map[B](op: A => B): Signal[B] = _output.map(op)
     override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
+    override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
   }
 }
