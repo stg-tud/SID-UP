@@ -7,8 +7,9 @@ import util.TransactionalAccumulator
 import util.TicketAccumulator
 import reactive.impl.MultiDependentReactive
 
-class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends EventStreamImpl[A] with MultiDependentReactive[A] {
+class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends {
   override val dependencies = streams.toSet : Set[Reactive[_, _, _]]
+} with EventStreamImpl[A] with MultiDependentReactive[A] {
 
   protected def calculatePulse(transaction: Transaction): Option[A] = {
     streams.find {

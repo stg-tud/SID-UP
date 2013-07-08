@@ -8,7 +8,6 @@ import util.Util
 import util.TicketAccumulator
 import util.Update
 
-class MapSignal[A, B](private val from: Signal[B], op: B => A) extends DependentSignalImpl[A] with SingleDependentReactive[A] {
-  override val dependency = from
-  protected def reevaluate(transaction: Transaction): A = op(from.value(transaction))
+class MapSignal[A, B](override val dependency: Signal[B], op: B => A) extends DependentSignalImpl[A] with SingleDependentReactive[A] {
+  protected def reevaluate(transaction: Transaction): A = op(dependency.value(transaction))
 }
