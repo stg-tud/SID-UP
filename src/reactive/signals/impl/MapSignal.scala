@@ -12,6 +12,6 @@ class MapSignal[A, B](from: Signal[B], op: B => A) extends SignalImpl[A](from.so
   override def notify(replyChannel : TicketAccumulator.Receiver, notification: Signal.Notification[B]) {
     val dependencyUpdate = notification.sourceDependenciesUpdate.applyTo(_sourceDependencies)
     val newValue = notification.pulse.applyToMapped(value, op)
-    publish(new ReactiveNotification[Update[A]](notification.transaction, dependencyUpdate, newValue), replyChannel);
+    publish(new Signal.Notification(notification.transaction, dependencyUpdate, newValue), replyChannel);
   }
 }

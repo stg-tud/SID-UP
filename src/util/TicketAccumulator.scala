@@ -15,8 +15,7 @@ case object RETRY extends TransactionAction {
   def and(other: TransactionAction) = if (other == ABORT) other else this
 }
 
-class TicketAccumulator extends Function1[TransactionAction, Unit] {
-  self: TicketAccumulator.Receiver =>
+class TicketAccumulator extends TicketAccumulator.Receiver {
 
   private var awaiting: Int = 0
   private var notifyWhenDone: Iterable[TicketAccumulator.Receiver] = _

@@ -9,7 +9,7 @@ import util.TicketAccumulator
 import util.Update
 import reactive.signals.Signal
 
-class PulseEventStream[A](signal: Signal[A], events: EventStream[_]) extends EventStreamImpl[A](events.sourceDependencies) with ReactiveDependant[Any] {
+class PulseEventStream[A](signal: Signal[A], events: EventStream[_]) extends EventStreamImpl[A](signal.sourceDependencies ++ events.sourceDependencies) with ReactiveDependant[Any] {
   private val deps = Iterable(signal, events)
   deps.foreach { _.addDependant(None, this) }
 
