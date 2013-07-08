@@ -8,7 +8,7 @@ import util.TransactionalTransientVariable
 import util.TicketAccumulator
 
 trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] {
-  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
+  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private var currentTransaction: Transaction = _
   private var pulse: Option[P] = _
@@ -16,10 +16,10 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] {
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
   private var dependants = Set[Reactive.Dependant]()
-  override def addDependant(dependant: Reactive.Dependant) {
+  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {
     dependants += dependant
   }
-  override def removeDependant(dependant: Reactive.Dependant) {
+  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {
     dependants -= dependant
   }
 

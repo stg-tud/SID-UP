@@ -7,8 +7,8 @@ trait MultiDependentReactive[P] extends DependentReactive[P] {
   self: ReactiveImpl[_, _, P] =>
 
   protected val dependencies: Set[Reactive[_, _, _]]
-  dependencies.foreach{ _.addDependant(this) }
-  
+  dependencies.foreach { _.addDependant(null, this) }
+
   private var currentTransaction: Transaction = _
   private var pendingNotifications: Int = 0
   private var anyDependenciesChanged: Boolean = _
@@ -29,8 +29,8 @@ trait MultiDependentReactive[P] extends DependentReactive[P] {
       }
     }
   }
-  
+
   protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies);
+    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }

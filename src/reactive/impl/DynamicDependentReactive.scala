@@ -8,7 +8,7 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
 
   protected def dependencies(transaction:Transaction): Set[Reactive[_, _, _]]
   private var currentDependencies = dependencies(null)
-  currentDependencies.foreach { _.addDependant(this) }
+  currentDependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = _
   private var notificationsReceived: Int = 0
@@ -27,12 +27,12 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
     oldDependencies.filterNot(currentDependencies.contains(_)).foreach{
       anyPulse = true;
       anyDependenciesChanged = true;
-      _.removeDependant(this)
+      _.removeDependant(transaction, this)
     }
     currentDependencies.filterNot(oldDependencies.contains(_)).foreach{
       anyPulse = true;
       anyDependenciesChanged = true;
-      _.addDependant(this)
+      _.addDependant(transaction, this)
     }
     
     
@@ -48,6 +48,6 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
   }
 
   protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    currentDependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies);
+    currentDependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }

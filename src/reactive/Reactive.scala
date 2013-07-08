@@ -11,10 +11,10 @@ trait Reactive[+O, +V, +P] {
   protected[reactive] def pulse(transaction: Transaction): Option[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
-  protected[reactive] def sourceDependencies: Set[UUID]
+  protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
   protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
-  protected[reactive] def addDependant(dependant: Reactive.Dependant)
-  protected[reactive] def removeDependant(dependant: Reactive.Dependant)
+  protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
+  protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
 
   def log: Signal[List[O]]
   def observe(obs: O => Unit)

@@ -34,10 +34,10 @@ object RoutableVar {
     protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
     protected[reactive] override def pulse(transaction: Transaction): Option[A] = _output.pulse(transaction)
     protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
-    protected[reactive] override def sourceDependencies: Set[UUID] = _output.sourceDependencies
+    protected[reactive] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
-    protected[reactive] override def addDependant(dependant: Reactive.Dependant) = _output.addDependant(dependant)
-    protected[reactive] override def removeDependant(dependant: Reactive.Dependant) = _output.removeDependant(dependant)
+    protected[reactive] override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.addDependant(transaction, dependant)
+    protected[reactive] override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.removeDependant(transaction, dependant)
     override def log: Signal[List[A]] = _output.log
     override def observe(obs: A => Unit) = _output.observe(obs)
     override def unobserve(obs: A => Unit) = _output.unobserve(obs)
