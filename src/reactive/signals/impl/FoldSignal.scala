@@ -4,17 +4,20 @@ package impl
 
 import reactive.events.EventStream
 import util.TicketAccumulator
+import reactive.impl.SingleDependentReactive
 
-class FoldSignal[A, B](initialValue: A, source: EventStream[B], op: (A, B) => A) extends SignalImpl[A](source.sourceDependencies, initialValue) with EventStream.Dependant[B] {
-  source.addDependant(None, this)
-
-  override def notify(replyChannel : TicketAccumulator.Receiver, notification: EventStream.Notification[B]) {
-    val dependencyUpdate = notification.sourceDependenciesUpdate.applyTo(_sourceDependencies);
-    val valueUpdate = if (notification.pulse.isDefined) {
-      value.transform { op(_: A, notification.pulse.get) };
+class FoldSignal[A, B](private val initialValue: A, private val source: EventStream[B], op: (A, B) => A) extends DependentSignalImpl[A] with SingleDependentReactive[A] {
+  override val dependency = source
+  protected def reevaluate(transaction: Transaction): A = {
+    if (transaction == null) {
+      initialValue
     } else {
-      value.noChangeUpdate
+      val pulse = source.pulse(transaction)
+      if (pulse.isDefined) {
+        op(now, pulse.get)
+      } else {
+        now
+      }
     }
-    publish(new Signal.Notification(notification.transaction, dependencyUpdate, valueUpdate), replyChannel)
   }
 }

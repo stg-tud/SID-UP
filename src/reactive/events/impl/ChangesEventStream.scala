@@ -4,10 +4,9 @@ package impl
 
 import reactive.signals.Signal
 import util.TicketAccumulator
+import reactive.impl.SingleDependentReactive
 
-class ChangesEventStream[A](from: Signal[A]) extends EventStreamImpl[A](from.sourceDependencies) with Signal.Dependant[A] {
-  from.addDependant(None, this)
-  override def notify(replyChannel : TicketAccumulator.Receiver, notification: Signal.Notification[A]) {
-    publish(new EventStream.Notification(notification.transaction, notification.sourceDependenciesUpdate.applyTo(_sourceDependencies), notification.pulse.newValueIfChanged), replyChannel)
-  }
+class ChangesEventStream[A](private val from: Signal[A]) extends EventStreamImpl[A] with SingleDependentReactive[A] {
+  override val dependency = from
+  protected def calculatePulse(transaction: Transaction): Option[A] = from.pulse(transaction)
 }

@@ -5,8 +5,6 @@ package impl
 import reactive.impl.ReactiveSourceImpl
 import util.TicketAccumulator
 
-class EventSourceImpl[A]() extends EventStreamImpl[A](null) with ReactiveSourceImpl[A] with EventSource[A] {
-  override def emit(transaction : Transaction, value : A, replyChannels : TicketAccumulator.Receiver*) {
-    publish(new EventStream.Notification(transaction, noDependencyChange, Some(value)), replyChannels :_*)
-  }
+class EventSourceImpl[A] extends EventStreamImpl[A] with ReactiveSourceImpl[A, A] with EventSource[A] {
+  protected def makePulse(value: A): A = value
 }

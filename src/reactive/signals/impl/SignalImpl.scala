@@ -15,11 +15,7 @@ import util.TicketAccumulator
 import util.Update
 import reactive.events.impl.PulseEventStream
 
-abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) extends ReactiveImpl[A, A, Update[A]](sourceDependencies) with Signal[A] {
-  protected val value = new MutableValue[A](initialValue)
-  override def now = value.current
-  // TODO this should respect the transaction stuff..
-  override def apply()(implicit t: Transaction) = transientPulse(t).map(_.pulse.newValue).getOrElse(now);
+trait SignalImpl[A] extends ReactiveImpl[A, A, A] with Signal[A] {
 
   override lazy val changes: EventStream[A] = new ChangesEventStream(this)
   override def map[B](op: A => B): Signal[B] = new MapSignal(this, op)
@@ -29,10 +25,12 @@ abstract class SignalImpl[A](sourceDependencies: Set[UUID], initialValue: A) ext
   override def snapshot(when: EventStream[_]): Signal[A] = pulse(when).hold(now);
   override def pulse(when: EventStream[_]): EventStream[A] = new PulseEventStream(this, when);
 
-  override def publish(notification: ReactiveNotification[Update[A]], replyChannels: TicketAccumulator.Receiver*) {
-    super.publish(notification, replyChannels: _*)
-    if (notification.pulse.changed) {
-      notifyObservers(notification.pulse.newValue);
-    }
-  }
+  protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
+
+  //  override def publish(notification: ReactiveNotification[Update[A]], replyChannels: TicketAccumulator.Receiver*) {
+  //    super.publish(notification, replyChannels: _*)
+  //    if (notification.pulse.changed) {
+  //      notifyObservers(notification.pulse.newValue);
+  //    }
+  //  }
 }

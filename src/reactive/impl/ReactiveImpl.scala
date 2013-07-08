@@ -7,31 +7,34 @@ import util.MutableValue
 import util.TransactionalTransientVariable
 import util.TicketAccumulator
 
-abstract class ReactiveImpl[O, V, P](initialSourceDependencies: Set[UUID]) extends Reactive[O, V, P] {
-  private val accu = new TicketAccumulator
-  protected val _sourceDependencies = new MutableValue(initialSourceDependencies);
-  override def sourceDependencies = _sourceDependencies.current
-
+trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies).isEmpty
-  private var dependants = Set[ReactiveDependant[P]]()
 
-  override def addDependant(maybeTransaction: Option[Transaction], dependant: ReactiveDependant[P]) = {
+  private var currentTransaction: Transaction = _
+  private var pulse: Option[P] = _
+  def pulse(transaction: Transaction): Option[P] = pulse
+  def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
+
+  private var dependants = Set[Reactive.Dependant]()
+  override def addDependant(dependant: Reactive.Dependant) {
     dependants += dependant
-    maybeTransaction.flatMap { _lastNotification.getIfSet(_) }
   }
-
-  override def removeDependant(dependant: ReactiveDependant[P]) {
+  override def removeDependant(dependant: Reactive.Dependant) {
     dependants -= dependant
   }
 
-  protected val _lastNotification = new TransactionalTransientVariable[ReactiveNotification[P]]
-  override def transientPulse(t: Transaction) = _lastNotification.getIfSet(t);
-  def publish(notification: ReactiveNotification[P], replyChannels : TicketAccumulator.Receiver*) {
-    if(replyChannels.isEmpty) throw new IllegalArgumentException("Requires at least one reply channel!");
-    _lastNotification.set(notification.transaction, notification)
-    accu.initializeForNotification(dependants.size)(replyChannels :_*)
-    dependants.foreach(_.notify(accu, notification));
+  protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) {
+    this.pulse = pulse
+    this.currentTransaction = transaction;
+    val pulsed = pulse.isDefined
+    dependants.foreach(_.apply(transaction, sourceDependenciesChanged, pulsed));
+    if (pulsed) {
+      val value = getObserverValue(transaction, pulse.get);
+      notifyObservers(transaction, value)
+    }
   }
+  protected def getObserverValue(transaction: Transaction, pulseValue: P): O
+
   // ====== Observing stuff ======
 
   private val observers = mutable.Set[O => Unit]()
@@ -41,8 +44,8 @@ abstract class ReactiveImpl[O, V, P](initialSourceDependencies: Set[UUID]) exten
   def unobserve(obs: O => Unit) {
     observers -= obs
   }
-
-  protected def notifyObservers(value: O) {
+  
+  private def notifyObservers(transaction: Transaction, value: O) {
     observers.foreach { _(value) }
   }
 }

@@ -4,8 +4,7 @@ package signals
 import reactive.events.EventStream
 import util.Update
 
-trait Signal[+A] extends Reactive[A, A, Update[A]] {
-  def apply()(implicit t : Transaction) : A
+trait Signal[+A] extends Reactive[A, A, A] {
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def flatMap[B](op: A => Signal[B]): Signal[B]
@@ -14,9 +13,7 @@ trait Signal[+A] extends Reactive[A, A, Update[A]] {
   def pulse(when: EventStream[_]): EventStream[A]
 }
 
-object Signal {
-  type Notification[+A] = ReactiveNotification[Update[A]]
-  type Dependant[-A] = ReactiveDependant[Update[A]]
+//object Signal {
 //  def opWithCatch[A](op: => A): Either[A, Throwable] = try {
 //    Left(op)
 //  } catch {
@@ -29,4 +26,4 @@ object Signal {
 //      case Right(e) => Right(e)
 //    }
 //  }
-}
+//}

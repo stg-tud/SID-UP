@@ -3,10 +3,9 @@ package events
 package impl
 
 import util.TicketAccumulator
+import reactive.impl.SingleDependentReactive
 
-class FilteredEventStream[A](from: EventStream[A], op: A => Boolean) extends EventStreamImpl[A](from.sourceDependencies) with EventStream.Dependant[A] {
-  from.addDependant(None, this)
-  override def notify(replyChannel : TicketAccumulator.Receiver, notification : EventStream.Notification[A]) {
-    publish(new EventStream.Notification(notification.transaction, notification.sourceDependenciesUpdate.applyTo(_sourceDependencies), notification.pulse.filter(op)), replyChannel);
-  }
+class FilteredEventStream[A](private val from: EventStream[A], private val op: A => Boolean) extends EventStreamImpl[A] with SingleDependentReactive[A] {
+  override val dependency = from
+  protected def calculatePulse(transaction: Transaction): Option[A] = from.pulse(transaction).filter(op)
 }
