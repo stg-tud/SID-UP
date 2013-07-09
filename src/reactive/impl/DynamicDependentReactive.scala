@@ -11,13 +11,11 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
   lastDependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = _
-  private var notificationsReceived: Int = 0
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     if (currentTransaction == null || !currentTransaction.equals(transaction)) {
-      notificationsReceived = 0;
       anyDependenciesChanged = false;
       anyPulse = false;
     }
@@ -35,7 +33,6 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
     }
     
     lastDependencies = newDependencies
-    notificationsReceived += 1;
     anyDependenciesChanged |= sourceDependenciesChanged
     anyPulse |= pulsed;
 
