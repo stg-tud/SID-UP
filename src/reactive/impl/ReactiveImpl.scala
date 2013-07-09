@@ -12,7 +12,7 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] {
 
   private var currentTransaction: Transaction = _
   private var pulse: Option[P] = _
-  def pulse(transaction: Transaction): Option[P] = pulse
+  def pulse(transaction: Transaction): Option[P] = if(currentTransaction == transaction) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
   private var dependants = Set[Reactive.Dependant]()

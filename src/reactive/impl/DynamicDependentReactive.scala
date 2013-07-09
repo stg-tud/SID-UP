@@ -7,8 +7,8 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
   self: ReactiveImpl[_, _, P] =>
 
   protected def dependencies(transaction:Transaction): Set[Reactive[_, _, _]]
-  private var currentDependencies = dependencies(null)
-  currentDependencies.foreach { _.addDependant(null, this) }
+  private var lastDependencies = dependencies(null)
+  lastDependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = _
   private var notificationsReceived: Int = 0
@@ -22,25 +22,24 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
       anyPulse = false;
     }
 
-    val oldDependencies = currentDependencies
-    currentDependencies = dependencies(transaction)
-    oldDependencies.filterNot(currentDependencies.contains(_)).foreach{
+    val newDependencies = dependencies(transaction)
+    lastDependencies.filterNot(newDependencies.contains(_)).foreach{
       anyPulse = true;
       anyDependenciesChanged = true;
       _.removeDependant(transaction, this)
     }
-    currentDependencies.filterNot(oldDependencies.contains(_)).foreach{
+    newDependencies.filterNot(lastDependencies.contains(_)).foreach{
       anyPulse = true;
       anyDependenciesChanged = true;
       _.addDependant(transaction, this)
     }
     
-    
+    lastDependencies = newDependencies
     notificationsReceived += 1;
     anyDependenciesChanged |= sourceDependenciesChanged
     anyPulse |= pulsed;
 
-    if (currentDependencies.find { dependency =>
+    if (newDependencies.find { dependency =>
       dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction)
     }.isEmpty) {
       doReevaluation(transaction, anyDependenciesChanged, anyPulse)
@@ -48,6 +47,6 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
   }
 
   protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    currentDependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
+    dependencies(transaction).foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }

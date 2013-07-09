@@ -15,8 +15,9 @@ trait MultiDependentReactive[P] extends DependentReactive[P] {
   private var anyPulse: Boolean = _
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    if (currentTransaction == null || !currentTransaction.equals(transaction)) {
-      if (pendingNotifications != 0) throw new IllegalStateException("Previous transaction not completed yet!")
+    if (currentTransaction == null || currentTransaction != transaction) {
+      if (pendingNotifications != 0) throw new IllegalStateException(s"Previous transaction $transaction not completed yet! ($pendingNotifications notifications pending)")
+      currentTransaction = transaction
       pendingNotifications = dependencies.count(_.isConnectedTo(transaction)) - 1
       anyDependenciesChanged = sourceDependenciesChanged
       anyPulse = pulsed;
@@ -24,9 +25,9 @@ trait MultiDependentReactive[P] extends DependentReactive[P] {
       pendingNotifications -= 1;
       anyDependenciesChanged |= sourceDependenciesChanged
       anyPulse |= pulsed;
-      if (pendingNotifications == 0) {
-        doReevaluation(transaction, anyDependenciesChanged, anyPulse)
-      }
+    }
+    if (pendingNotifications == 0) {
+      doReevaluation(transaction, anyDependenciesChanged, anyPulse)
     }
   }
 
