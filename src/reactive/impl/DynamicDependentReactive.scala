@@ -31,7 +31,7 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
       anyDependenciesChanged = true;
       _.addDependant(transaction, this)
     }
-    
+
     lastDependencies = newDependencies
     anyDependenciesChanged |= sourceDependenciesChanged
     anyPulse |= pulsed;
@@ -44,6 +44,6 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
   }
 
   protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies(transaction).foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
+    dependencies(transaction).flatMap(_.sourceDependencies(transaction));
   }
 }
