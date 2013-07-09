@@ -26,11 +26,4 @@ trait SignalImpl[A] extends ReactiveImpl[A, A, A] with Signal[A] {
   override def pulse(when: EventStream[_]): EventStream[A] = new PulseEventStream(this, when);
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
-
-  //  override def publish(notification: ReactiveNotification[Update[A]], replyChannels: TicketAccumulator.Receiver*) {
-  //    super.publish(notification, replyChannels: _*)
-  //    if (notification.pulse.changed) {
-  //      notifyObservers(notification.pulse.newValue);
-  //    }
-  //  }
 }
