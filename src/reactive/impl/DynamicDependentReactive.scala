@@ -36,9 +36,9 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
     anyDependenciesChanged |= sourceDependenciesChanged
     anyPulse |= pulsed;
 
-    if (newDependencies.find { dependency =>
+    if (!newDependencies.exists { dependency =>
       dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction)
-    }.isEmpty) {
+    }) {
       doReevaluation(transaction, anyDependenciesChanged, anyPulse)
     }
   }
