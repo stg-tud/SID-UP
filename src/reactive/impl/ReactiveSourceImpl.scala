@@ -2,7 +2,6 @@ package reactive
 package impl
 
 import java.util.UUID
-import util.Update
 
 trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   self: ReactiveImpl[_, _, P] =>

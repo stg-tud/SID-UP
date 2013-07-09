@@ -1,11 +1,7 @@
 package reactive
 package impl
 
-import java.util.UUID
 import scala.collection.mutable
-import util.MutableValue
-import util.TransactionalTransientVariable
-import util.TicketAccumulator
 
 trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty

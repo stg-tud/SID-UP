@@ -2,10 +2,6 @@ package reactive
 package signals
 package impl
 
-import util.MutableValue
-import util.TransactionalTransientVariable
-import util.TicketAccumulator
-import util.COMMIT
 import reactive.impl.DynamicDependentReactive
 
 class FlattenSignal[A](val outer: Signal[Signal[A]]) extends DependentSignalImpl[A] with DynamicDependentReactive[A] {

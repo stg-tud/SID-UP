@@ -3,8 +3,6 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
-import util.TicketAccumulator
-import util.Update
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like

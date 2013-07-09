@@ -1,10 +1,8 @@
 package reactive
 package signals
 
-import reactive.Transaction
 import reactive.events.EventStream
 import reactive.events.NothingEventStream
-import util.Update
 
 class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A, A] {
   override val now = value

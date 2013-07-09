@@ -2,7 +2,6 @@ package reactive
 package signals
 
 import reactive.events.EventStream
-import util.Update
 
 trait Signal[+A] extends Reactive[A, A, A] {
   def changes: EventStream[A]

@@ -2,11 +2,6 @@ package reactive
 package events
 package impl
 
-import scala.collection.mutable
-import reactive.events.EventStream
-import util.TransactionalAccumulator
-import util.TicketAccumulator
-import util.Update
 import reactive.signals.Signal
 import reactive.impl.MultiDependentReactive
 

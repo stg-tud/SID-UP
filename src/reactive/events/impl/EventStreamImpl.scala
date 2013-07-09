@@ -4,11 +4,7 @@ package impl
 
 import reactive.impl.ReactiveImpl
 import reactive.signals.Signal
-import java.util.UUID
 import reactive.signals.impl.FoldSignal
-import util.TransactionalAccumulator
-import util.TransactionalTransientVariable
-import util.TicketAccumulator
 
 trait EventStreamImpl[A] extends ReactiveImpl[A, Unit, A] with EventStream[A] {
   override def hold[B >: A](initialValue: B): Signal[B] = fold(initialValue) { (_, value) => value }

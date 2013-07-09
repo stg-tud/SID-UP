@@ -2,7 +2,6 @@ package reactive
 
 import java.util.UUID
 import reactive.signals.Signal
-import util.Update
 
 trait Reactive[+O, +V, +P] {
   def now: V
