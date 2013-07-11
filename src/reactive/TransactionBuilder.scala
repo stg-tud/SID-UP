@@ -5,8 +5,9 @@ import scala.collection.immutable.TreeMap
 import util.TicketAccumulator
 import util.TransactionAction
 import util.COMMIT
+import com.typesafe.scalalogging.slf4j.Logging
 
-class TransactionBuilder {
+class TransactionBuilder extends Logging {
 //  private val accu = new TicketAccumulator
   
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
@@ -36,10 +37,12 @@ class TransactionBuilder {
 //      TransactionExecutor.spawnSubtransactions(boxSet) { setBoxFromMap(t, _) }
 //    }
     val transaction = new Transaction(sourceIds);
+    logger.trace(s"start $transaction")
 //    var reply : TransactionAction = null
 //    accu.initializeForNotification(boxSet.size) { result => accu.synchronized { reply = result; accu.notifyAll(); } };
     boxSet.foreach(setBoxFromMap(/*accu, */transaction, _));
-    
+    logger.trace(s"finish $transaction")
+
 //    val start = System.currentTimeMillis();
 //    accu.synchronized {
 //      val timeout = 10000;

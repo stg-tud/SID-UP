@@ -10,6 +10,6 @@ class Transaction(val sources: scala.collection.Set[UUID]) {
     uuid.hashCode()
   }
   override def toString() = {
-    "Transaction(id="+uuid+",sources="+sources+")" 
+    "Transaction(id="+uuid+",sources="+sources+")"
   }
 }

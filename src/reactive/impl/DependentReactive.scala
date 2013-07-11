@@ -6,6 +6,8 @@ import java.util.UUID
 trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, _, P] =>
 
+  override def toString = name
+
   private var _sourceDependencies = reevaluateSourceDependencies(null)
   override def sourceDependencies(transaction: Transaction) = _sourceDependencies
 
