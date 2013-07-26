@@ -3,8 +3,8 @@ package impl
 
 import java.util.UUID
 
-trait DynamicDependentReactive[P] extends DependentReactive[P] {
-  self: ReactiveImpl[_, _, P] =>
+trait DynamicDependentReactive {
+  self: DependentReactive[_, _] =>
 
   protected def dependencies(transaction:Transaction): Set[Reactive[_, _, _]]
   private var lastDependencies = dependencies(null)
@@ -43,7 +43,7 @@ trait DynamicDependentReactive[P] extends DependentReactive[P] {
     }
   }
 
-  protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
+  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
     dependencies(transaction).flatMap(_.sourceDependencies(transaction));
   }
 }

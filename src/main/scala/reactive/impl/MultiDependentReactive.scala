@@ -3,8 +3,8 @@ package impl
 
 import java.util.UUID
 
-trait MultiDependentReactive[P] extends DependentReactive[P] {
-  self: ReactiveImpl[_, _, P] =>
+trait MultiDependentReactive {
+  self: DependentReactive[_, _] =>
 
   protected val dependencies: Set[Reactive[_, _, _]]
   dependencies.foreach { _.addDependant(null, this) }
@@ -31,7 +31,7 @@ trait MultiDependentReactive[P] extends DependentReactive[P] {
     }
   }
 
-  protected def reevaluateSourceDependencies(transaction: Transaction): Set[UUID] = {
+  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
     dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }

@@ -14,7 +14,5 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, Unit, A] with EventStream[A] {
   override def log = fold(List[A]())((list, elem) => list :+ elem)
   override def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
 
-  override def now = Unit
-  override def value(transaction: Transaction) = Unit
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }

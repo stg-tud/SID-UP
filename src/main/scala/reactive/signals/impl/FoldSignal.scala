@@ -6,8 +6,8 @@ import reactive.events.EventStream
 import util.TicketAccumulator
 import reactive.impl.SingleDependentReactive
 
-class FoldSignal[A, B](private val initialValue: A, val dependency: EventStream[B], op: (A, B) => A) extends DependentSignalImpl[A] with SingleDependentReactive[A] {
-  protected def reevaluate(transaction: Transaction): A = {
+class FoldSignal[A, B](private val initialValue: A, val dependency: EventStream[B], op: (A, B) => A) extends DependentSignalImpl[A] with SingleDependentReactive {
+  protected override def reevaluateValue(transaction: Transaction) = {
     if (transaction == null) {
       initialValue
     } else {

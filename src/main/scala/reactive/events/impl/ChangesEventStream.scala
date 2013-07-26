@@ -6,6 +6,6 @@ import reactive.signals.Signal
 import util.TicketAccumulator
 import reactive.impl.SingleDependentReactive
 
-class ChangesEventStream[A](val dependency: Signal[A]) extends EventStreamImpl[A] with SingleDependentReactive[A] {
-  protected def calculatePulse(transaction: Transaction): Option[A] = dependency.pulse(transaction)
+class ChangesEventStream[A](val dependency: Signal[A]) extends DependentEventStreamImpl[A] with SingleDependentReactive {
+  protected def reevaluatePulse(transaction: Transaction): Option[A] = dependency.pulse(transaction)
 }

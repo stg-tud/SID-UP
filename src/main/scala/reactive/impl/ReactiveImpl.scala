@@ -15,7 +15,7 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
   override def toString = name
 
   private var currentTransaction: Transaction = _
-  private var pulse: Option[P] = _
+  private var pulse: Option[P] = None
   def pulse(transaction: Transaction): Option[P] = if(currentTransaction == transaction) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
