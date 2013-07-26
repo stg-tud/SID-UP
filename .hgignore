@@ -1,5 +1,9 @@
 syntax: regexp
 
 ^\.cache
+^\.project
+^\.classpath
+^\.settings/
 ^bin/
-target/
+^target/
+^project/target/

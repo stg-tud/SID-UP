@@ -1,10 +1,8 @@
-name := "reactiveplayground"
+name := "ReactivePlayground"
 
 version := "0.0.0"
 
 scalaVersion := "2.10.2"
-
-scalaSource in Compile <<= baseDirectory {(base) => new File(base, "src")}
 
 scalacOptions ++= List(
 	"-deprecation",
