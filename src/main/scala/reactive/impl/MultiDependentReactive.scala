@@ -2,8 +2,10 @@ package reactive
 package impl
 
 import java.util.UUID
+import com.typesafe.scalalogging.slf4j.Logging
 
-trait MultiDependentReactive {
+
+trait MultiDependentReactive extends Logging {
   self: DependentReactive[_, _] =>
 
   protected val dependencies: Set[Reactive[_, _, _]]
@@ -26,12 +28,15 @@ trait MultiDependentReactive {
       anyDependenciesChanged |= sourceDependenciesChanged
       anyPulse |= pulsed;
     }
+    logger.trace(s"$this received a notification,  $pendingNotifications remaining")
     if (pendingNotifications == 0) {
       doReevaluation(transaction, anyDependenciesChanged, anyPulse)
+    } else if (pendingNotifications < 0) {
+      throw new IllegalStateException(s"received more notifications than expected")
     }
   }
 
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
+  override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
     dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }
