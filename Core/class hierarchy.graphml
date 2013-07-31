@@ -40,7 +40,7 @@ sourceDependencies : Set[ID]</y:AttributeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="55.0" width="171.0" x="376.0" y="297.0"/>
+          <y:Geometry height="55.0" width="171.0" x="167.0" y="297.0"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="84.52001953125" x="43.239990234375" y="3.0">Constant[+T]<y:LabelModel>
@@ -210,7 +210,7 @@ sourceDependencies := Set(id)</y:AttributeLabel>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="140.0" width="179.0" x="372.0" y="517.0"/>
-          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:Fill color="#FFFF99" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="156.39453125" x="11.302734375" y="3.0">BiDiMappedSource[T, U]<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
@@ -256,7 +256,7 @@ reverse : T =&gt; U</y:AttributeLabel>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="118.0" x="619.8494623655914" y="607.0"/>
-          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:Fill color="#FFFF99" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="107.28271484375" x="5.358642578125" y="3.0">MappedVar[T, U]<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
@@ -424,7 +424,7 @@ reverse : T =&gt; U</y:AttributeLabel>
       <data key="d6">
         <y:UMLClassNode>
           <y:Geometry height="43.0" width="171.0" x="833.7580645161291" y="607.0"/>
-          <y:Fill color="#FFCC00" transparent="false"/>
+          <y:Fill color="#FFFF99" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" modelName="custom" textColor="#000000" visible="true" width="165.79541015625" x="2.602294921875" y="3.0">MappedEventSource[T, U]<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
@@ -964,7 +964,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e30" source="n21" target="n24">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -976,7 +975,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e31" source="n22" target="n24">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -988,7 +986,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e32" source="n23" target="n24">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1000,7 +997,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e33" source="n20" target="n23">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1012,7 +1008,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e34" source="n13" target="n22">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1024,7 +1019,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e35" source="n12" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1036,7 +1030,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e36" source="n14" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1048,7 +1041,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e37" source="n17" target="n22">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -1060,7 +1052,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e38" source="n25" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1074,7 +1065,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e39" source="n15" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1088,7 +1078,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e40" source="n18" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -1102,7 +1091,6 @@ def sourceDependencies :=
     </edge>
     <edge id="e41" source="n16" target="n21">
       <data key="d8"/>
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">

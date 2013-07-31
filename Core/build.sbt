@@ -1,4 +1,4 @@
-name := "ReactivePlayground"
+name := "ReactivePlaygroundCore"
 
 version := "0.0.0"
 
