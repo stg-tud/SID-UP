@@ -1,9 +1,8 @@
 syntax: regexp
 
-^\.cache
-^\.project
-^\.classpath
-^\.settings/
-^bin/
-^target/
-^project/target/
+^.*/\.cache
+^.*/\.project
+^.*/\.classpath
+^.*/\.settings/
+^.*/bin/
+^.*/target/
