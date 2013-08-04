@@ -19,23 +19,19 @@ import scala.concurrent._
 import ExecutionContext.Implicits.global
 
 object ProjectionsUI extends App {
-	// domain definitions
-//	val week = Var(1)
-//	SignalRegistry.register("week", week)
 
 	// client
-//	val purchasesSpinner = new ReactiveSpinner(5)
-	val salesSpinner = new ReactiveSpinner(10)
+	// val purchasesSpinner = new ReactiveSpinner(5)
+	val orderSpinner = new ReactiveSpinner(10)
 	val clientButton = new ReactiveButton("New Order")
-	val currentOrder = salesSpinner.value.map(new Order[Int](_))
+	val currentOrder = orderSpinner.value.map(new Order[Int](_))
 
-	val client = new Client[Int]("client1", salesSpinner.value.pulse(clientButton.commits).map{new Order(_)})
-	client.startWorking()
-
-	val purch = new Purchases[Int]()
+	val client = new Client[Int]("client1", orderSpinner.value.pulse(clientButton.commits).map{new Order(_)})
+	val purch = new Purchases[Int](Var(5))
 	val sales = new Sales[Int]()
 	val manag = new Management[Int]()
 
+	client.startWorking()
 	sales.startWorking()
 	purch.startWorking()
 	manag.startWorking()
@@ -46,18 +42,16 @@ object ProjectionsUI extends App {
 		case true => "panicking"
 		case false => "normal"
 		});
-	val managementDifference = new ReactiveLabel(manag.difference.map{d => s" (difference $d)    "})
+	val managementDifference = new ReactiveLabel(manag.difference.map{d => f"difference $d%4d   "})
 
 
 	// management layout
 	{
 		val window = new JFrame("Management")
 		window.setLayout(new BorderLayout())
-		val output = new Box(BoxLayout.X_AXIS)
-		output.add(new JLabel("Management Status is: "))
-		output.add(managementStatus.asComponent)
-		output.add(managementDifference.asComponent)
-		window.add(output, BorderLayout.CENTER);
+		window.add(new JLabel("Management Status "), BorderLayout.NORTH)
+		window.add(managementStatus.asComponent, BorderLayout.EAST)
+		window.add(managementDifference.asComponent, BorderLayout.WEST)
 		// window configuration
 		window.pack();
 		window.setLocationRelativeTo(null);
@@ -72,8 +66,7 @@ object ProjectionsUI extends App {
 		window.setLayout(new BorderLayout());
 		window.add(new JLabel("Make a new Order"), BorderLayout.NORTH)
 		window.add(clientButton.asComponent, BorderLayout.SOUTH)
-//		window.add(purchasesSpinner.asComponent, BorderLayout.WEST)
-		window.add(salesSpinner.asComponent, BorderLayout.EAST)
+		window.add(orderSpinner.asComponent, BorderLayout.EAST)
 
 		// window configuration
 		window.pack();
@@ -87,14 +80,12 @@ object ProjectionsUI extends App {
 	{
 		val window = new JFrame("Purchases")
 		window.setLayout(new BorderLayout())
-		val output = new Box(BoxLayout.X_AXIS)
-		output.add(new JLabel("Purchases Status is: "))
-		output.add(new ReactiveLabel(purch.total.map{t => s"total: $t     "}).asComponent)
-		window.add(output, BorderLayout.CENTER);
+		window.add(new JLabel("Purchases Status "),BorderLayout.NORTH)
+		window.add(new ReactiveLabel(purch.total.map{t => f"total: $t%5d   "}).asComponent, BorderLayout.WEST)
 		window.add(new ReactiveLabel(purch.calculating.map{
 			case true => "calculating"
 			case false => "idle"
-			}).asComponent, BorderLayout.SOUTH)
+			}).asComponent, BorderLayout.EAST)
 		// window configuration
 		window.pack();
 		window.setLocationRelativeTo(null);
@@ -107,18 +98,16 @@ object ProjectionsUI extends App {
 	{
 		val window = new JFrame("Sales")
 		window.setLayout(new BorderLayout())
-		val output = new Box(BoxLayout.X_AXIS)
-		output.add(new JLabel("Sales Status is: "))
-		output.add(new ReactiveLabel(sales.total.map{t => s"total: $t     "}).asComponent)
-		window.add(output, BorderLayout.CENTER);
+		window.add(new JLabel("Sales Status "),BorderLayout.NORTH)
+		window.add(new ReactiveLabel(sales.total.map{t => f"total: $t%5d   "}).asComponent, BorderLayout.WEST)
 		window.add(new ReactiveLabel(sales.calculating.map{
 			case true => "calculating"
 			case false => "idle"
-			}).asComponent, BorderLayout.SOUTH)
+			}).asComponent, BorderLayout.EAST)
 		// window configuration
 		window.pack();
-		transpose(200, 0, window);
 		window.setLocationRelativeTo(null);
+		transpose(100, 0, window);
 		window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		window.setVisible(true);
 	}

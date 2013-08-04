@@ -12,8 +12,6 @@ class Management[N](implicit num: Numeric[N]) {
 	lazy val panic: Signal[Boolean] = (lt _)(difference, zero : Signal[N])
 
 	def startWorking() {
-		SignalRegistry.register("management/difference", difference)
-		SignalRegistry.register("management/panic", panic)
 		panic.observe(p => if (p) println("management paniced"))
 		println("management startet working")
 	}
