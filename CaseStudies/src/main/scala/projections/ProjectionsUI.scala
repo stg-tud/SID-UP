@@ -17,6 +17,7 @@ import ui.ReactiveSpinner
 import java.awt.Window
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import java.awt.Color
 
 object ProjectionsUI extends App {
 
@@ -42,7 +43,11 @@ object ProjectionsUI extends App {
 		case true => "panicking"
 		case false => "normal"
 		});
-	val managementDifference = new ReactiveLabel(manag.difference.map{d => f"difference $d%4d   "})
+	val managementDifference = new ReactiveLabel(manag.difference.map{d => f"Profit: $d%4d   "})
+	managementDifference.foreground << manag.panic.map {
+	  case false => Color.GREEN.darker
+	  case true => Color.RED
+	}
 
 
 	// management layout
@@ -64,7 +69,7 @@ object ProjectionsUI extends App {
 	{
 		val window = new JFrame("Client");
 		window.setLayout(new BorderLayout());
-		window.add(new JLabel("Make a new Order"), BorderLayout.NORTH)
+		window.add(new ReactiveLabel(SignalRegistry(s"client/orders").asInstanceOf[Signal[List[Order[Int]]]].map{"Current orders: "+_.map{_.cost}}).asComponent, BorderLayout.NORTH)
 		window.add(clientButton.asComponent, BorderLayout.SOUTH)
 		window.add(orderSpinner.asComponent, BorderLayout.EAST)
 

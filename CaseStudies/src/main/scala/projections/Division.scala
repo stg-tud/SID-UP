@@ -8,24 +8,19 @@ import reactive.signals.Signal
 import reactive.signals.Val
 import reactive.signals.Var
 
-abstract class Division[N](val name: String)(implicit num: Numeric[N]) {
+abstract class OrderSummer[N](val name: String)(implicit num: Numeric[N]) {
   import num._
-
-  def total: Signal[N]
-  def calculating: Signal[Boolean]
 
   lazy val orders = SignalRegistry(s"client/orders").asInstanceOf[Signal[List[Order[N]]]]
 
   def startWorking() {
     SignalRegistry.register(s"division/$name", total)
     println(s"$name startet working")
+    total.observe { newTotal: N => println(s"$name published new total: $newTotal"); }
   }
-}
+  val calculating = Var(false)
 
-abstract class OrderSummer[N](name: String)(implicit num: Numeric[N]) extends Division[N](name)(num) {
-  override val calculating = Var(false)
-
-  override def total = _total
+  def total = _total
   lazy val _total = orders.map { currentList =>
     calculating << true
     println(s"$name processing updated orders...")
@@ -35,10 +30,6 @@ abstract class OrderSummer[N](name: String)(implicit num: Numeric[N]) extends Di
       println(s"$name done processing.")
       calculating << false
     }
-  }
-  override def startWorking() {
-    super.startWorking()
-    total.observe { newTotal: N => println(s"$name published new total: $newTotal"); }
   }
 
   def calculateCost(orders: List[Order[N]]): N = 
