@@ -32,7 +32,7 @@ abstract class OrderSummer[N](val name: String)(implicit num: Numeric[N]) {
     }
   }
 
-  def calculateCost(orders: List[Order[N]]): N = 
+  def calculateCost(orders: List[Order[N]]): N =
       orders.foldLeft(num.zero) { (acc: N, order: Order[N]) => num.plus(acc, order.cost) }
 
 }
