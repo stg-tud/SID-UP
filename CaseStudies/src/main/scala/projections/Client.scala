@@ -9,7 +9,7 @@ import reactive.signals.RoutableVar
 import reactive.events.EventStream
 
 class Client[N: Numeric](val name: String, val makeOrder : EventStream[Order[N]]) {
-  
+
   private def currentOrders: Signal[List[Order[N]]] = makeOrder.log
 
   def startWorking() {
