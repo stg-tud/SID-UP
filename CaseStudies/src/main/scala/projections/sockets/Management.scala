@@ -1,30 +1,29 @@
-package projectionsRMI
+package projections.sockets
+
+import java.io._
+import java.net._
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-class Management
-  extends java.rmi.server.UnicastRemoteObject
-  with RemoteObservable[Int]
-  with Observable[Int]
-  with Observer[Message[Int]]
-  with Logging {
+class Management extends Observer[Message[Int]] with Observable[Int] with Logging {
 
-  lazy val purchases = java.rmi.Naming.lookup("purchases").asInstanceOf[RemoteObservable[Message[Int]]]
-  lazy val sales = java.rmi.Naming.lookup("sales").asInstanceOf[RemoteObservable[Message[Int]]]
+  val port = 27803
 
   var lastSales = 0
   var lastPurchases = 0
   var hasReceived = ""
   var difference: Int = 0
 
-  def startWorking() = {
-    purchases.addObserver(this)
-    sales.addObserver(this)
-  }
-
   def recalcDifference() = {
     difference = lastSales - lastPurchases
     notifyObservers(difference)
+  }
+
+  def startWorking() {
+    logger.debug("management startet working")
+    connect(27801)
+    connect(27802)
+    startObservable()
   }
 
   def receive(v: Message[Int]) = {

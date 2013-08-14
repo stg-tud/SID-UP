@@ -1,4 +1,4 @@
-package projectionsRMI
+package projections.rmi
 
 @remote trait RemoteObservable[I] {
   def addObserver(o: Observer[I]): Unit

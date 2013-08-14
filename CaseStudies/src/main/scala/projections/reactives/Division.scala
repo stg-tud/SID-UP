@@ -1,4 +1,4 @@
-package projections
+package projections.reactives
 
 import reactive.events.EventSource
 import reactive.events.EventStream
@@ -9,6 +9,8 @@ import reactive.signals.Signal
 import reactive.signals.Val
 import reactive.signals.Var
 import Numeric.Implicits._
+import projections.Order
+
 
 abstract class OrderSummer[N: Numeric](val name: String) {
   lazy val orders = SignalRegistry(s"client/orders").asInstanceOf[Signal[List[Order[N]]]]
@@ -32,7 +34,7 @@ abstract class OrderSummer[N: Numeric](val name: String) {
     }
   }
 
-  def calculateCost(orders: List[Order[N]]): N = orders.map{_.cost}.sum
+  def calculateCost(orders: List[Order[N]]): N = orders.map{_.value}.sum
 
 }
 

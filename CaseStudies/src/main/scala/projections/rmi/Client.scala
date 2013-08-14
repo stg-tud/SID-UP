@@ -1,4 +1,4 @@
-package projectionsRMI
+package projections.rmi
 
 import java.rmi.registry.LocateRegistry
 

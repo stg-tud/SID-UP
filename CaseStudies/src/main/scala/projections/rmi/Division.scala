@@ -1,4 +1,4 @@
-package projectionsRMI
+package projections.rmi
 
 import com.typesafe.scalalogging.slf4j.Logging
 
@@ -9,11 +9,10 @@ abstract class Division(val name: String)
   with Observer[Seq[Int]]
   with Logging {
 
-  lazy val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Int]]]
-
   def startWorking() {
     logger.info(s"$name startet working")
     java.rmi.Naming.rebind(s"$name", this)
+    val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Int]]]
     remoteClient.addObserver(this)
   }
 

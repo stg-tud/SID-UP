@@ -1,9 +1,11 @@
-package projections
+package projections.reactives
 
 import reactive.signals.Signal
 import reactive.Lift._
 import Numeric.Implicits._
 import reactive.NumericLift._
+import projections.Order
+
 
 class Management[N](implicit num: Numeric[N]) {
   import num._
