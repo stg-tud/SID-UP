@@ -4,8 +4,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 abstract class Division(val name: String)
   extends java.rmi.server.UnicastRemoteObject
-  with RemoteObservable[Int]
-  with Observable[Int]
+  with RemoteObservable[Message[Int]]
+  with Observable[Message[Int]]
   with Observer[Seq[Int]]
   with Logging {
 
@@ -18,10 +18,12 @@ abstract class Division(val name: String)
   }
 
   var total = 0
+  var currentOrders = Seq[Int]()
 
   override def receive(orders: Seq[Int]) = {
+    currentOrders = orders
     total = calculateTotal(orders)
-    notifyObservers(total)
+    notifyObservers(Message(total,name))
   }
 
   def calculateTotal(orders: Seq[Int]): Int
@@ -29,6 +31,11 @@ abstract class Division(val name: String)
 
 class Purchases(var perOrderCost: Int) extends Division("purchases") {
   override def calculateTotal(orders: Seq[Int]) = orders.sum + orders.length * perOrderCost
+  def changeOrderCost(v: Int): Unit = {
+    perOrderCost = v
+    total = calculateTotal(currentOrders)
+    notifyObservers(Message(total, name, direct = true))
+  }
 }
 
 class Sales extends Division("sales") {

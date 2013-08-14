@@ -13,3 +13,5 @@ trait Observable[I] {
   def addObserver(o: Observer[I]) = observers ::= o
   def notifyObservers(v: I) = observers.foreach(_.receive(v))
 }
+
+case class Message[V](value: V, sender: String, direct: Boolean = false)
