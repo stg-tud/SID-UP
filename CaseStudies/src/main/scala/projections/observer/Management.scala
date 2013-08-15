@@ -4,6 +4,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 trait Management extends Observable[Int] with Observer[Message[Int]] with Logging {
 
+  var disableTransaction = false
+
   var lastSales = 0
   var lastPurchases = 0
   var hasReceived = ""
@@ -26,7 +28,7 @@ trait Management extends Observable[Int] with Observer[Message[Int]] with Loggin
       case "sales" => lastSales = v.value
     }
 
-    v.direct match {
+    (v.direct || disableTransaction) match {
       case true => recalcDifference()
       case false =>
         if (hasReceived == v.sender) throw new Exception("received from same source twice")
