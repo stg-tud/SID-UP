@@ -1,29 +1,23 @@
-package projections.sockets
-
-import java.io._
-import java.net._
+package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-class Management extends Observer[Message[Int]] with Observable[Int] with Logging {
-
-  val port = 27803
+trait Management extends Observable[Int] with Observer[Message[Int]] with Logging {
 
   var lastSales = 0
   var lastPurchases = 0
   var hasReceived = ""
   var difference: Int = 0
 
+  def startWorking() = {
+    init()
+  }
+
+  def init(): Unit
+
   def recalcDifference() = {
     difference = lastSales - lastPurchases
     notifyObservers(difference)
-  }
-
-  def startWorking() {
-    logger.debug("management startet working")
-    connect(27801)
-    connect(27802)
-    startObservable()
   }
 
   def receive(v: Message[Int]) = {

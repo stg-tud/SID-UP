@@ -1,20 +1,17 @@
-package projections.rmi
+package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-abstract class Division(val name: String)
-  extends java.rmi.server.UnicastRemoteObject
-  with RemoteObservable[Message[Int]]
-  with Observable[Message[Int]]
-  with Observer[Seq[Int]]
-  with Logging {
+trait Division extends Observable[Message[Int]] with Observer[Seq[Int]] with Logging {
+
+  val name: String
 
   def startWorking() {
     logger.info(s"$name startet working")
-    java.rmi.Naming.rebind(s"$name", this)
-    val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Int]]]
-    remoteClient.addObserver(this)
+    init()
   }
+
+  def init(): Unit
 
   var total = 0
   var currentOrders = Seq[Int]()
@@ -28,7 +25,9 @@ abstract class Division(val name: String)
   def calculateTotal(orders: Seq[Int]): Int
 }
 
-class Purchases(var perOrderCost: Int) extends Division("purchases") {
+trait Purchases extends Division {
+  var perOrderCost: Int
+  val name = "purchases"
   override def calculateTotal(orders: Seq[Int]) = orders.sum + orders.length * perOrderCost
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
@@ -37,6 +36,11 @@ class Purchases(var perOrderCost: Int) extends Division("purchases") {
   }
 }
 
-class Sales extends Division("sales") {
-  override def calculateTotal(orders: Seq[Int]) = orders.sum * 2
+trait Sales extends Division {
+  val name = "sales"
+  val sleep: Int
+  override def calculateTotal(orders: Seq[Int]) = {
+    if (sleep > 0) Thread.sleep(sleep)
+    orders.sum * 2
+  }
 }

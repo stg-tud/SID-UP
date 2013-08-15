@@ -1,15 +1,10 @@
-package projections.rmi
-
-import java.rmi.registry.LocateRegistry
+package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-class Client(val name: String)
-  extends java.rmi.server.UnicastRemoteObject
-  with Observable[Seq[Int]]
-  with RemoteObservable[Seq[Int]]
-  with Logging {
+trait Client extends Observable[Seq[Int]] with Logging {
 
+	val name = "client"
   var orders = List[Int]()
 
   def makeOrder(order: Int) = {
@@ -20,6 +15,8 @@ class Client(val name: String)
 
   def startWorking() = {
     logger.info(s"$name startet working")
-    java.rmi.Naming.rebind(s"$name", this)
+    init()
   }
+
+  def init(): Unit
 }

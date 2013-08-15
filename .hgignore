@@ -9,3 +9,6 @@ syntax: regexp
 \.pdf$
 \.log$
 \.sublime-(project|workspace)$
+^[^/]*\.txt$
+^[^/]*\.md$
+^\.tags
