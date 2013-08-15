@@ -1,8 +1,10 @@
 package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
+import projections.observer.common.Order
 
-trait Division extends Observable[Message[Int]] with Observer[Seq[Int]] with Logging {
+
+trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] with Logging {
 
   val name: String
 
@@ -14,21 +16,21 @@ trait Division extends Observable[Message[Int]] with Observer[Seq[Int]] with Log
   def init(): Unit
 
   var total = 0
-  var currentOrders = Seq[Int]()
+  var currentOrders = Seq[Order]()
 
-  override def receive(orders: Seq[Int]) = {
+  override def receive(orders: Seq[Order]) = {
     currentOrders = orders
     total = calculateTotal(orders)
     notifyObservers(Message(total,name))
   }
 
-  def calculateTotal(orders: Seq[Int]): Int
+  def calculateTotal(orders: Seq[Order]): Int
 }
 
 trait Purchases extends Division {
   var perOrderCost: Int
   val name = "purchases"
-  override def calculateTotal(orders: Seq[Int]) = orders.sum + orders.length * perOrderCost
+  override def calculateTotal(orders: Seq[Order]) = orders.map{_.value}.sum + orders.length * perOrderCost
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
     total = calculateTotal(currentOrders)
@@ -39,8 +41,8 @@ trait Purchases extends Division {
 trait Sales extends Division {
   val name = "sales"
   val sleep: Int
-  override def calculateTotal(orders: Seq[Int]) = {
+  override def calculateTotal(orders: Seq[Order]) = {
     if (sleep > 0) Thread.sleep(sleep)
-    orders.sum * 2
+    orders.map{_.value}.sum * 2
   }
 }

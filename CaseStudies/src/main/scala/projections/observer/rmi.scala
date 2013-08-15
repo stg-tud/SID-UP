@@ -1,6 +1,8 @@
 package projections.observer.rmi
 
 import projections.observer.Message
+import projections.observer.common.Order
+
 
 package object common {
   def startRegistry() = java.rmi.registry.LocateRegistry.createRegistry(1099)
@@ -22,16 +24,16 @@ trait Observable[I] {
 
 
 class Client extends java.rmi.server.UnicastRemoteObject
-with projections.observer.Client with Observable[Seq[Int]] with RemoteObservable[Seq[Int]] {
+with projections.observer.Client with Observable[Seq[Order]] with RemoteObservable[Seq[Order]] {
   override def init(): Unit = java.rmi.Naming.rebind(s"$name", this)
 }
 
 abstract class Division extends java.rmi.server.UnicastRemoteObject
-with Observable[Message[Int]] with Observer[Seq[Int]] with RemoteObservable[Message[Int]] {
+with Observable[Message[Int]] with Observer[Seq[Order]] with RemoteObservable[Message[Int]] {
   this: projections.observer.Division =>
   override def init(): Unit = {
     java.rmi.Naming.rebind(s"$name", this)
-    val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Int]]]
+    val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Order]]]
     remoteClient.addObserver(this)
   }
 }

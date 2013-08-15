@@ -3,6 +3,7 @@ package projections.observer.sockets
 import java.io._
 import java.net._
 import projections.observer.Message
+import projections.observer.common.Order
 
 package object common {
   def thread[F](f: => F) = {
@@ -35,12 +36,12 @@ trait Observable[I] extends projections.observer.Observable[I] {
   }
 }
 
-class Client extends projections.observer.Client with Observable[Seq[Int]] {
+class Client extends projections.observer.Client with Observable[Seq[Order]] {
   val port = 27800
   override def init() = startObservable()
 }
 
-trait Division extends Observable[Message[Int]] with Observer[Seq[Int]] {
+trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
   this: projections.observer.Division =>
   override def init(): Unit = {
     connect(27800)

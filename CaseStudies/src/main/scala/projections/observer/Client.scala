@@ -1,13 +1,14 @@
 package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
+import projections.observer.common.Order
 
-trait Client extends Observable[Seq[Int]] with Logging {
+trait Client extends Observable[Seq[Order]] with Logging {
 
 	val name = "client"
-  var orders = List[Int]()
+  var orders = List[Order]()
 
-  def makeOrder(order: Int) = {
+  def makeOrder(order: Order) = {
     logger.info(s"$name received $order")
     orders ::= order
     notifyObservers(orders)
