@@ -1,53 +1,30 @@
 package projections.reactives
 
-import reactive.events.EventSource
-import reactive.events.EventStream
 import reactive.Lift._
 import reactive.NumericLift._
 import reactive.LiftableWrappers._
 import reactive.signals.Signal
-import reactive.signals.Val
-import reactive.signals.Var
 import Numeric.Implicits._
-import projections.Order
 
-
-abstract class OrderSummer[N: Numeric](val name: String) {
-  lazy val orders = SignalRegistry(s"client/orders").asInstanceOf[Signal[List[Order[N]]]]
+abstract class Division(val name: String) {
+  lazy val orders = SignalRegistry(s"client").asInstanceOf[Signal[Seq[Order]]]
 
   def startWorking() {
-    SignalRegistry.register(s"division/$name", total)
-    println(s"$name startet working")
-    total.observe { newTotal: N => println(s"$name published new total: $newTotal") }
-  }
-  val calculating = Var(false)
-
-  def total = _total
-  lazy val _total = orders.map { currentList =>
-    calculating << true
-    println(s"$name processing updated orders...")
-    try {
-      calculateCost(currentList)
-    } finally {
-      println(s"$name done processing.")
-      calculating << false
-    }
+    SignalRegistry.register(s"$name", total)
   }
 
-  def calculateCost(orders: List[Order[N]]): N = orders.map{_.value}.sum
-
+  def total: Signal[Int]
 }
 
-class Purchases[N: Numeric](perOrderCost: Signal[N]) extends OrderSummer[N]("purchases")
+class Purchases(perOrderCost: Signal[Int]) extends Division("purchases")
 {
-  lazy val orderCount = orders.map(os => implicitly[Numeric[N]].fromInt(os.size))
-  override lazy val total = orderCount * perOrderCost + super.total
+  lazy val orderCount: Signal[Int] = orders.map{_.size}
+  lazy val total = orderCount * perOrderCost + orders.map{_.map{_.value}.sum}
 }
 
-class Sales[N](implicit num: Numeric[N]) extends OrderSummer[N]("sales") {
-  override def calculateCost(order: List[Order[N]]): N = {
-    Thread.sleep(500) // sales is kinda slow …
-    val income = super.calculateCost(order)
-    income + income
+class Sales(val sleep: Int = 0) extends Division("sales") {
+  lazy val total = orders.map{ o =>
+    if (sleep > 0) Thread.sleep(500) 
+    o.map{_.value}.sum * 2
   }
 }

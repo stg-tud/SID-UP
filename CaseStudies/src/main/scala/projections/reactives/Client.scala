@@ -7,14 +7,11 @@ import reactive.signals.Var
 import reactive.events.EventSource
 import reactive.signals.RoutableVar
 import reactive.events.EventStream
-import projections.Order
 
-class Client[N: Numeric](val name: String, val makeOrder : EventStream[Order[N]]) {
-
-  private def currentOrders: Signal[List[Order[N]]] = makeOrder.log
+class Client(val makeOrder : EventStream[Order]) {
+  def currentOrders: Signal[List[Order]] = makeOrder.log
 
   def startWorking() {
-    SignalRegistry.register("client/orders", currentOrders)
-    println(s"$name startet working")
+    SignalRegistry.register("client", currentOrders)
   }
 }
