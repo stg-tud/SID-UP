@@ -1,7 +1,7 @@
 package projections.observer.rmi
 
 import projections.observer.Message
-import projections.observer.common.Order
+import projections.Order
 
 
 package object common {

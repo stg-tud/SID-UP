@@ -3,7 +3,7 @@ package projections.observer.sockets
 import java.io._
 import java.net._
 import projections.observer.Message
-import projections.observer.common.Order
+import projections.Order
 
 package object common {
   def thread[F](f: => F) = {

@@ -1,7 +1,7 @@
 package projections.observer
 
 import com.typesafe.scalalogging.slf4j.Logging
-import projections.observer.common.Order
+import projections.Order
 
 trait Client extends Observable[Seq[Order]] with Logging {
 

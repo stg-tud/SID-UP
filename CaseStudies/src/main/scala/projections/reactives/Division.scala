@@ -5,6 +5,8 @@ import reactive.NumericLift._
 import reactive.LiftableWrappers._
 import reactive.signals.Signal
 import Numeric.Implicits._
+import projections.Order
+
 
 abstract class Division(val name: String) {
   lazy val orders = SignalRegistry(s"client").asInstanceOf[Signal[Seq[Order]]]
@@ -24,7 +26,7 @@ class Purchases(perOrderCost: Signal[Int]) extends Division("purchases")
 
 class Sales(val sleep: Int = 0) extends Division("sales") {
   lazy val total = orders.map{ o =>
-    if (sleep > 0) Thread.sleep(500) 
+    if (sleep > 0) Thread.sleep(500)
     o.map{_.value}.sum * 2
   }
 }
