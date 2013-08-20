@@ -70,10 +70,10 @@ object ProjectionsUI {
       } 
     }
 
-    c.startWorking
-    p.startWorking
-    s.startWorking
-    m.startWorking
+    c.init()
+    p.init()
+    s.init()
+    m.init()
 
     makeUI(
       orders = orderVar,
@@ -122,10 +122,10 @@ object ProjectionsUI {
       } 
     }
 
-    c.startWorking
-    p.startWorking
-    s.startWorking
-    m.startWorking
+    c.init()
+    p.init()
+    s.init()
+    m.init()
 
     makeUI(
       orders = orderVar,
@@ -146,9 +146,9 @@ object ProjectionsUI {
     val p = new Purchases(Var(5))
     val m = new Management()
 
-    c.startWorking
-    p.startWorking
-    s.startWorking
+    c.init()
+    p.init()
+    s.init()
 
     makeUI(
       orders = c.currentOrders,

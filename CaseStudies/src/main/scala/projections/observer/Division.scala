@@ -1,18 +1,13 @@
 package projections.observer
 
-import com.typesafe.scalalogging.slf4j.Logging
 import projections.Order
 
-trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] with Logging {
+trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
 
   val name: String
 
-  def startWorking() {
-    logger.info(s"$name startet working")
-    init()
-  }
-
-  def init(): Unit
+  def init(): Any
+  def deinit(): Any
 
   var total = 0
   var currentOrders = Seq[Order]()

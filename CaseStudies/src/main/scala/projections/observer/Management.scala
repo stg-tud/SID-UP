@@ -1,8 +1,6 @@
 package projections.observer
 
-import com.typesafe.scalalogging.slf4j.Logging
-
-trait Management extends Observable[Int] with Observer[Message[Int]] with Logging {
+trait Management extends Observable[Int] with Observer[Message[Int]] {
 
   var disableTransaction = false
 
@@ -11,11 +9,8 @@ trait Management extends Observable[Int] with Observer[Message[Int]] with Loggin
   var hasReceived = ""
   var difference: Int = 0
 
-  def startWorking() = {
-    init()
-  }
-
-  def init(): Unit
+  def init(): Any
+  def deinit(): Any
 
   def recalcDifference() = {
     difference = lastSales - lastPurchases

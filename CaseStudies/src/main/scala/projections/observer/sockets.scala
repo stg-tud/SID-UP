@@ -27,25 +27,28 @@ trait Observable[I] extends projections.observer.Observable[I] {
   var observers = List[ObjectOutputStream]()
   def notifyObservers(v: I) = observers.foreach(_.writeObject(v))
 
-  def startObservable() = thread {
-    val serverSocket = new ServerSocket(port)
+  lazy val serverSocket = new ServerSocket(port)
+  var observable: Thread = null
+  def startObserver() = thread {
     while (true) {
       val sock = serverSocket.accept()
       observers ::= new ObjectOutputStream(sock.getOutputStream())
     }
   }
+
+  def deinit() = {observable.interrupt; serverSocket.close}
 }
 
 class Client extends projections.observer.Client with Observable[Seq[Order]] {
   val port = 27800
-  override def init() = startObservable()
+  def init() = observable = startObserver()
 }
 
 trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
   this: projections.observer.Division =>
-  override def init(): Unit = {
+  override def init() = {
     connect(27800)
-    startObservable()
+    observable = startObserver()
   }
 }
 
@@ -59,9 +62,10 @@ class Sales(val sleep: Int = 0) extends projections.observer.Sales with Division
 
 class Management extends projections.observer.Management with Observer[Message[Int]] with Observable[Int] {
   val port = 27803
-  def init(): Unit = {
+  def init() = {
     connect(27801)
     connect(27802)
-    startObservable()
+    observable = startObserver()
   }
+
 }

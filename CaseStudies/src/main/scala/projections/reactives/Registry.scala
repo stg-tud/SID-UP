@@ -23,6 +23,8 @@ class Registry[V, R[+V] <: Reactive[_,_,_]] {
   def apply(name: String): R[V] = {
     retrieve(name).get
   }
+
+  def clear() = reactives = Map[String, R[V]]()
 }
 
 //object Registry extends Registry[Any, ({type λ[+X] = Reactive[X, ReactiveNotification[X]]})#λ ]
@@ -37,18 +39,18 @@ object SignalRegistry extends Registry[Any, Signal] {
   }
 }
 
-object EventRegistry extends Registry[Any, EventStream]
+// object EventRegistry extends Registry[Any, EventStream]
 
-object EventSourceRegistry extends Registry[Any, EventStream] {
+// object EventSourceRegistry extends Registry[Any, EventStream] {
 
-  override def apply(name: String): EventSource[Any] = {
-    retrieve(name) match {
-      case Some(source: EventSource[Any]) => source
-      case _ => {
-        val newSource = EventSource[Any]()
-        register(name, newSource)
-        newSource
-      }
-    }
-  }
-}
+//   override def apply(name: String): EventSource[Any] = {
+//     retrieve(name) match {
+//       case Some(source: EventSource[Any]) => source
+//       case _ => {
+//         val newSource = EventSource[Any]()
+//         register(name, newSource)
+//         newSource
+//       }
+//     }
+//   }
+// }

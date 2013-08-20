@@ -11,7 +11,7 @@ import projections.Order
 abstract class Division(val name: String) {
   lazy val orders = SignalRegistry(s"client").asInstanceOf[Signal[Seq[Order]]]
 
-  def startWorking() {
+  def init() {
     SignalRegistry.register(s"$name", total)
   }
 

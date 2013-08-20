@@ -13,7 +13,7 @@ import projections.Order
 class Client(val makeOrder : EventStream[Order]) {
   def currentOrders: Signal[List[Order]] = makeOrder.log
 
-  def startWorking() {
+  def init() {
     SignalRegistry.register("client", currentOrders)
   }
 }
