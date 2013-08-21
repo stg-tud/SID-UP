@@ -27,8 +27,8 @@ trait DynamicDependentReactive {
       
       if (!hasPulsed) {
         val newDependencies = dependencies(transaction)
-        val unsubscribe = lastDependencies.filterNot(newDependencies.contains(_))
-        val subscribe = newDependencies.filterNot(lastDependencies.contains(_))
+        val unsubscribe = lastDependencies.diff(newDependencies)
+        val subscribe = newDependencies.diff(lastDependencies)
 
         lastDependencies = newDependencies
         anyDependenciesChanged |= sourceDependenciesChanged
