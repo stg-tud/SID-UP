@@ -18,7 +18,7 @@ trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
   }
 
   def calculateTotal(orders: Seq[Order]): Int
-  
+
   protected def recalculate(direct: Boolean) {
     total = calculateTotal(currentOrders)
     notifyObservers(Message(total, name, direct))

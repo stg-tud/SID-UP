@@ -4,10 +4,10 @@ import projections.Order
 
 trait Client extends Observable[Seq[Order]] {
   val name = "client"
-  var orders = List[Order]()
+  var orders = Seq[Order]()
 
-  def makeOrder(order: Order) = {
-    orders ::= order
+  def setOrders(orders: Seq[Order]) = {
+    this.orders = orders
     notifyObservers(orders)
   }
 

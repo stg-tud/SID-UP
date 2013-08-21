@@ -20,7 +20,7 @@ trait Management extends Observable[Int] with Observer[Message[Int]] {
     notifyObservers(difference)
   }
 
-  def receive(v: Message[Int]) = {
+  def receive(v: Message[Int]) = synchronized {
     v.sender match {
       case "purchases" => lastPurchases = v.value
       case "sales" => lastSales = v.value

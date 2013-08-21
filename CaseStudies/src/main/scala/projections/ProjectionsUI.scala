@@ -45,34 +45,28 @@ object ProjectionsUI {
     import projections.observer.sockets._
     import projections.observer.Message
 
-    val orderVar = Var(Seq[Order]())
     val sales = Var(0)
     val purchases = Var(0)
     val management = Var(0)
 
-    val c = new Client() {
-      override def notifyObservers(v: Seq[Order]): Unit = {
-        orderVar << v
-        super.notifyObservers(v)
-      }
-    }
+    val c = new Client()
     val s = new Sales(sleeptime) {
       override def notifyObservers(v: Message[Int]): Unit = {
         sales << v.value
         super.notifyObservers(v)
-      } 
+      }
     }
     val p = new Purchases(5) {
       override def notifyObservers(v: Message[Int]): Unit = {
         purchases << v.value
         super.notifyObservers(v)
-      } 
+      }
     }
     val m = new Management() {
       override def notifyObservers(v: Int): Unit = {
         management << v
         super.notifyObservers(v)
-      } 
+      }
     }
 
     c.init()
@@ -81,12 +75,11 @@ object ProjectionsUI {
     m.init()
 
     makeUI(
-      orders = orderVar,
       sales = sales,
       purchases = purchases,
       management = management
-    ).observe{order => 
-      future {c.makeOrder(order)}
+    ).observe{order =>
+      future {c.setOrders(order)}
     }
   }
 
@@ -97,34 +90,28 @@ object ProjectionsUI {
     try {java.rmi.registry.LocateRegistry.createRegistry(1099)}
     catch {case _: Exception => println("registry already initialised")}
 
-    val orderVar = Var(Seq[Order]())
     val sales = Var(0)
     val purchases = Var(0)
     val management = Var(0)
 
-    val c = new Client() {
-      override def notifyObservers(v: Seq[Order]): Unit = {
-        orderVar << v
-        super.notifyObservers(v)
-      }
-    }
+    val c = new Client()
     val s = new Sales(sleeptime) {
       override def notifyObservers(v: Message[Int]): Unit = {
         sales << v.value
         super.notifyObservers(v)
-      } 
+      }
     }
     val p = new Purchases(5) {
       override def notifyObservers(v: Message[Int]): Unit = {
         purchases << v.value
         super.notifyObservers(v)
-      } 
+      }
     }
     val m = new Management() {
       override def notifyObservers(v: Int): Unit = {
         management << v
         super.notifyObservers(v)
-      } 
+      }
     }
 
     c.init()
@@ -133,19 +120,18 @@ object ProjectionsUI {
     m.init()
 
     makeUI(
-      orders = orderVar,
       sales = sales,
       purchases = purchases,
       management = management
-    ).observe{order => 
-      future {c.makeOrder(order)}
+    ).observe{order =>
+      future {c.setOrders(order)}
     }
   }
 
   def makeUIwithReactives() = {
     import projections.reactives._
 
-    val makeOrder = EventSource[Order]()
+    val makeOrder = Var[Seq[Order]](Seq())
     val c = new Client(makeOrder)
     val s = new Sales(sleeptime)
     val p = new Purchases(Var(5))
@@ -156,26 +142,25 @@ object ProjectionsUI {
     s.init()
 
     makeUI(
-      orders = c.currentOrders,
       sales = s.total,
       purchases = p.total,
       management = m.difference
-    ).observe{order => 
+    ).observe{order =>
       future {makeOrder << order}
     }
   }
 
   def makeUI(
-    orders: Signal[Seq[Order]],
     sales: Signal[Int],
     purchases: Signal[Int],
     management: Signal[Int]
-  ): EventStream[Order] = {
+  ) = {
 
     val orderSpinner = new ReactiveSpinner(10)
     val clientButton = new ReactiveButton("New Order")
 
     val orderStream = orderSpinner.value.pulse(clientButton.commits).map{Order(_)}
+    val orders = orderStream.log
 
     val model = new DefaultListModel[Date]()
     val managPanic = management.map{_ < 0}.changes.filter(x => x).observe{ _ =>
@@ -192,7 +177,7 @@ object ProjectionsUI {
 //    }
 
     val checkBox = new ReactiveCheckbox("Glitch-Free")
-    
+
     makeWindow("Management", 0, -200)(
       new JLabel("Management Status ") -> BorderLayout.NORTH,
       new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH,
@@ -217,7 +202,7 @@ object ProjectionsUI {
       new ReactiveLabel(sales.map{t => f"total: $t%5d   "}).asComponent -> BorderLayout.SOUTH
     )
 
-    orderStream
+    orders
   }
 
   def makeWindow(name: String, posx: Int, posy: Int)(components: Tuple2[JComponent, String]*) = {
@@ -234,7 +219,7 @@ object ProjectionsUI {
     window.setVisible(true)
     window
   }
-  
+
   def transpose(dx : Int, dy : Int, window : Window) {
     val location = window.getLocation()
     window.setLocation(location.x + dx, location.y + dy)
