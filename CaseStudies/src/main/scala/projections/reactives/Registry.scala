@@ -12,17 +12,11 @@ import projections.Order
 class Registry[V, R[+V] <: Reactive[_,_,_]] {
   var reactives = Map[String, R[V]]()
 
-  def register[T <: V](name: String, reactive: R[T]) {
-    reactives += (name -> reactive)
-  }
+  def register[T <: V](name: String, reactive: R[T]) = reactives += (name -> reactive)
 
-  def retrieve(name: String): Option[R[V]] = {
-    reactives.get(name)
-  }
+  def retrieve(name: String): Option[R[V]] = reactives.get(name)
 
-  def apply(name: String): R[V] = {
-    retrieve(name).get
-  }
+  def apply(name: String): R[V] = retrieve(name).get
 
   def clear() = reactives = Map[String, R[V]]()
 }

@@ -25,7 +25,9 @@ trait Observer[I] extends projections.observer.Observer[I] {
 trait Observable[I] extends projections.observer.Observable[I] {
   val port: Int
   var observers = List[ObjectOutputStream]()
-  def notifyObservers(v: I) = observers.foreach(_.writeObject(v))
+  def notifyObservers(v: I) = {
+    observers.foreach(_.writeObject(v))
+  }
 
   lazy val serverSocket = new ServerSocket(port)
   var observable: Thread = null
@@ -36,7 +38,10 @@ trait Observable[I] extends projections.observer.Observable[I] {
     }
   }
 
-  def deinit() = {observable.interrupt; serverSocket.close}
+  def deinit() = {
+    observable.interrupt
+    serverSocket.close
+  }
 }
 
 class Client extends projections.observer.Client with Observable[Seq[Order]] {
