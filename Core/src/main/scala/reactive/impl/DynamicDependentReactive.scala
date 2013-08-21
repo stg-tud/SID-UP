@@ -6,40 +6,49 @@ import java.util.UUID
 trait DynamicDependentReactive {
   self: DependentReactive[_, _] =>
 
-  protected def dependencies(transaction:Transaction): Set[Reactive[_, _, _]]
+  protected def dependencies(transaction: Transaction): Set[Reactive[_, _, _]]
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = _
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
+  private var hasPulsed: Boolean = true
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    if (currentTransaction == null || !currentTransaction.equals(transaction)) {
-      anyDependenciesChanged = false;
-      anyPulse = false;
-    }
+    synchronized {
+      if (currentTransaction != transaction) {
+        if (!hasPulsed) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
+        currentTransaction = transaction
+        anyDependenciesChanged = false;
+        anyPulse = false;
+        hasPulsed = false
+      }
+      
+      if (!hasPulsed) {
+        val newDependencies = dependencies(transaction)
+        val unsubscribe = lastDependencies.filterNot(newDependencies.contains(_))
+        val subscribe = newDependencies.filterNot(lastDependencies.contains(_))
 
-    val newDependencies = dependencies(transaction)
-    lastDependencies.filterNot(newDependencies.contains(_)).foreach{
-      anyPulse = true;
-      anyDependenciesChanged = true;
-      _.removeDependant(transaction, this)
-    }
-    newDependencies.filterNot(lastDependencies.contains(_)).foreach{
-      anyPulse = true;
-      anyDependenciesChanged = true;
-      _.addDependant(transaction, this)
-    }
+        lastDependencies = newDependencies
+        anyDependenciesChanged |= sourceDependenciesChanged
+        anyPulse |= pulsed;
+        unsubscribe.foreach {
+          anyDependenciesChanged |= true;
+          anyPulse |= true;
+          _.removeDependant(transaction, this)
+        }
+        subscribe.foreach {
+          anyDependenciesChanged |= true;
+          anyPulse |= true;
+          _.addDependant(transaction, this)
+        }
 
-    lastDependencies = newDependencies
-    anyDependenciesChanged |= sourceDependenciesChanged
-    anyPulse |= pulsed;
-
-    if (!newDependencies.exists { dependency =>
-      dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction)
-    }) {
-      doReevaluation(transaction, anyDependenciesChanged, anyPulse)
+        if (!lastDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
+          hasPulsed = true
+          doReevaluation(transaction, anyDependenciesChanged, anyPulse)
+        }
+      }
     }
   }
 
