@@ -22,10 +22,15 @@ import javax.swing.JComponent
 import projections.reactives._
 import reactive.events.EventStream
 import reactive.events.EventSource
+import javax.swing.DefaultListModel
+import java.util.Date
+import javax.swing.JList
+import ui.ReactiveCheckbox
+import javax.swing.ScrollPaneConstants
 
 object ProjectionsUI {
 
-  val sleeptime = 0
+  val sleeptime = 500
 
   def main(args: Array[String]): Unit = {
     if (args.length == 0) makeUIwithReactives()
@@ -172,24 +177,26 @@ object ProjectionsUI {
 
     val orderStream = orderSpinner.value.pulse(clientButton.commits).map{Order(_)}
 
-    val managPanic = management.map{_ < 0}
+    val model = new DefaultListModel[Date]()
+    val managPanic = management.map{_ < 0}.changes.filter(x => x).observe{ _ =>
+      model.addElement(new Date())
+    }
 
-    val managementStatus = new ReactiveLabel(managPanic.map{
-      case true => "panicking"
-      case false => "normal"
-    })
+    val managementStatus = new JList(model)
 
     val managementDifference = new ReactiveLabel(management.map{d => f"Profit: $d%4d   "})
 
-    managementDifference.foreground << managPanic.map {
-      case false => Color.GREEN.darker
-      case true => Color.RED
-    }
+//    managementDifference.foreground << managPanic.map {
+//      case false => Color.GREEN.darker
+//      case true => Color.RED
+//    }
 
-    makeWindow("Management", 0, -100)(
+    val checkBox = new ReactiveCheckbox("Glitch-Free")
+    
+    makeWindow("Management", 0, -200)(
       new JLabel("Management Status ") -> BorderLayout.NORTH,
-      managementStatus.asComponent -> BorderLayout.EAST,
-      managementDifference.asComponent -> BorderLayout.WEST
+      new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH,
+      managementDifference.asComponent -> BorderLayout.CENTER
     )
 
     makeWindow("Client", 0, +100)(

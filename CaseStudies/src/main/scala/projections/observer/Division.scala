@@ -14,11 +14,15 @@ trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
 
   override def receive(orders: Seq[Order]) = {
     currentOrders = orders
-    total = calculateTotal(orders)
-    notifyObservers(Message(total,name))
+    recalculate(false)
   }
 
   def calculateTotal(orders: Seq[Order]): Int
+  
+  protected def recalculate(direct: Boolean) {
+    total = calculateTotal(currentOrders)
+    notifyObservers(Message(total, name, direct))
+  }
 }
 
 trait Purchases extends Division {
@@ -27,8 +31,7 @@ trait Purchases extends Division {
   override def calculateTotal(orders: Seq[Order]) = orders.map{_.value}.sum + orders.length * perOrderCost
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
-    total = calculateTotal(currentOrders)
-    notifyObservers(Message(total, name, direct = true))
+    recalculate(true)
   }
 }
 

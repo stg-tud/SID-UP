@@ -3,8 +3,7 @@ package projections.observer
 import projections.Order
 
 trait Client extends Observable[Seq[Order]] {
-
-	val name = "client"
+  val name = "client"
   var orders = List[Order]()
 
   def makeOrder(order: Order) = {

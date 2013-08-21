@@ -67,7 +67,7 @@ object SimpleBenchmark extends PerformanceTest.Quickbenchmark {
   val sizes = Gen.range("size")(200, 300, 100)
 
   measure method "reactives" in {
-    using(sizes) in { size => TestReactives(size) }
+    using(sizes) in { size => projections.reactives.SignalRegistry.clear(); TestReactives(size) }
   }
 
   measure method "rmi" in {
