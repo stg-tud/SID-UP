@@ -28,7 +28,7 @@ trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
 trait Purchases extends Division {
   var perOrderCost: Int
   val name = "purchases"
-  override def calculateTotal(orders: Seq[Order]) = orders.map{_.value}.sum + orders.length * perOrderCost
+  override def calculateTotal(orders: Seq[Order]) = orders.map { _.value }.sum + orders.length * perOrderCost
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
     recalculate(true)
@@ -40,6 +40,6 @@ trait Sales extends Division {
   val sleep: Int
   override def calculateTotal(orders: Seq[Order]) = {
     if (sleep > 0) Thread.sleep(sleep)
-    orders.map{_.value}.sum * 2
+    orders.map { _.value }.sum * 2
   }
 }

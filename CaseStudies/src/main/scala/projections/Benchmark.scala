@@ -7,7 +7,6 @@ import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
 
-
 object SimpleBenchmark extends PerformanceTest.Quickbenchmark {
   val sizes = Gen.range("size")(100, 400, 100)
 
@@ -30,7 +29,6 @@ object SimpleBenchmark extends PerformanceTest.Quickbenchmark {
   }
 }
 
-
 object TestReactives extends TestCommon {
   import projections.reactives._
 
@@ -46,19 +44,18 @@ object TestReactives extends TestCommon {
   p.init()
   s.init()
 
-  m.difference.observe{_ => nextStep()}
+  m.difference.observe { _ => nextStep() }
 
   def test(v: Int) = makeOrder << Seq(Order(v))
 }
-
 
 object TestRMI extends TestCommon {
   import projections.observer.rmi._
 
   def name = "rmi"
 
-  try {java.rmi.registry.LocateRegistry.createRegistry(1099)}
-  catch {case _: Exception => }
+  try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
+  catch { case _: Exception => }
 
   val c = new Client()
   val s = new Sales(0)

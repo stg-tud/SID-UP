@@ -8,8 +8,7 @@ import reactive.signals.Signal
 import scala.language.higherKinds
 import projections.Order
 
-
-class Registry[V, R[+V] <: Reactive[_,_,_]] {
+class Registry[V, R[+V] <: Reactive[_, _, _]] {
   var reactives = Map[String, R[V]]()
 
   def register[T <: V](name: String, reactive: R[T]) = reactives += (name -> reactive)

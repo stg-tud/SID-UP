@@ -79,8 +79,8 @@ object ProjectionsUI {
       purchases = purchases,
       management = management
     )
-    orders.observe{ order =>
-      future {c.setOrders(order)}
+    orders.observe { order =>
+      future { c.setOrders(order) }
     }
     m.disableTransaction << glitch
   }
@@ -89,8 +89,8 @@ object ProjectionsUI {
     import projections.observer.rmi._
     import projections.observer.Message
 
-    try {java.rmi.registry.LocateRegistry.createRegistry(1099)}
-    catch {case _: Exception => println("registry already initialised")}
+    try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
+    catch { case _: Exception => println("registry already initialised") }
 
     val sales = Var(0)
     val purchases = Var(0)
@@ -126,8 +126,8 @@ object ProjectionsUI {
       purchases = purchases,
       management = management
     )
-    orders.observe{ order =>
-      future {c.setOrders(order)}
+    orders.observe { order =>
+      future { c.setOrders(order) }
     }
     m.disableTransaction << glitch
   }
@@ -150,36 +150,35 @@ object ProjectionsUI {
       purchases = p.total,
       management = m.difference
     )
-    orders.observe{order =>
-      future {makeOrder << order}
+    orders.observe { order =>
+      future { makeOrder << order }
     }
   }
 
   def makeUI(
     sales: Signal[Int],
     purchases: Signal[Int],
-    management: Signal[Int]
-  ) = {
+    management: Signal[Int]) = {
 
     val orderSpinner = new ReactiveSpinner(10)
     val clientButton = new ReactiveButton("New Order")
 
-    val orderStream = orderSpinner.value.pulse(clientButton.commits).map{Order(_)}
+    val orderStream = orderSpinner.value.pulse(clientButton.commits).map { Order(_) }
     val orders = orderStream.log
 
     val model = new DefaultListModel[Date]()
-    val managPanic = management.map{_ < 0}.changes.filter(x => x).observe{ _ =>
+    val managPanic = management.map { _ < 0 }.changes.filter(x => x).observe { _ =>
       model.addElement(new Date())
     }
 
     val managementStatus = new JList(model)
 
-    val managementDifference = new ReactiveLabel(management.map{d => f"Profit: $d%4d   "})
+    val managementDifference = new ReactiveLabel(management.map { d => f"Profit: $d%4d   " })
 
-//    managementDifference.foreground << managPanic.map {
-//      case false => Color.GREEN.darker
-//      case true => Color.RED
-//    }
+    //    managementDifference.foreground << managPanic.map {
+    //      case false => Color.GREEN.darker
+    //      case true => Color.RED
+    //    }
 
     val checkBox = new ReactiveCheckbox("Deactivate Simulated Glitch Freedom")
 
@@ -191,7 +190,7 @@ object ProjectionsUI {
 
     makeWindow("Client", 0, +100)(
       new ReactiveLabel(
-        orders.map{"Current orders: "+_.map{_.value}}
+        orders.map { "Current orders: " + _.map { _.value } }
       ).asComponent -> BorderLayout.NORTH,
       clientButton.asComponent -> BorderLayout.EAST,
       orderSpinner.asComponent -> BorderLayout.WEST,
@@ -200,12 +199,12 @@ object ProjectionsUI {
 
     makeWindow("Purchases", -100, 0)(
       new JLabel("Purchases Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(purchases.map{t => f"total: $t%5d   "}).asComponent -> BorderLayout.SOUTH
+      new ReactiveLabel(purchases.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH
     )
 
     makeWindow("Sales", +100, 0)(
       new JLabel("Sales Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(sales.map{t => f"total: $t%5d   "}).asComponent -> BorderLayout.SOUTH
+      new ReactiveLabel(sales.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH
     )
 
     (orders, checkBox.value)
@@ -226,7 +225,7 @@ object ProjectionsUI {
     window
   }
 
-  def transpose(dx : Int, dy : Int, window : Window) {
+  def transpose(dx: Int, dy: Int, window: Window) {
     val location = window.getLocation()
     window.setLocation(location.x + dx, location.y + dy)
   }

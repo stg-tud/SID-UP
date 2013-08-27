@@ -4,9 +4,9 @@ import java.io._
 import java.net._
 import projections.Order
 
-package object sockets  {
+package object sockets {
   def thread[F](f: => F) = {
-    val t = new Thread( new Runnable() { def run() { f } } )
+    val t = new Thread(new Runnable() { def run() { f } })
     t.start
     t
   }

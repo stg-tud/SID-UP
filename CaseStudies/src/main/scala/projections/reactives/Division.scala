@@ -7,7 +7,6 @@ import reactive.signals.Signal
 import Numeric.Implicits._
 import projections.Order
 
-
 abstract class Division(val name: String) {
   lazy val orders = SignalRegistry(s"client").asInstanceOf[Signal[Seq[Order]]]
 
@@ -17,13 +16,13 @@ abstract class Division(val name: String) {
 }
 
 class Purchases(perOrderCost: Signal[Int]) extends Division("purchases") {
-  lazy val orderCount: Signal[Int] = orders.map{_.size}
-  lazy val total = orderCount * perOrderCost + orders.map{_.map{_.value}.sum}
+  lazy val orderCount: Signal[Int] = orders.map { _.size }
+  lazy val total = orderCount * perOrderCost + orders.map { _.map { _.value }.sum }
 }
 
 class Sales(val sleep: Int = 0) extends Division("sales") {
-  lazy val total = orders.map{ o =>
+  lazy val total = orders.map { o =>
     if (sleep > 0) Thread.sleep(sleep)
-    o.map{_.value}.sum * 2
+    o.map { _.value }.sum * 2
   }
 }
