@@ -36,7 +36,7 @@ object ProjectionsUI {
     if (args.length == 0) makeUIwithReactives()
     else args(0) match {
       case "rmi" => makeUIwithRMIObservers()
-      case "sockets" => makeUIwithSocketObservers
+      case "sockets" => makeUIwithSocketObservers()
       case _ => makeUIwithReactives()
     }
   }
@@ -74,13 +74,15 @@ object ProjectionsUI {
     s.init()
     m.init()
 
-    makeUI(
+    val (orders, glitch) = makeUI(
       sales = sales,
       purchases = purchases,
       management = management
-    ).observe{order =>
+    )
+    orders.observe{ order =>
       future {c.setOrders(order)}
     }
+    m.disableTransaction << glitch
   }
 
   def makeUIwithRMIObservers() = {
@@ -119,13 +121,15 @@ object ProjectionsUI {
     s.init()
     m.init()
 
-    makeUI(
+    val (orders, glitch) = makeUI(
       sales = sales,
       purchases = purchases,
       management = management
-    ).observe{order =>
+    )
+    orders.observe{ order =>
       future {c.setOrders(order)}
     }
+    m.disableTransaction << glitch
   }
 
   def makeUIwithReactives() = {
@@ -141,11 +145,12 @@ object ProjectionsUI {
     p.init()
     s.init()
 
-    makeUI(
+    val (orders, glitch) = makeUI(
       sales = s.total,
       purchases = p.total,
       management = m.difference
-    ).observe{order =>
+    )
+    orders.observe{order =>
       future {makeOrder << order}
     }
   }
@@ -176,20 +181,21 @@ object ProjectionsUI {
 //      case true => Color.RED
 //    }
 
-    val checkBox = new ReactiveCheckbox("Glitch-Free")
+    val checkBox = new ReactiveCheckbox("Deactivate Simulated Glitch Freedom")
 
     makeWindow("Management", 0, -200)(
       new JLabel("Management Status ") -> BorderLayout.NORTH,
-      new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH,
-      managementDifference.asComponent -> BorderLayout.CENTER
+      managementDifference.asComponent -> BorderLayout.CENTER,
+      new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH
     )
 
     makeWindow("Client", 0, +100)(
       new ReactiveLabel(
         orders.map{"Current orders: "+_.map{_.value}}
       ).asComponent -> BorderLayout.NORTH,
-      clientButton.asComponent -> BorderLayout.SOUTH,
-      orderSpinner.asComponent -> BorderLayout.EAST
+      clientButton.asComponent -> BorderLayout.EAST,
+      orderSpinner.asComponent -> BorderLayout.WEST,
+      checkBox.asComponent -> BorderLayout.SOUTH
     )
 
     makeWindow("Purchases", -100, 0)(
@@ -202,7 +208,7 @@ object ProjectionsUI {
       new ReactiveLabel(sales.map{t => f"total: $t%5d   "}).asComponent -> BorderLayout.SOUTH
     )
 
-    orders
+    (orders, checkBox.value)
   }
 
   def makeWindow(name: String, posx: Int, posy: Int)(components: Tuple2[JComponent, String]*) = {
