@@ -83,25 +83,31 @@ object ReactiveImpl extends Logging {
   }
 
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
-    val futures = elements.map { element =>
-      logger.trace(s"$this fork $element")
-      element -> future {
-        op(element)
+    if (elements.isEmpty) {
+      Nil
+    } else {
+      val iterator = elements.iterator
+      val head = iterator.next;
+
+      val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
+        (element -> future { op(element) }) :: futures
       }
+      val headResult = Try { op(head) }
+      val results = Iterable(headResult) ++ futures.map {
+        case (element, future) =>
+          logger.trace(s"$this join $element")
+          Await.ready(future, duration.Duration.Inf)
+          future.value.get
+      }
+
+      logger.trace(s"$this fork/join completed")
+      // TODO this should probably be converted into an exception thrown forward to
+      // the original caller and be accumulated through all fork/joins along the path?
+      results.foreach {
+        case Failure(e) => e.printStackTrace()
+        case _ =>
+      }
+      results
     }
-    val results = futures.map {
-      case (element, future) =>
-        logger.trace(s"$this join $element")
-        Await.ready(future, duration.Duration.Inf)
-        future.value.get
-    }
-    logger.trace(s"$this fork/join completed")
-    // TODO this should probably be converted into an exception thrown forward to
-    // the original caller and be accumulated through all fork/joins along the path?
-    results.foreach {
-      case Failure(e) => e.printStackTrace()
-      case _ =>
-    }
-    results
   }
 }
