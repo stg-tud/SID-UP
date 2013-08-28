@@ -93,7 +93,7 @@ object ReactiveImpl extends Logging {
         (element -> future { op(element) }) :: futures
       }
       val headResult = Try { op(head) }
-      val results = Iterable(headResult) ++ futures.map {
+      val results = headResult :: futures.map {
         case (element, future) =>
           logger.trace(s"$this join $element")
           Await.ready(future, duration.Duration.Inf)
