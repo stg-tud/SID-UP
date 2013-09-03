@@ -4,7 +4,7 @@ package impl
 import java.util.UUID
 
 trait DependentReactive[V, P] extends Reactive.Dependant {
-  self: ReactiveImpl[_, V, P] =>
+  self: ReactiveImpl[_, V, P, _] =>
 
   override def toString = name
 
@@ -38,6 +38,6 @@ trait DependentReactive[V, P] extends Reactive.Dependant {
   }
 
   protected def reevaluate(transaction: Transaction): Option[(V, P)]
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID]
+  protected def calculateSourceDependencies(transaction: Transaction): Reactive.Topology
 
 }

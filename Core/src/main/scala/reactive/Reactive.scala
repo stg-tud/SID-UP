@@ -2,15 +2,16 @@ package reactive
 
 import java.util.UUID
 import reactive.signals.Signal
+import reactive.impl.mirroring.ReactiveMirror
 
-trait Reactive[+O, +V, +P] {
+trait Reactive[+O, +V, +P, R <: ReactiveMirror[_ <: O, _ <: V, _ <: P, _]] {
   def now: V
   
   protected[reactive] def value(transaction: Transaction): V
   protected[reactive] def pulse(transaction: Transaction): Option[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
-  protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
+  protected[reactive] def sourceDependencies(transaction: Transaction): Reactive.Topology
   protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
   protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
   protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
@@ -21,6 +22,7 @@ trait Reactive[+O, +V, +P] {
 }
 
 object Reactive {
+  type Topology = Set[UUID]
   type Dependant = Function3[Transaction, Boolean, Boolean, Unit]
   //  type RSeq[+A] = Reactive[Seq[A], Seq[A], Delta[A]]
   //  type Signal[+A] = Reactive[A, A, Update[A]]

@@ -7,8 +7,9 @@ import scala.actors.threadpool.ExecutorService
 import scala.actors.threadpool.Executors
 import scala.util.Failure
 import scala.util.Try
+import reactive.impl.mirroring.ReactiveMirror
 
-trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
+trait ReactiveImpl[O, V, P, R <: ReactiveMirror[O, V, P, _]] extends Reactive[O, V, P, R] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private[reactive] val name = {

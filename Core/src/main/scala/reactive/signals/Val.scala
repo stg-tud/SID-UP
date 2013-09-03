@@ -3,8 +3,9 @@ package signals
 
 import reactive.events.EventStream
 import reactive.events.NothingEventStream
+import reactive.impl.mirroring.SignalMirror
 
-class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A, A] {
+class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A, A, SignalMirror[A]] {
   override val now = value
   override def value(t: Transaction) = value
   override lazy val log = new Val(List(value))
