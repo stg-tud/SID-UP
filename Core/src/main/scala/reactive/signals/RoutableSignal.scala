@@ -3,6 +3,7 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
+import reactive.impl.RoutableReactive
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -17,18 +18,11 @@ import java.util.UUID
  * <li><code>new ReactiveButton.enabled << new ReactiveCheckbox.selected</code></li>
  * </ul>
  */
-trait RoutableVar[A] extends Signal[A] with ReactiveSource[Signal[A]]
+trait RoutableSignal[A] extends Signal[A] with ReactiveSource[Signal[A]]
 
-object RoutableVar {
-  def apply[A](initialValue: Signal[A]): RoutableVar[A] = new RoutableVar[A] {
-    // a Var[Signal[A]] with delegates of all ReactiveSource[Signal[A]] input methods
-    val _input = Var(initialValue);
-    override def <<(value: Signal[A]) = _input.<<(value)
-    override protected[reactive] def emit(transaction: Transaction, value: Signal[A] /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
-    override protected[reactive] val uuid: UUID = _input.uuid
-
-    // the flattened Signal[A] with delegates of all Signal[A] output methods
-    val _output = _input.flatten
+object RoutableSignal {
+  def apply[A](initialValue: Signal[A]): RoutableSignal[A] = new RoutableReactive[Signal[A]](initialValue) with RoutableSignal[A] {
+    // the flattened Signal[A] with delegates of all Signal[A] _output methods
     protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
     protected[reactive] override def pulse(transaction: Transaction): Option[A] = _output.pulse(transaction)
     protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
@@ -45,7 +39,7 @@ object RoutableVar {
     override def changes: EventStream[A] = _output.changes
     override def map[B](op: A => B): Signal[B] = _output.map(op)
     override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
-    override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
+    override def flatten[R <: Reactive[_, _, _, _]](implicit evidence: A <:< Reactive[_, _, _, R]): R = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
   }

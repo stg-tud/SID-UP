@@ -4,7 +4,7 @@ import java.util.UUID
 import reactive.signals.Signal
 import reactive.impl.mirroring.ReactiveMirror
 
-trait Reactive[+O, +V, +P, R <: ReactiveMirror[_ <: O, _ <: V, _ <: P, _]] {
+trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, _]] {
   def now: V
   
   protected[reactive] def value(transaction: Transaction): V
@@ -16,6 +16,8 @@ trait Reactive[+O, +V, +P, R <: ReactiveMirror[_ <: O, _ <: V, _ <: P, _]] {
   protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
   protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
 
+//  def mirror: ReactiveMirror[O, V, P, R]
+  
   def log: Signal[List[O]]
   def observe(obs: O => Unit)
   def unobserve(obs: O => Unit)

@@ -5,7 +5,7 @@ import reactive.signals.Val
 import reactive.signals.Signal
 import reactive.impl.mirroring.EventStreamMirror
 
-object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Unit, Nothing, EventStreamMirror[Nothing]] {
+object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Unit, Nothing, EventStream[Nothing]] {
   override def now = Unit
   override def value(t: Transaction) = Unit
   override def hold[B >: Nothing](initialValue: B): Signal[B] = new Val(initialValue)

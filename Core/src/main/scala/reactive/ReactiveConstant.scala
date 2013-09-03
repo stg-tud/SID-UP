@@ -3,7 +3,7 @@ package reactive
 import java.util.UUID
 import reactive.impl.mirroring.ReactiveMirror
 
-trait ReactiveConstant[+O, +V, +P, R <: ReactiveMirror[_ <: O, _ <: V, _ <: P, _]] extends Reactive[O, V, P, R] {
+trait ReactiveConstant[+O, +V, +P, +R <: Reactive[O, V, P, R]] extends Reactive[O, V, P, R] {
   override def pulse(transaction: Transaction) = None
   override def hasPulsed(transaction: Transaction) = false
   override def sourceDependencies(transaction: Transaction) = Set[UUID]()
