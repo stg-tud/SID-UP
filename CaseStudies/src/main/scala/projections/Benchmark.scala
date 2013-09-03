@@ -6,50 +6,82 @@ import reactive.events.EventSource
 import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
+import com.typesafe.scalalogging.slf4j._
 
-object SimpleBenchmark extends PerformanceTest.Quickbenchmark {
-  val sizes = Gen.range("size")(100, 400, 100)
+object SimpleBenchmark extends PerformanceTest {
 
-  val sock = TestSockets
-  val rmi = TestRMI
-  val react = TestReactives
+  override val executor = LocalExecutor( //SeparateJvmsExecutor(
+    new Executor.Warmer.Default,
+    Aggregator.complete(Aggregator.average),
+    new Measurer.IgnoringGC /*with Measurer.PeriodicReinstantiation*/ with Measurer.OutlierElimination)
+  // override val reporter = new LoggingReporter //ChartReporter(ChartFactory.XYLine())
+  // lazy val reporter: Reporter = HtmlReporter(true)
+  def reporter: Reporter = Reporter.Composite(
+    // new RegressionReporter(
+    // RegressionReporter.Tester.OverlapIntervals(),
+    // RegressionReporter.Historian.ExponentialBackoff() ),
+    HtmlReporter(false),
+    //ChartReporter(ChartFactory.XYLine()),
+    ChartReporter(ChartFactory.TrendHistogram()),
+    ChartReporter(ChartFactory.NormalHistogram()),
+    new LoggingReporter)
 
+  lazy val persistor = Persistor.None
+
+  val orderLists = for {
+    size <- Gen.exponential("size")(10, 13000, 2)
+  } yield 1 to size map (Order(_))
+
+  val netTypes = Gen.enumeration("net type")(TestRMI, TestReactives, TestSockets)
+
+  val inputs = Gen.tupled(netTypes, orderLists)
+
+  println("waiting for init")
   Thread.sleep(500) // this is to wait for initialisation
+  println("init done")
 
-  measure method "reactives" in {
-    using(sizes) in { size => react(size) }
-  }
-
-  measure method "rmi" in {
-    using(sizes) in { size => rmi(size) }
-  }
-
-  measure method "sockets" in {
-    using(sizes) in { size => sock(size) }
+  measure method "order lists" in {
+    using(inputs) config (
+      exec.benchRuns -> 50
+    ) in {
+        case (net, orders) =>
+          net(orders)
+          net(orders.tail)
+      }
   }
 }
 
-object TestReactives extends TestCommon {
+object TestReactives extends InitReactives {
+  def test(orders: Seq[Order]) = setOrders << orders
+}
+
+object TestRMI extends InitRMI {
+  def test(orders: Seq[Order]) = c.setOrders { orders }
+}
+
+object TestSockets extends InitSockets {
+  def test(orders: Seq[Order]) = c.setOrders { orders }
+}
+
+trait InitReactives extends TestCommon {
   import projections.reactives._
 
   def name = "reactive"
 
-  val makeOrder = Var[Seq[Order]](List())
-  val c = new Client(makeOrder)
+  val setOrders = Var[Seq[Order]](List())
+  val c = new Client(setOrders)
   val s = new Sales(0)
-  val p = new Purchases(Var(5))
+  val p = new Purchases(Var(perOrderCost))
   val m = new Management()
 
   c.init()
   p.init()
   s.init()
 
-  m.difference.observe { _ => nextStep() }
-
-  def test(v: Int) = makeOrder << Seq(Order(v))
+  m.difference.observe { v => done(v) }
 }
 
-object TestRMI extends TestCommon {
+trait InitRMI extends TestCommon {
   import projections.observer.rmi._
 
   def name = "rmi"
@@ -59,7 +91,7 @@ object TestRMI extends TestCommon {
 
   val c = new Client()
   val s = new Sales(0)
-  val p = new Purchases(5)
+  val p = new Purchases(perOrderCost)
   val m = new Management()
 
   c.init()
@@ -68,20 +100,18 @@ object TestRMI extends TestCommon {
   m.init()
 
   m.addObserver(new Observer[Int] {
-    def receive(v: Int) = nextStep()
+    def receive(v: Int) = done(v)
   })
-
-  def test(v: Int) = c.setOrders(Seq(Order(v)))
 }
 
-object TestSockets extends TestCommon {
+trait InitSockets extends TestCommon {
   import projections.observer.sockets._
 
   def name = "sockets"
 
   val c = new Client()
   val s = new Sales(0)
-  val p = new Purchases(5)
+  val p = new Purchases(perOrderCost)
   val m = new Management()
 
   c.init()
@@ -91,30 +121,36 @@ object TestSockets extends TestCommon {
 
   new Observer[Int] {
     connect(27803)
-    override def receive(v: Int) = nextStep()
+    override def receive(v: Int) = done(v)
   }
-
-  def test(v: Int) = c.setOrders(Seq(Order(v)))
-
 }
 
-trait TestCommon {
+trait TestCommon extends Logging {
   val sem = new Semaphore(0)
 
   def name: String
 
-  def apply(orders: Int) = {
-    var todo = orders
-    while (todo > 0) {
-      test(todo)
-      todo -= 1
-      sem.acquire()
-    }
+  var result: Int = 0
+
+  val perOrderCost = 5
+
+  override def toString = name
+
+  println(s"initialize object $name")
+
+  def apply(orders: Seq[Order]) = {
+    // logger.info(s"test $name ${orders.size}")
+    test(orders)
+    // logger.info(s"await result")
+    sem.acquire()
+    // logger.info(s"result is ${result}")
+    assert(orders.map { _.value }.sum - perOrderCost * orders.size == result)
   }
 
-  def nextStep() = {
+  def done(res: Int) = {
+    result = res
     sem.release()
   }
 
-  def test(v: Int)
+  def test(v: Seq[Order])
 }

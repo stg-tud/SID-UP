@@ -38,7 +38,7 @@ package sockets {
     }
 
     def deinit() = {
-      observable.interrupt
+      observable.interrupt()
       serverSocket.close
     }
   }

@@ -135,8 +135,8 @@ object ProjectionsUI {
   def makeUIwithReactives() = {
     import projections.reactives._
 
-    val makeOrder = Var[Seq[Order]](Seq())
-    val c = new Client(makeOrder)
+    val setOrder = Var[Seq[Order]](Seq())
+    val c = new Client(setOrder)
     val s = new Sales(sleeptime)
     val p = new Purchases(Var(5))
     val m = new Management()
@@ -151,7 +151,7 @@ object ProjectionsUI {
       management = m.difference
     )
     orders.observe { order =>
-      future { makeOrder << order }
+      future { setOrder << order }
     }
   }
 

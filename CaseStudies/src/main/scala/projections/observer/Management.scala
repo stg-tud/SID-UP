@@ -20,7 +20,7 @@ trait Management extends Observable[Int] with Observer[Message[Int]] {
     notifyObservers(difference)
   }
 
-  def receive(v: Message[Int]) = synchronized {
+  def receive(v: Message[Int]) = {
     v.sender match {
       case "purchases" => lastPurchases = v.value
       case "sales" => lastSales = v.value
@@ -28,13 +28,14 @@ trait Management extends Observable[Int] with Observer[Message[Int]] {
 
     (v.direct || disableTransaction.now) match {
       case true => recalcDifference()
-      case false =>
+      case false => synchronized {
         if (hasReceived == v.sender) throw new Exception("received from same source twice")
         if (hasReceived == "") hasReceived = v.sender
         else {
           hasReceived = ""
           recalcDifference()
         }
+      }
     }
 
   }
