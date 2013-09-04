@@ -25,7 +25,10 @@ package sockets {
     val port: Int
     var observers = List[ObjectOutputStream]()
     def notifyObservers(v: I) = {
-      observers.foreach(_.writeObject(v))
+      observers.foreach { sock =>
+        sock.writeObject(v)
+        sock.flush()
+      }
     }
 
     lazy val serverSocket = new ServerSocket(port)

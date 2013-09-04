@@ -40,13 +40,42 @@ object SimpleBenchmark extends PerformanceTest {
   Thread.sleep(500) // this is to wait for initialisation
   println("init done")
 
-  measure method "order lists" in {
-    using(inputs) config (
+  measure method "rmi" in {
+    using(orderLists) config (
       exec.benchRuns -> 50
     ) in {
-        case (net, orders) =>
-          net(orders)
-          net(orders.tail)
+        case (orders) =>
+          TestRMI(orders)
+          TestRMI(orders.tail)
+      }
+  }
+  measure method "reactives" in {
+    using(orderLists) config (
+      exec.benchRuns -> 50
+    ) in {
+        case (orders) =>
+          TestReactives(orders)
+          TestReactives(orders.tail)
+      }
+  }
+  measure method "sockets" in {
+    using(orderLists) config (
+      exec.benchRuns -> 50
+    ) in {
+        case (orders) =>
+          TestSockets(orders)
+          TestSockets(orders.tail)
+      }
+  }
+  measure method "pure calculation" in {
+    using(orderLists) config (
+      exec.benchRuns -> 50
+    ) in {
+        case (orders) =>
+          orders.map { _.value }.sum +
+          orders.tail.map{_.value}.sum +
+          orders.map { _.value }.sum +
+          orders.tail.map{_.value}.sum
       }
   }
 }
