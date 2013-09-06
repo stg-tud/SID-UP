@@ -44,7 +44,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
   var outer: Var[Signal[Int]] = _
   var outerBuffered: MessageBuffer[Signal[Int]] = _
   var flattened: Signal[Int] with IncomingMessageBuffer = _
-  var log: NotificationLog[Int] = _
+  var log: NotificationLog[Int, Int] = _
   var commitFuture: Future[Unit] = _
 
   before {
@@ -52,7 +52,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
     inner1Buffered = new MessageBuffer(inner1)
     outer = Var(inner1Buffered)
     outerBuffered = new MessageBuffer(outer)
-    flattened = new FlattenSignal(outerBuffered) with IncomingMessageBuffer
+    flattened = ??? // new FlattenSignal(outerBuffered) with IncomingMessageBuffer
     log = new NotificationLog(flattened)
 
     expectResult(123) { flattened.now }
@@ -98,8 +98,8 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
       expectResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
       expectResult(1) { log.size }
       val notification1 = log.dequeue
-      expectResult(true) { notification1.valueChanged }
-      expectResult(5) { notification1.newValue }
+      expectResult(Some(5)) { notification1.pulse }
+      expectResult(5) { notification1.value }
       expectResult(true) { notification1.sourceDependenciesChanged }
       expectResult(Set(inner2.uuid, outer.uuid)) { notification1.newSourceDependencies }
     }

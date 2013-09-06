@@ -5,7 +5,7 @@ import javax.swing.JList
 import javax.swing.ListModel
 import javax.swing.DefaultListModel
 import javax.swing.AbstractListModel
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import javax.swing.event.ListSelectionListener
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
@@ -16,7 +16,7 @@ class ReactiveList[T](initialElements: Signal[List[T]]) extends {
   val model = new DefaultListModel[T]()
 } with ReactiveComponent(new JList(model)) with ReactiveInput[Option[T]] {
   asComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-  val elements = RoutableVar(initialElements);
+  val elements = RoutableSignal(initialElements);
   observeInEDT(elements) { newElements =>
     model.removeAllElements();
     newElements.foreach { model.addElement(_) };

@@ -25,8 +25,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification1 = log.dequeue
-    expectResult(true) { notification1.valueChanged }
-    expectResult(234) { notification1.newValue }
+    expectResult(Some(234)) { notification1.pulse }
+    expectResult(234) { notification1.value }
     expectResult(false) { notification1.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, outer.uuid)) { notification1.newSourceDependencies }
 
@@ -35,8 +35,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification2 = log.dequeue
-    expectResult(false) { notification2.valueChanged }
-    expectResult(234) { notification2.newValue }
+    expectResult(None) { notification2.pulse }
+    expectResult(234) { notification2.value }
     expectResult(false) { notification2.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, outer.uuid)) { notification2.newSourceDependencies }
 
@@ -45,8 +45,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification3 = log.dequeue
-    expectResult(true) { notification3.valueChanged }
-    expectResult(1) { notification3.newValue }
+    expectResult(Some(1)) { notification3.pulse }
+    expectResult(1) { notification3.value }
     expectResult(false) { notification3.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, outer.uuid)) { notification3.newSourceDependencies }
   }
@@ -66,8 +66,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification1 = log.dequeue
-    expectResult(true) { notification1.valueChanged }
-    expectResult(234) { notification1.newValue }
+    expectResult(Some(234)) { notification1.pulse }
+    expectResult(234) { notification1.value }
     expectResult(true) { notification1.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, outer.uuid)) { notification1.newSourceDependencies }
 
@@ -77,8 +77,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner3.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification2 = log.dequeue
-    expectResult(false) { notification2.valueChanged }
-    expectResult(234) { notification2.newValue }
+    expectResult(Some(234)) { notification2.pulse }
+    expectResult(234) { notification2.value }
     expectResult(true) { notification2.sourceDependenciesChanged }
     expectResult(Set(inner3.uuid, outer.uuid)) { notification2.newSourceDependencies }
 
@@ -90,8 +90,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner3.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     expectResult(1) { log.size }
     val notification3 = log.dequeue
-    expectResult(true) { notification3.valueChanged }
-    expectResult(444) { notification3.newValue }
+    expectResult(Some(444)) { notification3.pulse }
+    expectResult(444) { notification3.value }
     expectResult(false) { notification3.sourceDependenciesChanged }
     expectResult(Set(inner3.uuid, outer.uuid)) { notification3.newSourceDependencies }
   }
@@ -117,8 +117,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     expectResult(1) { log1.size }
     val notification1 = log1.dequeue
-    expectResult(true) { notification1.valueChanged }
-    expectResult(123) { notification1.newValue }
+    expectResult(Some(123)) { notification1.pulse }
+    expectResult(123) { notification1.value }
     expectResult(false) { notification1.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { notification1.newSourceDependencies }
     
@@ -126,8 +126,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     expectResult(1) { log2.size }
     val notification2 = log2.dequeue
-    expectResult(true) { notification2.valueChanged }
-    expectResult(123) { notification2.newValue }
+    expectResult(Some(123)) { notification2.pulse }
+    expectResult(123) { notification2.value }
     expectResult(false) { notification2.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { notification2.newSourceDependencies }
     
@@ -137,8 +137,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     expectResult(1) { log1.size }
     val notification3 = log1.dequeue
-    expectResult(true) { notification3.valueChanged }
-    expectResult(234) { notification3.newValue }
+    expectResult(Some(234)) { notification3.pulse }
+    expectResult(234) { notification3.value }
     expectResult(true) { notification3.sourceDependenciesChanged }
     expectResult(Set(middle.uuid, outer1.uuid)) { notification3.newSourceDependencies }
     
@@ -146,8 +146,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     expectResult(1) { log2.size }
     val notification4 = log2.dequeue
-    expectResult(true) { notification4.valueChanged }
-    expectResult(234) { notification4.newValue }
+    expectResult(Some(234)) { notification4.pulse }
+    expectResult(234) { notification4.value }
     expectResult(true) { notification4.sourceDependenciesChanged }
     expectResult(Set(middle.uuid, outer2.uuid)) { notification4.newSourceDependencies }
     
@@ -162,8 +162,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     expectResult(1, log1) { log1.size }
     val notification5 = log1.dequeue
-    expectResult(false) { notification5.valueChanged }
-    expectResult(234) { notification5.newValue }
+    expectResult(None) { notification5.pulse }
+    expectResult(234) { notification5.value }
     expectResult(true) { notification5.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { notification5.newSourceDependencies }
     
@@ -171,8 +171,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     expectResult(1) { log2.size }
     val notification6 = log2.dequeue
-    expectResult(false) { notification6.valueChanged }
-    expectResult(234) { notification6.newValue }
+    expectResult(None) { notification6.pulse }
+    expectResult(234) { notification6.value }
     expectResult(true) { notification6.sourceDependenciesChanged }
     expectResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { notification6.newSourceDependencies }
     
@@ -186,8 +186,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     expectResult(1) { log1.size }
     val notification7 = log1.dequeue
-    expectResult(true) { notification7.valueChanged }
-    expectResult(0) { notification7.newValue }
+    expectResult(Some(0)) { notification7.pulse }
+    expectResult(0) { notification7.value }
     expectResult(true) { notification7.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { notification7.newSourceDependencies }
     
@@ -195,8 +195,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     expectResult(1) { log2.size }
     val notification8 = log2.dequeue
-    expectResult(true) { notification8.valueChanged }
-    expectResult(0) { notification8.newValue }
+    expectResult(Some(0)) { notification8.pulse }
+    expectResult(0) { notification8.value }
     expectResult(true) { notification8.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { notification8.newSourceDependencies }
     
@@ -206,8 +206,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     expectResult(1) { log1.size }
     val notification9 = log1.dequeue
-    expectResult(true) { notification9.valueChanged }
-    expectResult(999) { notification9.newValue }
+    expectResult(Some(999)) { notification9.pulse }
+    expectResult(999) { notification9.value }
     expectResult(false) { notification9.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { notification9.newSourceDependencies }
     
@@ -215,8 +215,8 @@ class FlattenSignalTest extends FunSuite {
     expectResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     expectResult(1) { log2.size }
     val notification10 = log2.dequeue
-    expectResult(true) { notification10.valueChanged }
-    expectResult(999) { notification10.newValue }
+    expectResult(Some(999)) { notification10.pulse }
+    expectResult(999) { notification10.value }
     expectResult(false) { notification10.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { notification10.newSourceDependencies }   
   }

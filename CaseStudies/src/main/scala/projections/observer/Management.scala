@@ -1,11 +1,11 @@
 package projections.observer
 
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift._
 
 trait Management extends Observable[Int] with Observer[Message[Int]] {
 
-  val disableTransaction = RoutableVar(false)
+  val disableTransaction = RoutableSignal(false)
 
   var lastSales = 0
   var lastPurchases = 0

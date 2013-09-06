@@ -20,7 +20,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   var outer: Var[Signal[Int]] = _
   var outerBuffered: MessageBuffer[Signal[Int]] = _
   var flattened: Signal[Int] = _
-  var log: NotificationLog[Int] = _
+  var log: NotificationLog[Int, Int] = _
   var commitFuture: Future[Unit] = _
   def expectSilent() = {
     expectResult(0) { log.size }
@@ -31,8 +31,8 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     val notification1 = log.dequeue
     expectResult(5) { flattened.now }
     expectResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
-    expectResult(true) { notification1.valueChanged }
-    expectResult(5) { notification1.newValue }
+    expectResult(Some(5)) { notification1.pulse }
+    expectResult(5) { notification1.value }
     expectResult(true) { notification1.sourceDependenciesChanged }
     expectResult(Set(inner2.uuid, outer.uuid)) { notification1.newSourceDependencies }
   }

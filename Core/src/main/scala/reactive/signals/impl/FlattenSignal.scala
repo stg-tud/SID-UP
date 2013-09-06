@@ -3,8 +3,9 @@ package signals
 package impl
 
 import reactive.impl.DynamicDependentReactive
+import reactive.impl.ReactiveImpl
+import reactive.impl.DependentReactive
 
-class FlattenSignal[A](val outer: Signal[Signal[A]]) extends DependentSignalImpl[A] with DynamicDependentReactive {
-  override def dependencies(transaction: Transaction) = Set(outer, outer.value(transaction))
-  override def reevaluateValue(transaction: Transaction) = outer.value(transaction).value(transaction)
+object FlattenSignal {
+  def apply[R <: Reactive[_, _, _, R]](outer: Signal[R]) : R = ???
 }

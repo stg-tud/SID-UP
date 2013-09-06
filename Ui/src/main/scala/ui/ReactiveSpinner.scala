@@ -14,26 +14,26 @@ import reactive.Reactive
 import reactive.signals.Signal
 import reactive.events.EventSource
 import reactive.events.EventStream
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift.valueToSignal
 
 class ReactiveSpinner(initialValue: Int) extends {
   private val model = new SpinnerNumberModel(initialValue, Int.MinValue, Int.MaxValue, 1);
 } with ReactiveComponent(new JSpinner(model)) with ReactiveInput[Int] with ReactiveCommittable {
   lazy val min = {
-    val routableVar = RoutableVar(model.getMinimum().asInstanceOf[Int]);
-    observeInEDT(routableVar) { model.setMinimum(_) }
-    routableVar
+    val result = RoutableSignal(model.getMinimum().asInstanceOf[Int]);
+    observeInEDT(result) { model.setMinimum(_) }
+    result
   }
   lazy val max = {
-    val routableVar = RoutableVar(model.getMaximum().asInstanceOf[Int]);
-    observeInEDT(routableVar) { model.setMaximum(_) }
-    routableVar
+    val result = RoutableSignal(model.getMaximum().asInstanceOf[Int]);
+    observeInEDT(result) { model.setMaximum(_) }
+    result
   }
   lazy val step = {
-    val routableVar = RoutableVar(model.getStepSize().asInstanceOf[Int]);
-    observeInEDT(routableVar) { model.setStepSize(_) }
-    routableVar
+    val result = RoutableSignal(model.getStepSize().asInstanceOf[Int]);
+    observeInEDT(result) { model.setStepSize(_) }
+    result
   }
 
 

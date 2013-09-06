@@ -5,6 +5,7 @@ import reactive.signals.Signal
 import reactive.impl.mirroring.ReactiveMirror
 
 trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, _]] {
+  this: R =>
   def now: V
   
   protected[reactive] def value(transaction: Transaction): V

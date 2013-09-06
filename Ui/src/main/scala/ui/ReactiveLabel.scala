@@ -2,10 +2,10 @@ package ui
 
 import javax.swing.JLabel
 import reactive.signals.Signal
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift.valueToSignal
 
 class ReactiveLabel(initialText: Signal[String]) extends ReactiveComponent(new JLabel(initialText.now)) {
-  lazy val text = RoutableVar(initialText);
+  lazy val text = RoutableSignal(initialText);
   observeInEDT(text) { asComponent.setText(_) }
 }

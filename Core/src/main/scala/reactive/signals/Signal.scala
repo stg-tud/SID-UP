@@ -8,7 +8,7 @@ trait Signal[+A] extends Reactive[A, A, A, Signal[A]] {
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def flatMap[B](op: A => Signal[B]): Signal[B]
-  def flatten[R <: Reactive[_, _, _, _]](implicit evidence: A <:< Reactive[_, _, _, R]): R;
+  def flatten[R <: Reactive[_, _, _, R]](implicit evidence: A <:< R): R;
   def snapshot(when: EventStream[_]): Signal[A]
   def pulse(when: EventStream[_]): EventStream[A]
 }

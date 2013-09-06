@@ -3,7 +3,7 @@ package reactive.test
 import org.scalatest.FunSuite
 import reactive.signals.Var
 import reactive.signals.Val
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.TransactionBuilder
 import reactive.Lift._
 
@@ -162,8 +162,8 @@ class SignalMonadicTest extends FunSuite {
   test("Val and Routable") {
     val s1 = new Val(1)
     val s2 = new Val(2)
-    val rs1 = RoutableVar(s1)
-    val rs2 = RoutableVar(s2)
+    val rs1 = RoutableSignal(s1)
+    val rs2 = RoutableSignal(s2)
 
     val combined1 = for(v1 <- rs1; v2 <- s2) yield (v1,v2)
     val combined2 = for(v1 <- s1; v2 <- rs2) yield (v1,v2)

@@ -10,7 +10,7 @@ import java.awt.event.MouseListener
 import java.awt.event.MouseEvent
 import reactive.signals.Var
 import java.awt.event.MouseAdapter
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift.valueToSignal
 
 class ReactiveComponent[T <: JComponent](val asComponent : T) {
@@ -19,19 +19,19 @@ class ReactiveComponent[T <: JComponent](val asComponent : T) {
   }
 
   lazy val foreground = {
-    val routableVar = RoutableVar(asComponent.getForeground());
-    observeInEDT(routableVar) { asComponent.setForeground(_) }
-    routableVar
+    val result = RoutableSignal(asComponent.getForeground());
+    observeInEDT(result) { asComponent.setForeground(_) }
+    result
   }
   lazy val background = {
-    val routableVar = RoutableVar(asComponent.getBackground());
-    observeInEDT(routableVar) { asComponent.setBackground(_) }
-    routableVar
+    val result = RoutableSignal(asComponent.getBackground());
+    observeInEDT(result) { asComponent.setBackground(_) }
+    result
   }
   lazy val enabled = {
-    val routableVar = RoutableVar(asComponent.isEnabled());
-    observeInEDT(routableVar) { asComponent.setEnabled(_) }
-    routableVar
+    val result = RoutableSignal(asComponent.isEnabled());
+    observeInEDT(result) { asComponent.setEnabled(_) }
+    result
   }
 
   lazy val _mousePosition : Var[Option[Point]] = {

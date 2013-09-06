@@ -7,11 +7,11 @@ import javax.swing.JComponent
 import reactive.signals.Signal
 import reactive.events.EventSource
 import reactive.events.EventStream
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift.valueToSignal
 
 class ReactiveButton(initialText: Signal[String]) extends ReactiveComponent(new JButton()) with ReactiveCommittable {
-  val text = RoutableVar(initialText)
+  val text = RoutableSignal(initialText)
   observeInEDT(text) { asComponent.setText(_) };
 
   private val _clicks = EventSource[ActionEvent]

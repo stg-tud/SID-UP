@@ -10,6 +10,7 @@ import scala.util.Try
 import reactive.impl.mirroring.ReactiveMirror
 
 trait ReactiveImpl[O, V, P, R <: Reactive[O, V, P, R]] extends Reactive[O, V, P, R] with Logging {
+  this: R =>
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private[reactive] val name = {

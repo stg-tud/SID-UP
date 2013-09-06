@@ -21,8 +21,8 @@ class VarTest extends FunSuite {
     val event1 = log.dequeue
     expectResult(false) { event1.sourceDependenciesChanged }
     expectResult(Set(v.uuid)) { event1.newSourceDependencies }
-    expectResult(true) { event1.valueChanged }
-    expectResult(2) { event1.newValue }
+    expectResult(Some(2)) { event1.pulse }
+    expectResult(2) { event1.value }
 
     v << 3;
 
@@ -32,8 +32,8 @@ class VarTest extends FunSuite {
     val event2 = log.dequeue
     expectResult(false) { event2.sourceDependenciesChanged }
     expectResult(Set(v.uuid)) { event2.newSourceDependencies }
-    expectResult(true) { event2.valueChanged }
-    expectResult(3) { event2.newValue }
+    expectResult(Some(3)) { event2.pulse }
+    expectResult(3) { event2.value }
 
     v << 3;
 
@@ -43,7 +43,7 @@ class VarTest extends FunSuite {
     val event3 = log.dequeue
     expectResult(false) { event3.sourceDependenciesChanged }
     expectResult(Set(v.uuid)) { event3.newSourceDependencies }
-    expectResult(false) { event3.valueChanged }
-    expectResult(3) { event3.newValue }
+    expectResult(Some(3)) { event3.pulse }
+    expectResult(3) { event3.value }
   }
 }

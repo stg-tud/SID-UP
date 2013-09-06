@@ -7,11 +7,11 @@ import javax.swing.JComponent
 import reactive.Reactive
 import reactive.signals.Var
 import reactive.signals.Signal
-import reactive.signals.RoutableVar
+import reactive.signals.RoutableSignal
 import reactive.Lift.valueToSignal
 
 class ReactiveCheckbox(initialText: Signal[String]) extends ReactiveComponent(new JCheckBox()) with ReactiveInput[Boolean] {
-  val text = RoutableVar(initialText)
+  val text = RoutableSignal(initialText)
   observeInEDT(text) { asComponent.setText(_) };
 
   private val _selected = Var(asComponent.isSelected())
