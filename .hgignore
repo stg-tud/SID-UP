@@ -2,13 +2,14 @@ syntax: regexp
 
 ^(.*/)?\.cache
 ^(.*/)?\.project
-^.*/\.classpath
-^.*/\.settings/
-^.*/bin/
-^.*/target/
+/\.classpath
+/\.settings/
+/bin/
+/target/
 \.pdf$
 \.log$
 \.sublime-(project|workspace)$
 ^[^/]*\.txt$
 ^[^/]*\.md$
 ^\.tags
+/tmp/
