@@ -4,7 +4,7 @@ import java.util.UUID
 import reactive.signals.Signal
 import reactive.impl.mirroring.ReactiveMirror
 
-trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, _]] {
+trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, R]] {
   this: R =>
   def now: V
   

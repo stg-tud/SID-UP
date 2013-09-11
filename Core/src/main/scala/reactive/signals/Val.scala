@@ -12,7 +12,7 @@ class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A, A, Sign
   override val changes: EventStream[A] = NothingEventStream
   override def map[B](op: A => B): Signal[B] = new Val(op(value))
   override def flatMap[B](op: A => Signal[B]): Signal[B] = op(value)
-  override def flatten[R <: Reactive[_, _, _, R]](implicit evidence: A <:< R): R = value.asInstanceOf[R]
+  override def flatten[R <: Reactive[_, _, _, R]](implicit evidence: A <:< R): R = value
   override def snapshot(when: EventStream[_]): Signal[A] = this
   override def pulse(when: EventStream[_]): EventStream[A] = when.map { _ => value }
 }
