@@ -166,9 +166,9 @@ object ProjectionsUI {
     val orderStream = orderSpinner.value.pulse(clientButton.commits).map { Order(_) }
     val orders = orderStream.log
 
-    val model = new DefaultListModel[Date]()
+    val model = new DefaultListModel[String]()
     val managPanic = management.map { _ < 0 }.changes.filter(x => x).observe { _ =>
-      model.addElement(new Date())
+      model.addElement("Mail sent on " + new Date())
     }
 
     val managementStatus = new JList(model)
