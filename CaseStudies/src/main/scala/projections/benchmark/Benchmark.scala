@@ -27,6 +27,7 @@ object SimpleBenchmark extends PerformanceTest {
       RegressionReporter.Historian.Complete()),
     HtmlReporter(true),
     new DsvReporter(delimiter = '\t'),
+    new GnuplotReporter(),
     new LoggingReporter)
 
   val persistor = new SerializationPersistor("./tmp/")
