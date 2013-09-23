@@ -26,19 +26,19 @@ package rmi {
 
   class Client extends java.rmi.server.UnicastRemoteObject
       with projections.observer.Client with Observable[Seq[Order]] with RemoteObservable[Seq[Order]] {
-    override def init(): Unit = java.rmi.Naming.rebind(s"$name", this)
-    override def deinit(): Unit = java.rmi.Naming.unbind(s"$name")
+    override def init(): Unit = java.rmi.Naming.rebind(name, this)
+    override def deinit(): Unit = java.rmi.Naming.unbind(name)
   }
 
   abstract class Division extends java.rmi.server.UnicastRemoteObject
       with Observable[Message[Int]] with Observer[Seq[Order]] with RemoteObservable[Message[Int]] {
     this: projections.observer.Division =>
     override def init(): Unit = {
-      java.rmi.Naming.rebind(s"$name", this)
+      java.rmi.Naming.rebind(name, this)
       val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Order]]]
       remoteClient.addObserver(this)
     }
-    override def deinit() = java.rmi.Naming.unbind(s"$name")
+    override def deinit() = java.rmi.Naming.unbind(name)
   }
 
   class Purchases(var perOrderCost: Int = 5) extends Division with projections.observer.Purchases
