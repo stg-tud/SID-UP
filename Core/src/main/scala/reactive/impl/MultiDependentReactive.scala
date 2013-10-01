@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 trait MultiDependentReactive extends Logging {
   self: DependentReactive[_, _] =>
 
-  protected val dependencies: Set[Reactive[_, _, _]]
+  protected val dependencies: Set[Reactive.Dependency]
   dependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = null
