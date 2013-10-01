@@ -22,3 +22,10 @@ libraryDependencies ++= Seq(
 	"org.slf4j" % "slf4j-simple" % "1.7.5",
 	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 )
+
+initialCommands in console := """
+import reactive._
+import reactive.signals._
+import reactive.events._
+import reactive.remote._
+"""
