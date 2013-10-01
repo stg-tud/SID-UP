@@ -68,7 +68,7 @@ object SimpleBenchmark extends PerformanceTest {
 
   measureNetwork("rmi", () => new TestRMI())
   measureNetwork("reactives", () => new TestReactives())
-  measureNetwork("sockets", () => new TestSockets())
+  // measureNetwork("sockets", () => new TestSockets())
   measureNetwork("pure_calculation", () => new TestPureCalculation())
 
 }

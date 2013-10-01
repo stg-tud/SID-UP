@@ -14,6 +14,8 @@ trait InitReactives extends TestCommon {
 
   def name = "reactive"
 
+  val registry = java.rmi.registry.LocateRegistry.createRegistry(1099)
+
   val setOrders = Var[Seq[Order]](List())
   val c = new Client(setOrders)
   val s = new Sales(0)
@@ -27,6 +29,13 @@ trait InitReactives extends TestCommon {
   m.difference.observe { v => done(v) }
 
   println("done")
+
+  override def deinit() = {
+    println(s"deinit $name")
+    registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
+    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
+    println("done")
+  }
 }
 
 trait InitRMI extends TestCommon {
