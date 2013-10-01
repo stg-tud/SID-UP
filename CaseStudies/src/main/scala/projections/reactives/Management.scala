@@ -1,14 +1,15 @@
 package projections.reactives
 
-import reactive.signals.Signal
-import reactive.Lift._
 import Numeric.Implicits._
-import reactive.NumericLift._
 import projections.Order
+import reactive.Lift._
+import reactive.NumericLift._
+import reactive.remote.RemoteSignal
+import reactive.signals.Signal
 
 class Management {
-  lazy val purchases: Signal[Int] = SignalRegistry.retrieve("purchases").get.asInstanceOf[Signal[Int]]
-  lazy val sales: Signal[Int] = SignalRegistry.retrieve("sales").get.asInstanceOf[Signal[Int]]
+  lazy val purchases: Signal[Int] = RemoteSignal.lookup[Int]("purchases")
+  lazy val sales: Signal[Int] =  RemoteSignal.lookup[Int]("sales")
 
   lazy val difference: Signal[Int] = sales - purchases
   lazy val panic: Signal[Boolean] = difference.map { _ < 0 }

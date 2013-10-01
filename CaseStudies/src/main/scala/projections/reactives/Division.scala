@@ -1,16 +1,17 @@
 package projections.reactives
 
-import reactive.Lift._
-import reactive.NumericLift._
-import reactive.LiftableWrappers._
-import reactive.signals.Signal
 import Numeric.Implicits._
 import projections.Order
+import reactive.Lift._
+import reactive.LiftableWrappers._
+import reactive.NumericLift._
+import reactive.remote.RemoteSignal
+import reactive.signals.Signal
 
 abstract class Division(val name: String) {
-  lazy val orders = SignalRegistry(s"client").asInstanceOf[Signal[Seq[Order]]]
+  lazy val orders = RemoteSignal.lookup[Seq[Order]]("client")
 
-  def init() = SignalRegistry.register(s"$name", total)
+  def init() = RemoteSignal.rebind(name, total)
 
   def total: Signal[Int]
 }
