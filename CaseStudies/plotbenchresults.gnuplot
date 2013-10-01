@@ -1,4 +1,4 @@
-set terminal png
+set terminal png size 1280,720
 
 set xlabel "Iterations"
 set ylabel "Time (ms)"
