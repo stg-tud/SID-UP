@@ -10,15 +10,11 @@ import java.rmi.server.UnicastRemoteObject
 import java.rmi.Remote
 
 @remote trait RemoteSignalDependency[V] {
-  protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
-  protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
-  protected[reactive] def addRemoteDependant(transaction: Transaction, dependant: RemoteDependant)
-  protected[reactive] def removeRemoteDependant(transaction: Transaction, dependant: RemoteDependant)
-  protected[reactive] def value(transaction: Transaction): V
+  protected[reactive] def addRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V])
 }
 
-@remote trait RemoteDependant extends Reactive.Dependant {
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
+@remote trait RemoteDependant[V] {
+  def update(transaction: Transaction, pulse: Option[V], updatedSourceDependencies: Option[Set[UUID]]): Unit
 }
 
 object RemoteSignal {

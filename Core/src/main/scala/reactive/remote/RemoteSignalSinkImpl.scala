@@ -5,21 +5,28 @@ import java.util.UUID
 
 import reactive.Transaction
 import reactive.signals.impl.DependentSignalImpl
+import reactive.signals.impl.SignalImpl
 
 class RemoteSignalSinkImpl[A](val dependency: RemoteSignalDependency[A])
-  extends UnicastRemoteObject with RemoteDependant with DependentSignalImpl[A] {
+  extends UnicastRemoteObject with RemoteDependant[A] with SignalImpl[A] {
 
-  protected def reevaluateValue(transaction: reactive.Transaction): A = dependency.value(transaction)
+  var _sourceDependencies: Set[java.util.UUID] = _
+  var now: A = _
 
   dependency.addRemoteDependant(null, this)
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    synchronized {
-      doReevaluation(transaction, sourceDependenciesChanged, pulsed)
+  protected[reactive] def sourceDependencies(transaction: reactive.Transaction): Set[java.util.UUID] = _sourceDependencies
+  protected[reactive] def value(transaction: reactive.Transaction): A = now
+
+  def update(transaction: reactive.Transaction, pulse: Option[A], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
+    pulse.foreach(now = _)
+    val sdChanged = updatedSourceDependencies match {
+      case Some(usd) if usd != _sourceDependencies =>
+        _sourceDependencies = usd
+        true
+      case _ => false
     }
+    doPulse(transaction, sdChanged, pulse)
   }
 
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependency.sourceDependencies(transaction)
-  }
 }
