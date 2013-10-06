@@ -2,7 +2,7 @@ name := "ReactivePlaygroundCaseStudies"
 
 version := "0.0.0"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 scalacOptions ++= List(
   "-deprecation",
