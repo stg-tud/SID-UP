@@ -36,58 +36,12 @@ object ProjectionsUI {
     if (args.length == 0) makeUIwithReactives()
     else args(0) match {
       case "rmi" => makeUIwithRMIObservers()
-      case "sockets" => makeUIwithSocketObservers()
       case _ => makeUIwithReactives()
     }
   }
 
-  def makeUIwithSocketObservers() = {
-    import projections.observer.sockets._
-    import projections.observer.Message
-
-    val sales = Var(0)
-    val purchases = Var(0)
-    val management = Var(0)
-
-    val c = new Client()
-    val s = new Sales(sleeptime) {
-      override def notifyObservers(v: Message[Int]): Unit = {
-        sales << v.value
-        super.notifyObservers(v)
-      }
-    }
-    val p = new Purchases(5) {
-      override def notifyObservers(v: Message[Int]): Unit = {
-        purchases << v.value
-        super.notifyObservers(v)
-      }
-    }
-    val m = new Management() {
-      override def notifyObservers(v: Int): Unit = {
-        management << v
-        super.notifyObservers(v)
-      }
-    }
-
-    c.init()
-    p.init()
-    s.init()
-    m.init()
-
-    val (orders, glitch) = makeUI(
-      sales = sales,
-      purchases = purchases,
-      management = management
-    )
-    orders.observe { order =>
-      future { c.setOrders(order) }
-    }
-    m.disableTransaction << glitch
-  }
-
   def makeUIwithRMIObservers() = {
-    import projections.observer.rmi._
-    import projections.observer.Message
+    import projections.observer._
 
     try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
     catch { case _: Exception => println("registry already initialised") }
@@ -98,28 +52,23 @@ object ProjectionsUI {
 
     val c = new Client()
     val s = new Sales(sleeptime) {
-      override def notifyObservers(v: Message[Int]): Unit = {
-        sales << v.value
-        super.notifyObservers(v)
+      override def publish(v: Int): Unit = {
+        sales << v
+        super.publish(v)
       }
     }
     val p = new Purchases(5) {
-      override def notifyObservers(v: Message[Int]): Unit = {
-        purchases << v.value
-        super.notifyObservers(v)
+      override def publish(v: Int): Unit = {
+        purchases << v
+        super.publish(v)
       }
     }
     val m = new Management() {
-      override def notifyObservers(v: Int): Unit = {
+      override def publish(v: Int): Unit = {
         management << v
-        super.notifyObservers(v)
+        super.publish(v)
       }
     }
-
-    c.init()
-    p.init()
-    s.init()
-    m.init()
 
     val (orders, glitch) = makeUI(
       sales = sales,
@@ -135,15 +84,14 @@ object ProjectionsUI {
   def makeUIwithReactives() = {
     import projections.reactives._
 
+    try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
+    catch { case _: Exception => println("registry already initialised") }
+
     val setOrder = Var[Seq[Order]](Seq())
     val c = new Client(setOrder)
     val s = new Sales(sleeptime)
     val p = new Purchases(Var(5))
     val m = new Management()
-
-    c.init()
-    p.init()
-    s.init()
 
     val (orders, glitch) = makeUI(
       sales = s.total,

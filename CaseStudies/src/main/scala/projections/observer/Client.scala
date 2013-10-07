@@ -2,15 +2,11 @@ package projections.observer
 
 import projections.Order
 
-trait Client extends Observable[Seq[Order]] {
-  val name = "client"
+class Client extends Observable[Seq[Order]]("client") {
   var orders = Seq[Order]()
 
   def setOrders(orders: Seq[Order]) = {
     this.orders = orders
-    notifyObservers(orders)
+    publish(orders)
   }
-
-  def init(): Any
-  def deinit(): Any
 }

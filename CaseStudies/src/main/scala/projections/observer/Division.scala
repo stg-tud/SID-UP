@@ -2,44 +2,42 @@ package projections.observer
 
 import projections.Order
 
-trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
-
-  val name: String
-
-  def init(): Any
-  def deinit(): Any
+abstract class Division(name: String) extends Observable[Int](name) {
 
   var total = 0
   var currentOrders = Seq[Order]()
 
-  override def receive(orders: Seq[Order]) = {
-    currentOrders = orders
-    recalculate(false)
+  val clientObserver = new Observer[Seq[Order]]("client") {
+    def receive(orders: Seq[Order]) = {
+      currentOrders = orders
+      recalculate()
+    }
   }
+
+  protected def recalculate() {
+    total = calculateTotal(currentOrders)
+    publish(total)
+  }
+
+  def sumValues(orders: Seq[Order]) = orders.map { _.value }.sum
 
   def calculateTotal(orders: Seq[Order]): Int
-
-  protected def recalculate(direct: Boolean) {
-    total = calculateTotal(currentOrders)
-    notifyObservers(Message(total, name, direct))
-  }
 }
 
-trait Purchases extends Division {
-  var perOrderCost: Int
-  val name = "purchases"
-  override def calculateTotal(orders: Seq[Order]) = orders.map { _.value }.sum + orders.length * perOrderCost
+class Purchases(var perOrderCost: Int = 5) extends Division("purchases") {
+
+  override def calculateTotal(orders: Seq[Order]) = sumValues(orders) + orders.length * perOrderCost
+
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
-    recalculate(true)
+    recalculate()
   }
 }
 
-trait Sales extends Division {
-  val name = "sales"
-  val sleep: Int
+class Sales(sleep: Int = 0) extends Division("sales") {
+
   override def calculateTotal(orders: Seq[Order]) = {
     if (sleep > 0) Thread.sleep(sleep)
-    orders.map { _.value }.sum * 2
+    sumValues(orders) * 2
   }
 }

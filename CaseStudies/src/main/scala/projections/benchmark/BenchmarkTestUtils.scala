@@ -22,10 +22,6 @@ trait InitReactives extends TestCommon {
   val p = new Purchases(Var(perOrderCost))
   val m = new Management()
 
-  c.init()
-  p.init()
-  s.init()
-
   m.difference.observe { v => done(v) }
 
   println("done")
@@ -39,7 +35,7 @@ trait InitReactives extends TestCommon {
 }
 
 trait InitRMI extends TestCommon {
-  import projections.observer.rmi._
+  import projections.observer._
 
   def name = "rmi"
 
@@ -50,58 +46,16 @@ trait InitRMI extends TestCommon {
   val p = new Purchases(perOrderCost)
   val m = new Management()
 
-  c.init()
-  p.init()
-  s.init()
-  m.init()
-
-  m.addObserver(new Observer[Int] {
+  val managObserver = new Observer[Int]("management") {
     def receive(v: Int) = done(v)
-  })
+  }
 
   println("done")
 
   override def deinit() = {
     println(s"deinit $name")
-    m.deinit()
-    p.deinit()
-    s.deinit()
-    c.deinit()
     registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
     java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
-    println("done")
-  }
-}
-
-trait InitSockets extends TestCommon {
-  import projections.observer.sockets._
-
-  def name = "sockets"
-
-  val c = new Client()
-  val s = new Sales(0)
-  val p = new Purchases(perOrderCost)
-  val m = new Management()
-
-  c.init()
-  p.init()
-  s.init()
-  m.init()
-  Thread.sleep(1000) // this is to wait for initialisation
-
-  new Observer[Int] {
-    connect(27803)
-    override def receive(v: Int) = done(v)
-  }
-
-  println("done")
-
-  override def deinit() = {
-    println(s"deinit $name")
-    m.deinit()
-    p.deinit()
-    s.deinit()
-    c.deinit()
     println("done")
   }
 }

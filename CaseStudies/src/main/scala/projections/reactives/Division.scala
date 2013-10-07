@@ -8,22 +8,23 @@ import reactive.NumericLift._
 import reactive.remote.RemoteSignal
 import reactive.signals.Signal
 
-abstract class Division(val name: String) {
-  lazy val orders = RemoteSignal.lookup[Seq[Order]]("client")
-
-  def init() = RemoteSignal.rebind(name, total)
-
-  def total: Signal[Int]
+abstract class Division {
+  val orders = RemoteSignal.lookup[Seq[Order]]("client")
+  def sumValues(orders: Seq[Order]) = orders.map { _.value }.sum
 }
 
-class Purchases(perOrderCost: Signal[Int]) extends Division("purchases") {
-  lazy val orderCount: Signal[Int] = orders.map { _.size }
-  lazy val total = (orderCount * perOrderCost + orders.map { _.map { _.value }.sum })
+class Purchases(perOrderCost: Signal[Int]) extends Division {
+  val orderCount: Signal[Int] = orders.map { _.size }
+  val total = (orderCount * perOrderCost + orders.map { sumValues })
+
+  RemoteSignal.rebind("purchases", total)
 }
 
-class Sales(val sleep: Int = 0) extends Division("sales") {
-  lazy val total = orders.map { o =>
+class Sales(val sleep: Int = 0) extends Division {
+  val total = orders.map { o =>
     if (sleep > 0) Thread.sleep(sleep)
-    o.map { _.value }.sum * 2
+    sumValues(o) * 2
   }
+
+  RemoteSignal.rebind("sales", total)
 }

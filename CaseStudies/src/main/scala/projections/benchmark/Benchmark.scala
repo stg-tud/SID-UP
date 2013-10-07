@@ -68,7 +68,6 @@ object SimpleBenchmark extends PerformanceTest {
 
   measureNetwork("rmi", () => new TestRMI())
   measureNetwork("reactives", () => new TestReactives())
-  // measureNetwork("sockets", () => new TestSockets())
   measureNetwork("pure_calculation", () => new TestPureCalculation())
 
 }
@@ -83,10 +82,6 @@ class TestReactives extends InitReactives {
 }
 
 class TestRMI extends InitRMI {
-  def test(orders: Seq[Order]) = c.setOrders { orders }
-}
-
-class TestSockets extends InitSockets {
   def test(orders: Seq[Order]) = c.setOrders { orders }
 }
 

@@ -3,40 +3,45 @@ package projections.observer
 import reactive.signals.RoutableVar
 import reactive.Lift._
 
-trait Management extends Observable[Int] with Observer[Message[Int]] {
+class Management extends Observable[Int]("management") {
 
   val disableTransaction = RoutableVar(false)
 
   var lastSales = 0
   var lastPurchases = 0
-  var hasReceived = ""
   var difference: Int = 0
 
-  def init(): Any
-  def deinit(): Any
-
-  def recalcDifference() = {
+  def recalculate() = {
     difference = lastSales - lastPurchases
-    notifyObservers(difference)
+    publish(difference)
   }
 
-  def receive(v: Message[Int]) = {
-    v.sender match {
-      case "purchases" => lastPurchases = v.value
-      case "sales" => lastSales = v.value
+  val salesObserver = new Observer[Int]("sales") {
+    def receive(v: Int) = {
+      lastSales = v
+      update("sales")
     }
+  }
 
-    (v.direct || disableTransaction.now) match {
-      case true => recalcDifference()
-      case false => synchronized {
-        if (hasReceived == v.sender) throw new Exception("received from same source twice")
-        if (hasReceived == "") hasReceived = v.sender
-        else {
-          hasReceived = ""
-          recalcDifference()
-        }
+  val purchObserver = new Observer[Int]("purchases") {
+    def receive(v: Int) = {
+      lastPurchases = v
+      update("purchases")
+    }
+  }
+
+  var hasReceived = ""
+
+  def update(sender: String) = {
+    if (disableTransaction.now) recalculate()
+    else synchronized {
+      if (hasReceived == sender) throw new Exception("received from same source twice")
+      if (hasReceived == "") hasReceived = sender
+      else {
+        hasReceived = ""
+        recalculate()
       }
     }
-
   }
+
 }
