@@ -1,13 +1,10 @@
 package reactive.remote
 
 import java.rmi.server.UnicastRemoteObject
-import java.util.UUID
 
-import reactive.Transaction
-import reactive.signals.impl.DependentSignalImpl
 import reactive.signals.impl.SignalImpl
 
-class RemoteSignalSinkImpl[A](val dependency: RemoteSignalDependency[A])
+class RemoteSignalSinkImpl[A](val dependency: RemoteDependency[A])
   extends UnicastRemoteObject with RemoteDependant[A] with SignalImpl[A] {
 
   var _sourceDependencies: Set[java.util.UUID] = _
@@ -28,5 +25,4 @@ class RemoteSignalSinkImpl[A](val dependency: RemoteSignalDependency[A])
     }
     doPulse(transaction, sdChanged, pulse)
   }
-
 }

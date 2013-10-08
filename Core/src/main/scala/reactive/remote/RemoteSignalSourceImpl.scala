@@ -1,15 +1,14 @@
 package reactive.remote
 
 import java.rmi.server.UnicastRemoteObject
-import reactive.Transaction
-import reactive.impl.SingleDependentReactive
-import reactive.signals.Signal
-import reactive.signals.impl.DependentSignalImpl
+
 import reactive.Reactive
+import reactive.Transaction
 import reactive.impl.ReactiveImpl
+import reactive.signals.Signal
 
 class RemoteSignalSourceImpl[A](val dependency: Signal[A])
-  extends UnicastRemoteObject with Reactive.Dependant with RemoteSignalDependency[A] {
+  extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[A] {
 
   dependency.addDependant(null, this)
 
