@@ -3,7 +3,7 @@ set terminal png size 1280,720
 set xlabel "Iterations"
 set ylabel "Time (ms)"
 
-set logscale xy
+#set logscale xy
 
 filename(s) = sprintf("tmp/%s.tsv", s)
 

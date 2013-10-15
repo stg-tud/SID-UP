@@ -8,7 +8,7 @@ import reactive.Transaction
 import reactive.signals.Signal
 
 @remote trait RemoteDependency[V] {
-  protected[reactive] def addRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V])
+  protected[reactive] def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V]): (V, Set[UUID])
 }
 
 @remote trait RemoteDependant[V] {

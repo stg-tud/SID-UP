@@ -1,11 +1,11 @@
 package reactive.remote
 
 import java.rmi.server.UnicastRemoteObject
-
 import reactive.Reactive
 import reactive.Transaction
 import reactive.impl.ReactiveImpl
 import reactive.signals.Signal
+import java.util.UUID
 
 class RemoteSignalSourceImpl[A](val dependency: Signal[A])
   extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[A] {
@@ -19,8 +19,8 @@ class RemoteSignalSourceImpl[A](val dependency: Signal[A])
   }
 
   var dependants: Set[RemoteDependant[A]] = Set()
-  protected[reactive] def addRemoteDependant(transaction: Transaction, dependant: RemoteDependant[A]) = {
+  protected[reactive] def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[A]): (A, Set[UUID]) = {
     dependants += dependant
-    dependant.update(transaction, Option(dependency.value(transaction)), Option(dependency.sourceDependencies(transaction)))
+    (dependency.value(transaction), dependency.sourceDependencies(transaction))
   }
 }
