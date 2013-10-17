@@ -18,9 +18,11 @@ scalacOptions ++= List(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
+	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+	"com.typesafe.akka" %% "akka-actor" % "2.2.1",
+	"com.typesafe.akka" %% "akka-remote" % "2.2.1",
 	"org.scala-lang" %% "scala-actors-migration" % "1.0.0",
-	"org.slf4j" % "slf4j-simple" % "1.7.5",
-	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
+	"org.slf4j" % "slf4j-simple" % "1.7.5"
 )
 
 initialCommands in console := """
