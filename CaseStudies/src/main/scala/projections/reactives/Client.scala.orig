@@ -6,5 +6,5 @@ import reactive.remote.ActorRemoteSignal
 import reactive.signals.Signal
 
 class Client(val orders: Signal[Seq[Order]]) {
-  ActorRemoteSignal.rebind(projections.client, orders)
+  ActorRemoteSignal.rebind("client", orders)
 }

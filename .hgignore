@@ -13,3 +13,5 @@ syntax: regexp
 ^[^/]*\.md$
 ^\.tags
 /tmp/
+/.idea/
+\.iml$
