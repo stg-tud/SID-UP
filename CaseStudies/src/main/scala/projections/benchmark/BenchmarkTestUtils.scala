@@ -8,13 +8,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
 import com.typesafe.scalalogging.slf4j._
 import projections._
+import reactive.remote.ActorRemoteSignal
+import akka.actor.ActorSystem
 
 trait InitReactives extends TestCommon {
   import projections.reactives._
 
   def name = "reactive"
 
-  val registry = java.rmi.registry.LocateRegistry.createRegistry(1099)
+  //val registry = java.rmi.registry.LocateRegistry.createRegistry(1099)
+  ActorRemoteSignal.system.shutdown
+  ActorRemoteSignal.system = ActorSystem("remote")
+
 
   val setOrders = Var[Seq[Order]](List())
   val c = new Client(setOrders)
@@ -28,8 +33,9 @@ trait InitReactives extends TestCommon {
 
   override def deinit() = {
     println(s"deinit $name")
-    registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
-    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
+    // registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
+    // java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
+    ActorRemoteSignal.system.shutdown
     println("done")
   }
 }
