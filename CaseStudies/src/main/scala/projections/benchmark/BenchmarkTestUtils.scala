@@ -1,13 +1,14 @@
 package projections.benchmark
 
-import org.scalameter.api._
-import reactive.signals.Var
-import reactive.events.EventSource
-import scala.concurrent.future
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.concurrent.Semaphore
 import com.typesafe.scalalogging.slf4j._
+import java.util.concurrent.Semaphore
+import org.scalameter.api._
 import projections._
+import reactive.events.EventSource
+import reactive.remote.RemoteSignal
+import reactive.signals.Var
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.future
 
 trait InitReactives extends TestCommon {
   import projections.reactives._
@@ -22,7 +23,7 @@ trait InitReactives extends TestCommon {
   val p = new Purchases(Var(perOrderCost))
   val m = new Management()
 
-  m.difference.observe { v => done(v) }
+  RemoteSignal.lookup[Int](projections.management).observe { v => done(v) }
 
   println("done")
 
@@ -46,7 +47,7 @@ trait InitRMI extends TestCommon {
   val p = new Purchases(perOrderCost)
   val m = new Management()
 
-  val managObserver = new Observer[Int]("management") {
+  val managObserver = new Observer[Int](projections.management) {
     def receive(v: Int) = done(v)
   }
 

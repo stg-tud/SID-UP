@@ -52,14 +52,14 @@ object ProjectionsUI {
 
     val c = new Client()
     val s = new Sales(sleeptime) {
-      override def publish(v: Int): Unit = {
-        sales << v
+      override def publish(v: Message): Unit = {
+        sales << v.total
         super.publish(v)
       }
     }
     val p = new Purchases(5) {
-      override def publish(v: Int): Unit = {
-        purchases << v
+      override def publish(v: Message): Unit = {
+        purchases << v.total
         super.publish(v)
       }
     }

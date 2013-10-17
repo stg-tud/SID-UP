@@ -2,7 +2,7 @@ package projections.observer
 
 import projections.Order
 
-class Client extends Observable[Seq[Order]]("client") {
+class Client extends Observable[Seq[Order]](projections.client) {
   var orders = Seq[Order]()
 
   def setOrders(orders: Seq[Order]) = {
