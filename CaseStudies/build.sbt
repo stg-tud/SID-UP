@@ -13,6 +13,18 @@ scalacOptions ++= List(
   "-Xlint"
 )
 
+javaOptions ++= Seq(
+  "-server",
+  "-verbose:gc",
+  "-Xms512M",
+  "-Xmx512M",
+  //"-XX:NewRatio=1",
+  //"-XX:CompileThreshold=100",
+  "-XX:+PrintCompilation",
+  "-XX:+PrintGCDetails",
+  "-XX:+UseParallelGC"
+)
+
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(

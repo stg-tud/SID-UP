@@ -17,11 +17,10 @@ import scala.Some
 
 
 object ActorRemoteSignal {
-  implicit var system = ActorSystem("reactives")
   def props[A](signal: Signal[A]): Props = Props(classOf[ActorRemoteSignal[A]], signal)
-  def apply[A](dependency: ActorSelection)/*(implicit system: ActorSystem)*/: Signal[A] = new ActorSignalSinkImpl(dependency)
-  def rebind[A](name: String, signal: Signal[A])/*(implicit system: ActorSystem)*/ = system.actorOf(props(signal),name)
-  def lookup[A](name: String)/*(implicit system: ActorSystem)*/: Signal[A] = apply[A](system.actorSelection(s"/user/$name"))
+  def apply[A](dependency: ActorSelection)(implicit system: ActorSystem): Signal[A] = new ActorSignalSinkImpl(dependency)
+  def rebind[A](name: String, signal: Signal[A])(implicit system: ActorSystem) = system.actorOf(props(signal),name)
+  def lookup[A](name: String)(implicit system: ActorSystem): Signal[A] = apply[A](system.actorSelection(s"/user/$name"))
 }
 
 sealed trait SignalMessage

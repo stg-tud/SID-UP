@@ -9,7 +9,7 @@ import reactive.remote.RemoteSignal
 import reactive.signals.Signal
 
 abstract class Division {
-  val orders = RemoteSignal.lookup[Seq[Order]]("client")
+  val orders = RemoteSignal.lookup[Seq[Order]](projections.client)
   def sumValues(orders: Seq[Order]) = orders.map { _.value }.sum
 }
 
@@ -17,7 +17,7 @@ class Purchases(perOrderCost: Signal[Int]) extends Division {
   val orderCount: Signal[Int] = orders.map { _.size }
   val total = (orderCount * perOrderCost + orders.map { sumValues })
 
-  RemoteSignal.rebind("purchases", total)
+  RemoteSignal.rebind(projections.purchases, total)
 }
 
 class Sales(val sleep: Int = 0) extends Division {
@@ -26,5 +26,5 @@ class Sales(val sleep: Int = 0) extends Division {
     sumValues(o) * 2
   }
 
-  RemoteSignal.rebind("sales", total)
+  RemoteSignal.rebind(projections.sales, total)
 }

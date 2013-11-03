@@ -8,9 +8,11 @@ import reactive.remote.RemoteSignal
 import reactive.signals.Signal
 
 class Management {
-  val purchases: Signal[Int] = RemoteSignal.lookup[Int]("purchases")
-  val sales: Signal[Int] = RemoteSignal.lookup[Int]("sales")
+  val purchases: Signal[Int] = RemoteSignal.lookup[Int](projections.purchases)
+  val sales: Signal[Int] = RemoteSignal.lookup[Int](projections.sales)
 
   val difference: Signal[Int] = sales - purchases
   val panic: Signal[Boolean] = difference.map { _ < 0 }
+
+  RemoteSignal.rebind(projections.management, difference)
 }
