@@ -37,8 +37,15 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
   "github.com.ingoem" %% "scala-react" % "latest.integration",
-  "playground" %% "reactiveplaygroundcore" % "latest.integration"
+  "playground" %% "reactiveplaygroundcore" % "latest.integration",
+  "com.scalarx" %% "scalarx" % "0.1"
 )
 
 initialCommands in console := """
+def time[T](desc: String = "")(f: => T): T = {
+val start = System.nanoTime
+val res = f
+println(s"$desc took ${(System.nanoTime - start) / 1000000.0} ms")
+res
+}
 """
