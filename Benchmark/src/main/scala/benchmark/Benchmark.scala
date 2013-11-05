@@ -1,8 +1,9 @@
 package benchmark
 
 import org.scalameter.api._
-import scala.react.Domain
 import reactive.signals.impl.FunctionalSignal
+import scala.language.higherKinds
+import scala.react.Domain
 
 object DistReactBenchmark extends PerformanceTest {
 
@@ -24,11 +25,11 @@ object DistReactBenchmark extends PerformanceTest {
     new DsvReporter(delimiter = '\t'),
     new LoggingReporter)
 
-  val persistor = new SerializationPersistor("./results/")
+  val persistor = new SerializationPersistor("./tmp/")
 
   val repetitions = 50
   val iterations = 10
-  val testSize = 100
+  val testsize = 100
   val nanosleep = 1000
 
   def iterate[T](iterations: Int)(f: Int => T) = {
@@ -39,65 +40,65 @@ object DistReactBenchmark extends PerformanceTest {
     }
   }
 
-  var simpleTest: SimpleTest = _
+  val parameters = for {
+    a <- Gen.single("repetitions")(repetitions)
+    b <- Gen.single("iterations")(iterations)
+    c <- Gen.single("testsize")(testsize)
+    d <- Gen.single("nanosleep")(nanosleep)
+  } yield (a, b, c, d)
 
-  performance.of("signal chain").config(
-    exec.benchRuns -> repetitions
-  ).in {
-    measure.method("scala.react").in {
-      using(Gen.unit("none")).beforeTests {
-        simpleTest = new ReactChainBench(testSize)
-      }.in { _ =>
-        iterate(iterations) { i =>
-          assert(i + testSize == simpleTest.run(i))
-        }
+  simpleTestGroup("signal chain",
+    expected = (testsize, i) => i + testsize,
+    "scalareact" -> (new ReactChainBench(_)),
+    "playground" -> (new DistChainBench(_)),
+    "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
+    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
+    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper))
+  )
+
+  simpleTestGroup("signal fan",
+    expected = (testsize, i) => (i + 1) * testsize,
+    "scalareact" -> (new ReactFanBench(_)),
+    "playground" -> (new DistFanBench(_)),
+    "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
+    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper()))
+    //"wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper))
+  )
+
+  def simpleTestGroup(name: String, expected: (Int, Int) => Int, tests: Pair[String, Int => SimpleTest]*) =
+    performance.of(name).config(
+      exec.benchRuns -> repetitions
+    ).in {
+      tests.foreach {
+        case (name, test) =>
+          measure.method(name).in {
+            var simpleTest: SimpleTest = null
+            using(parameters).beforeTests {
+              simpleTest = test(testsize)
+            }.in {
+              _ =>
+                iterate(iterations) {
+                  i =>
+                    assert(expected(testsize, i) == simpleTest.run(i))
+                }
+            }
+          }
       }
     }
-
-    measure.method("playground").in {
-      using(Gen.unit("none")).beforeTests {
-        simpleTest = new DistChainBench(testSize)
-      }.in { _ =>
-        iterate(iterations) { i =>
-          assert(i + testSize == simpleTest.run(i))
-        }
-      }
-    }
-  }
-
-  performance.of("signal fan").config(
-    exec.benchRuns -> repetitions
-  ).in {
-    measure.method("scala.react").in {
-      using(Gen.unit("none")).beforeTests {
-        simpleTest = new ReactFanBench(testSize)
-      }.in { _ =>
-        iterate(iterations) { i =>
-          assert((i + 1) * testSize == simpleTest.run(i))
-        }
-      }
-    }
-
-    measure.method("playground").in {
-      using(Gen.unit("none")).beforeTests {
-        simpleTest = new DistFanBench(testSize)
-      }.in { _ =>
-        iterate(iterations) { i =>
-          assert((i + 1) * testSize == simpleTest.run(i))
-        }
-      }
-    }
-  }
 
 }
 
 object simulateWork {
-  def apply() = {
-    val nanos = DistReactBenchmark.nanosleep
+  def apply(nanos: Long = DistReactBenchmark.nanosleep): Long = {
     if (nanos > 0) {
       val ct = System.nanoTime()
-      while (ct + nanos > System.nanoTime()) {}
+      var res = 0L
+      while (nanos > res) {
+        res = System.nanoTime() - ct
+      }
+      res
     }
+    else 0L
   }
 }
 
@@ -105,102 +106,4 @@ trait SimpleTest {
   def run(i: Int): Int
 }
 
-class DistChainBench(length: Int) extends SimpleTest {
 
-  import reactive.signals._
-
-  def run(i: Int) = {
-    first << i
-    last.now
-  }
-
-  val first = Var(-1)
-  val last = {
-    var curr: Signal[Int] = first
-    Range(0, length).foreach { i =>
-      curr = curr.map { v =>
-        simulateWork()
-        v + 1
-      }
-    }
-    curr
-  }
-}
-
-class ReactChainBench(length: Int) extends Domain with SimpleTest {
-  val scheduler = new ManualScheduler()
-  val engine = new Engine()
-
-  def run(i: Int) = {
-    schedule(first() = i)
-    runTurn(())
-    last.getValue
-  }
-
-  val first = Var(-1)
-  val last = {
-    var curr: Signal[Int] = first
-    Range(0, length).foreach { i =>
-      val last = curr
-      schedule {
-        curr = Strict {
-          simulateWork()
-          last() + 1
-        }
-      }
-      runTurn(())
-    }
-    curr
-  }
-}
-
-class DistFanBench(width: Int) extends SimpleTest {
-
-  import reactive.signals._
-
-  def run(i: Int) = {
-    first << i
-    last.now
-  }
-
-  val first = Var(-1)
-  val last = {
-    val fanned = Range(0, width).map { i =>
-      first.map {
-        simulateWork()
-        _ + 1
-      }
-    }
-    new FunctionalSignal({ t => fanned.map(_.now).sum}, fanned: _*)
-  }
-}
-
-class ReactFanBench(width: Int) extends Domain with SimpleTest {
-  val scheduler = new ManualScheduler()
-  val engine = new Engine()
-
-  def run(i: Int) = {
-    schedule(first() = i)
-    runTurn(())
-    last.getValue
-  }
-
-  val first = Var(-1)
-  val last = {
-    var fanned = Seq[Signal[Int]]()
-    schedule {
-      fanned = Range(0, width).map { i =>
-        Strict {
-          simulateWork()
-          1 + first()
-        }
-      }
-    }
-    var last: Option[Signal[Int]] = None
-    schedule {
-      last = Some(Strict {fanned.map {_()}.sum})
-    }
-    runTurn(())
-    last.get
-  }
-}
