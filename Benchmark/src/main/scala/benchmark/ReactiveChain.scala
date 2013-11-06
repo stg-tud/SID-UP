@@ -1,5 +1,6 @@
 package benchmark
 
+import scala.language.higherKinds
 import scala.react.Domain
 
 class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleTest {

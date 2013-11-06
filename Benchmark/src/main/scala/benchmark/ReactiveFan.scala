@@ -1,6 +1,7 @@
 package benchmark
 
 import scala.react.Domain
+import scala.language.higherKinds
 
 
 class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleTest {

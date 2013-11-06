@@ -30,7 +30,7 @@ object DistReactBenchmark extends PerformanceTest {
   val repetitions = 50
   val iterations = 10
   val testsize = 100
-  val nanosleep = 1000
+  val nanosleep = 100000
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
