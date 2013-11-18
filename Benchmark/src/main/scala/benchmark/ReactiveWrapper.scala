@@ -2,7 +2,8 @@ package benchmark
 
 import scala.language.higherKinds
 import reactive.signals.{Var, Signal}
-import rx.Rx
+import rx.{Propagator, Rx}
+import scala.concurrent.ExecutionContext
 
 /**
  * this tries to create some common abstractions for reactive implementations
@@ -10,6 +11,8 @@ import rx.Rx
  */
 trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
   def map[I, O](signal: GenSig[I])(f: I => O): GenSig[O]
+
+  def observe[I](signal: GenSig[I])(f: I => Unit): Any
 
   def setValue[V](source: GenVar[V])(value: V): Unit
 
@@ -22,6 +25,8 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
 
 object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
   def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
+
+  def observe[I](signal: Signal[I])(f: (I) => Unit): Any = signal.observe(f)
 
   def setValue[V](source: Var[V])(value: V): Unit = source << value
 
@@ -36,6 +41,23 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
+
+  def observe[I](signal: Rx[I])(f: (I) => Unit): Any = rx.Obs(signal, skipInitial = true)(f(signal()))
+
+  def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
+
+  def getValue[V](sink: Rx[V]): V = sink()
+
+  def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
+
+  def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx {signals.map(_())}
+}
+
+object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
+  implicit val propagator = new Propagator.Parallelizing()(ExecutionContext.global)
+  def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
+
+  def observe[I](signal: Rx[I])(f: (I) => Unit): Any = rx.Obs(signal, skipInitial = true)(f(signal()))
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
@@ -63,6 +85,10 @@ object ScalaReactWrapper {
         domain.runTurn(())
         result.get
       }
+
+      val observer = new domain.Observing {}
+
+      def observe[I](signal: domain.type#Signal[I])(f: (I) => Unit): Any = new observer.Observer1(signal, f)
 
       def getValue[V](sink: domain.type#Signal[V]): V = sink.getValue
 

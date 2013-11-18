@@ -13,18 +13,7 @@ class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wr
   }
 
   val first = makeVar(-1)
-  val last = {
-    var curr: GenSig[Int] = first
-    Range(0, length).foreach {
-      i =>
-        curr = map(curr) {
-          v =>
-            simulateWork()
-            v + 1
-        }
-    }
-    curr
-  }
+  val last = StructureBuilder.makeChain(length, wrapper, first)
 }
 
 class ReactChainBench(length: Int) extends Domain with SimpleTest {
@@ -45,7 +34,7 @@ class ReactChainBench(length: Int) extends Domain with SimpleTest {
         val last = curr
         schedule {
           curr = Strict {
-            simulateWork()
+            Simulate()
             last() + 1
           }
         }
@@ -71,7 +60,7 @@ class DistChainBench(length: Int) extends SimpleTest {
       i =>
         curr = curr.map {
           v =>
-            simulateWork()
+            Simulate()
             v + 1
         }
     }

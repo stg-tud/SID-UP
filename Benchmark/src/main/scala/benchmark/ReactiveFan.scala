@@ -1,7 +1,7 @@
 package benchmark
 
-import scala.react.Domain
 import scala.language.higherKinds
+import scala.react.Domain
 
 
 class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleTest {
@@ -14,16 +14,7 @@ class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapp
   }
 
   val first = makeVar(-1)
-  val last = {
-    val fanned = Range(0, width).map {
-      i =>
-        map(first) {
-          simulateWork()
-          _ + 1
-        }
-    }
-    map(transpose(fanned))(_.sum)
-  }
+  val last = StructureBuilder.makeFan(width, wrapper, first)
 }
 
 class DistFanBench(width: Int) extends SimpleTest {
@@ -39,9 +30,9 @@ class DistFanBench(width: Int) extends SimpleTest {
   val last = {
     val fanned = Range(0, width).map {
       i =>
-        first.map {
-          simulateWork()
-          _ + 1
+        first.map { v =>
+          Simulate()
+          v + 1
         }
     }
     new impl.FunctionalSignal({
@@ -64,20 +55,17 @@ class ReactFanBench(width: Int) extends Domain with SimpleTest {
   val last = {
     var fanned = Seq[Signal[Int]]()
     schedule {
-      fanned = Range(0, width).map {
-        i =>
-          Strict {
-            simulateWork()
-            1 + first()
-          }
+      fanned = Range(0, width).map { i =>
+        Strict {
+          Simulate()
+          1 + first()
+        }
       }
     }
     var last: Option[Signal[Int]] = None
     schedule {
       last = Some(Strict {
-        fanned.map {
-          _()
-        }.sum
+        fanned.map { _() }.sum
       })
     }
     runTurn(())

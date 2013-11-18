@@ -18,7 +18,7 @@ javaOptions ++= Seq(
   //"-verbose:gc",
   "-Xms512M",
   "-Xmx512M",
-  "-Xss100M",
+  "-Xss2M",
   //"-XX:NewRatio=1",
   //"-XX:CompileThreshold=100",
   //"-XX:+PrintCompilation",
