@@ -72,15 +72,17 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
 
 object ReactiveImpl extends Logging {
   import scala.concurrent._
-  private val pool = Executors.newCachedThreadPool()
-  private implicit val myExecutionContext = new ExecutionContext {
-    def execute(runnable: Runnable) {
-      pool.submit(runnable)
-    }
-    def reportFailure(t: Throwable) = {
-      t.printStackTrace()
-    }
-  }
+//  private val pool = Executors.newCachedThreadPool()
+//  private implicit val myExecutionContext = new ExecutionContext {
+//    def execute(runnable: Runnable) {
+//      pool.submit(runnable)
+//    }
+//    def reportFailure(t: Throwable) = {
+//      t.printStackTrace()
+//    }
+//  }
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
