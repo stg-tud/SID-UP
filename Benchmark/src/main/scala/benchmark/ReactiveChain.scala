@@ -3,14 +3,9 @@ package benchmark
 import scala.language.higherKinds
 import scala.react.Domain
 
-class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleTest {
+class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 
   import wrapper._
-
-  def run(i: Int): Int = {
-    setValue(first)(i)
-    getValue(last)
-  }
 
   val first = makeVar(-1)
   val last = StructureBuilder.makeChain(length, wrapper, first)

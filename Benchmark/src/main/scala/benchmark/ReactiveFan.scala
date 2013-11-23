@@ -4,14 +4,9 @@ import scala.language.higherKinds
 import scala.react.Domain
 
 
-class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleTest {
+class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 
   import wrapper._
-
-  def run(i: Int): Int = {
-    setValue(first)(i)
-    getValue(last)
-  }
 
   val first = makeVar(-1)
   val last = StructureBuilder.makeFan(width, wrapper, first)
