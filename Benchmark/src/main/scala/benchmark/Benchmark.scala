@@ -2,8 +2,6 @@ package benchmark
 
 import org.scalameter.api._
 import scala.language.higherKinds
-import scala.concurrent.{Await, Promise}
-import scala.concurrent.duration.Duration
 
 object DistReactBenchmark extends PerformanceTest {
 
@@ -23,6 +21,7 @@ object DistReactBenchmark extends PerformanceTest {
       RegressionReporter.Historian.Complete()),
     HtmlReporter(true),
     new DsvReporter(delimiter = '\t'),
+    new GnuplotReporter(),
     new LoggingReporter)
 
   val persistor = new SerializationPersistor("./tmp/")
@@ -31,7 +30,7 @@ object DistReactBenchmark extends PerformanceTest {
   val iterations = 10
   val testsize = 25
   val nanobusy = Seq(0L)
-  val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 1000L * 1000L)
+  val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 200000L, 300000L, 1000L * 1000L, 10L * 1000L * 1000L)
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -75,14 +74,23 @@ object DistReactBenchmark extends PerformanceTest {
     //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
-  def simpleTestGroup(name: String, expected: (Int, Int) => Int, tests: Pair[String, Int => SimpleTest]*) =
-    performance.of(name).config(
+  simpleTestGroup("three hosts with many sources",
+    expected = (testsize, i) => (i + 1001) * testsize + (i + 1000 + testsize) + ( i + 1000),
+    "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
+    "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper()))
+    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+  )
+
+  def simpleTestGroup(groupname: String, expected: (Int, Int) => Int, tests: Pair[String, Int => SimpleTest]*) =
+    performance.of(groupname.replace(' ','_')).config(
       exec.benchRuns -> repetitions
     ).in {
       tests.foreach { case (name, test) =>
         measure.method(name).in {
           var simpleTest: SimpleTest = null
           using(parameters).beforeTests {
+            println(s"before test $groupname $name")
             simpleTest = test(testsize)
             simpleTest.init()
           }.setUp { case (repetitions, iterations, testsize, busytime, sleeptime) =>
@@ -111,7 +119,7 @@ object Simulate {
   var nanobusy = 0L
   var nanosleep = 0L
 
-  def apply(nanos: Long = nanobusy): Long = {
+  def apply(nanos: Long = nanobusy): Long =
     if (nanos > 0) {
       val ct = System.nanoTime()
       var res = 0L
@@ -121,14 +129,20 @@ object Simulate {
       res
     }
     else 0L
-  }
 
-  def network(nanos: Long = nanosleep): Long = apply(nanos)
+  def network(nanos: Long = nanosleep): Long =
+    if (nanos > 1000000) {
+      val ct = System.nanoTime()
+      Thread.sleep((nanos / 1000000).asInstanceOf[Int])
+      val slept = System.nanoTime() - ct
+      network(nanos - slept)
+    }
+    else apply(nanos)
 }
 
 trait SimpleTest {
   def run(i: Int): Int
-  def init(): Unit = {}
+  def init(): Any = ()
 }
 
 trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleTest {
@@ -136,23 +150,24 @@ trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleT
   def wrapper: ReactiveWrapper[GenSig, GenVar]
 
   def run(i: Int): Int = {
-    val done = Promise[Int]()
-    runDone = v => { done.success(v)}
+   // val done = Promise[Int]()
+    //runDone = v => { done.success(v)}
     wrapper.setValue(first)(i)
-    Await.ready(done.future,Duration.Inf)
+    //Await.ready(done.future,Duration.Inf)
     wrapper.getValue(last)
   }
 
   override def init() = {
-    observer
+    //println("run init")
+    //observer
   }
 
   def first: GenVar[Int]
 
   def last: GenSig[Int]
 
-  var runDone: Int => Unit = v => ()
-  lazy val observer = wrapper.observe(last)(v => runDone(v))
+  //var runDone: Int => Unit = v => ()
+  //lazy val observer = wrapper.observe(last)(v => runDone(v))
 
 
 }

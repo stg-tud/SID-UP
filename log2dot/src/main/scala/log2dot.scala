@@ -111,7 +111,6 @@ object log2dot {
 	def main(args: Array[String]) {
 
 		val infile = args(0) + ".log"
-		val tmpfile = "tmp.dot"
 		val outfile = args(0) + ".png"
 
 		val events = getEvents(infile)
@@ -120,11 +119,14 @@ object log2dot {
 
 		var i = 1;
 
-		for (transaction <- events.collect{case t: Transaction => t}.distinct) {
-			val dotString = dot(events.takeWhile(_ != transaction), pulses(transaction))
-			Seq("dot", "-Tpng", "-o", i.toString + outfile) run new ProcessIO(in => {in.write(dotString.getBytes); in.close()}, _.close(), _.close())
-			i += 1;
-		}
+    val dotString = dot(events)
+    Seq("dot", "-Tpng", "-o", i.toString + outfile) run new ProcessIO(in => {in.write(dotString.getBytes); in.close()}, _.close(), _.close())
+
+//		for (transaction <- events.collect{case t: Transaction => t}.distinct) {
+//			val dotString = dot(events.takeWhile(_ != transaction), pulses(transaction))
+//			Seq("dot", "-Tpng", "-o", i.toString + outfile) run new ProcessIO(in => {in.write(dotString.getBytes); in.close()}, _.close(), _.close())
+//			i += 1;
+//		}
 
 	}
 }
