@@ -30,7 +30,7 @@ javaOptions ++= Seq(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-  "com.github.axel22" %% "scalameter" % "0.4-M2",
+  "com.github.axel22" %% "scalameter" % "0.4",
   "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
