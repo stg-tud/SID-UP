@@ -1,4 +1,4 @@
-set terminal png
+set terminal pngcairo size 800,600 enhanced font 'Verdana,10'
 
 set xlabel "Simulated Latency (ns)"
 set ylabel "Time (ms)"
