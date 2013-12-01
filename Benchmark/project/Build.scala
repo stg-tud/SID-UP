@@ -7,8 +7,10 @@ object Benchmark extends Build {
 		id = "Benchmark",
 		base = file(".")
 	)
-//	.dependsOn(core)
+	.dependsOn(core)
+	.dependsOn(scalaReact)
 
-//	lazy val core = ProjectRef(base = file("../Core"), id = "ReactivePlaygroundCore")
+	lazy val core = ProjectRef(base = file("../Core"), id = "ReactivePlaygroundCore")
+	lazy val scalaReact = ProjectRef(base = file("../scala-react"), id = "scala-react")
 
 }

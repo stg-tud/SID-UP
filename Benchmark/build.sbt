@@ -36,8 +36,8 @@ libraryDependencies ++= Seq(
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "github.com.ingoem" %% "scala-react" % "latest.integration",
-  "playground" %% "reactiveplaygroundcore" % "latest.integration",
+  //"github.com.ingoem" %% "scala-react" % "latest.integration",
+  //"playground" %% "reactiveplaygroundcore" % "latest.integration",
   "com.scalarx" %% "scalarx" % "0.1"
 )
 
