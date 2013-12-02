@@ -6,7 +6,7 @@ class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrappe
 
   import wrapper._
 
-  val sourceSize = size * 1000
+  def sourceSize = size * 1000
 
   val sourceList = Range(0, sourceSize).map(_ => makeVar(0))
 
@@ -39,5 +39,6 @@ class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrappe
 
   val last = map(transpose(Seq(secondA, secondB, secondC)))(vs => {Simulate.network(); vs.sum})
 
-
+  def validateResult(i: Int, res: Int): Boolean =
+    (i + 1001) * size + (i + 1000 + size) + ( i + 1000) == res
 }

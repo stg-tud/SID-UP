@@ -10,6 +10,8 @@ class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, val w
 
   val first = makeVar(-1)
   val last = StructureBuilder.makeFan(width, wrapper, first)
+
+  def validateResult(i: Int, res: Int): Boolean = (i + 1) * width == res
 }
 
 class DistFanBench(width: Int) extends SimpleTest {
@@ -20,6 +22,8 @@ class DistFanBench(width: Int) extends SimpleTest {
     first << i
     last.now
   }
+
+  def validateResult(i: Int, res: Int): Boolean = (i + 1) * width == res
 
   val first = Var(-1)
   val last = {
@@ -45,6 +49,8 @@ class ReactFanBench(width: Int) extends Domain with SimpleTest {
     runTurn(())
     last.getValue
   }
+
+  def validateResult(i: Int, res: Int): Boolean = (i + 1) * width == res
 
   val first = Var(-1)
   val last = {

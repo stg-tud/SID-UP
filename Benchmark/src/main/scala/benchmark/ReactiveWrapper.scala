@@ -16,6 +16,8 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
 
   def setValue[V](source: GenVar[V])(value: V): Unit
 
+  def setValues[V](changes: (GenVar[V], V)*): Unit
+
   def getValue[V](sink: GenSig[V]): V
 
   def makeVar[V](value: V): GenVar[V]
@@ -29,6 +31,12 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
   def observe[I](signal: Signal[I])(f: (I) => Unit): Any = signal.observe(f)
 
   def setValue[V](source: Var[V])(value: V): Unit = source << value
+
+  def setValues[V](changes: (Var[V], V)*): Unit = {
+    val tb = new reactive.TransactionBuilder
+    changes.foreach{case (source, v) => tb.set(source, v)}
+    tb.commit()
+  }
 
   def getValue[V](sink: Signal[V]): V = sink.now
 
@@ -46,6 +54,8 @@ object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
+  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach{case (source, v) => source() = v}
+
   def getValue[V](sink: Rx[V]): V = sink()
 
   def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
@@ -60,6 +70,8 @@ object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
   def observe[I](signal: Rx[I])(f: (I) => Unit): Any = rx.Obs(signal, skipInitial = true)(f(signal()))
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
+
+  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach{case (source, v) => source() = v}
 
   def getValue[V](sink: Rx[V]): V = sink()
 
@@ -92,8 +104,11 @@ object ScalaReactWrapper {
 
       def getValue[V](sink: domain.type#Signal[V]): V = sink.getValue
 
-      def setValue[V](source: domain.type#Var[V])(value: V): Unit = {
-        domain.schedule(source() = value)
+      def setValue[V](source: domain.type#Var[V])(value: V): Unit = setValues(source -> value)
+      def setValues[V](changes: (domain.type#Var[V], V)*): Unit = {
+        domain.schedule {
+          changes.foreach{case (source, v) => source() = v}
+        }
         domain.runTurn(())
       }
 

@@ -49,7 +49,6 @@ object DistReactBenchmark extends PerformanceTest {
   } yield (a, b, c, d, e)
 
   simpleTestGroup("signal chain",
-    expected = (testsize, i) => i + testsize,
     "scalareact" -> (new ReactChainBench(_)),
     "playground" -> (new DistChainBench(_)),
     "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
@@ -58,7 +57,6 @@ object DistReactBenchmark extends PerformanceTest {
   )
 
   simpleTestGroup("signal fan",
-    expected = (testsize, i) => (i + 1) * testsize,
     "scalareact" -> (new ReactFanBench(_)),
     "playground" -> (new DistFanBench(_)),
     "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
@@ -67,7 +65,6 @@ object DistReactBenchmark extends PerformanceTest {
   )
 
   simpleTestGroup("three hosts",
-    expected = (testsize, i) => (i + 1001) * testsize + (i + 1000 + testsize) + ( i + 1000),
     "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper()))
     //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
@@ -75,14 +72,20 @@ object DistReactBenchmark extends PerformanceTest {
   )
 
   simpleTestGroup("three hosts with many sources",
-    expected = (testsize, i) => (i + 1001) * testsize + (i + 1000 + testsize) + ( i + 1000),
     "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper()))
     //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
     //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
-  def simpleTestGroup(groupname: String, expected: (Int, Int) => Int, tests: Pair[String, Int => SimpleTest]*) =
+  simpleTestGroup("three hosts with many changing sources",
+    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
+    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper()))
+    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+  )
+
+  def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
     performance.of(groupname.replace(' ','_')).config(
       exec.benchRuns -> repetitions
     ).in {
@@ -100,13 +103,13 @@ object DistReactBenchmark extends PerformanceTest {
             simpleTest.run(-1)
             iterate(iterations) { i =>
               val res = simpleTest.run(i)
-              assert(expected(testsize, i) == res)
+              assert(simpleTest.validateResult(i, res))
             }
             simpleTest.run(-1)
           }.in { case (_, iterations, _, _, _) =>
             iterate(iterations) { i =>
               val res = simpleTest.run(i)
-              assert(expected(testsize, i) == res)
+              assert(simpleTest.validateResult(i, res))
             }
           }
         }
@@ -143,6 +146,7 @@ object Simulate {
 trait SimpleTest {
   def run(i: Int): Int
   def init(): Any = ()
+  def validateResult(i: Int, res: Int): Boolean
 }
 
 trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleTest {

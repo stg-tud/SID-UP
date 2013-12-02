@@ -9,6 +9,8 @@ class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, va
 
   val first = makeVar(-1)
   val last = StructureBuilder.makeChain(length, wrapper, first)
+
+  def validateResult(i: Int, res: Int): Boolean = i + length == res
 }
 
 class ReactChainBench(length: Int) extends Domain with SimpleTest {
@@ -20,6 +22,8 @@ class ReactChainBench(length: Int) extends Domain with SimpleTest {
     runTurn(())
     last.getValue
   }
+
+  def validateResult(i: Int, res: Int): Boolean = i + length == res
 
   val first = Var(-1)
   val last = {
@@ -47,6 +51,8 @@ class DistChainBench(length: Int) extends SimpleTest {
     first << i
     last.now
   }
+
+  def validateResult(i: Int, res: Int): Boolean = i + length == res
 
   val first = Var(-1)
   val last = {
