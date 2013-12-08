@@ -29,6 +29,7 @@ object Propagator{
                       .map{ case (target, pingers) => Future{
           target.ping(pingers).map(target.asInstanceOf[Emitter[Any]] -> _)
         }}
+        globalUtils.Simulate.coordination()
         Future.sequence[Seq[(Emitter[Any], Reactor[Nothing])], Seq](next).map(_.flatten ++ later).flatMap(propagate)
       }else Future.successful(())
     }
@@ -47,6 +48,7 @@ object Propagator{
                       .mapValues(_.map(_._1).distinct)
                       .toSeq
                       .map{ case (target, pingers) =>
+          globalUtils.Simulate.coordination()
           target.ping(pingers).map(target.asInstanceOf[Emitter[Any]] -> _)
         }
         propagate(next.flatten ++ later)

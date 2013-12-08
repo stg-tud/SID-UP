@@ -142,8 +142,8 @@ abstract class EngineModule { self: Domain =>
      */
     protected def tryTock(dep: StrictNode) = try {
       debug.logTock(dep)
-      globalUtils.Simulate.network()
       dep.tock()
+      globalUtils.Simulate.coordination()
     } catch {
       case lm @ LevelMismatch =>
         val lvl = lm.accessed.level
