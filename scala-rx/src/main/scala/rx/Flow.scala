@@ -4,6 +4,9 @@ import scala.util.{DynamicVariable, Try, Failure, Success}
 
 
 import ref.WeakReference
+import java.util.Collections
+import java.util
+import scala.collection.JavaConversions._
 
 private[rx] trait Node{
   protected[rx] def level: Long
@@ -23,18 +26,19 @@ private[rx] trait Node{
  * [[Reactor]]s which need to be pinged when an event is fired.
  */
 trait Emitter[+T] extends Node{
-  private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
+  private[this] val children = Atomic[java.util.Set[Reactor[T]]](Collections.newSetFromMap(new util.WeakHashMap[Reactor[T], java.lang.Boolean]()))
+  //private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */
-  def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
+  def getChildren: Seq[Reactor[Nothing]] = children.get.toIndexedSeq
 
   /**
    * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
    * [[Emitter]] will cause `child` to react.
    */
   def linkChild[R >: T](child: Reactor[R]): Unit = {
-    children.spinSet(c => (WeakReference(child) :: c.filter(_.get.isDefined)).distinct)
+    children.spinSet(c => {c.add(child); c})
   }
 }
 

@@ -52,38 +52,38 @@ object DistReactBenchmark extends PerformanceTest {
     "scalareact" -> (new ReactChainBench(_)),
     "playground" -> (new DistChainBench(_)),
     "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper()))
-    //"wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper))
+    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
+    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper))
   )
 
   simpleTestGroup("signal fan",
     "scalareact" -> (new ReactFanBench(_)),
     "playground" -> (new DistFanBench(_)),
     "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper()))
-    //"wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper))
+    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper())),
+    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper))
   )
 
-  simpleTestGroup("three hosts",
-    "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper()))
-    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
-  )
-
-  simpleTestGroup("three hosts with many sources",
-    "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper()))
-    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
-  )
-
-  simpleTestGroup("three hosts with many changing sources",
-    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper()))
-    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
-  )
+//  simpleTestGroup("three hosts",
+//    "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper()))
+//    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+//    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+//  )
+//
+//  simpleTestGroup("three hosts with many sources",
+//    "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper()))
+//    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+//    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+//  )
+//
+//  simpleTestGroup("three hosts with many changing sources",
+//    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper()))
+//    //"wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+//    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+//  )
 
   def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
     performance.of(groupname.replace(' ','_')).config(
