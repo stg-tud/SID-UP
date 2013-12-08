@@ -3,7 +3,8 @@ package benchmark
 import scala.language.higherKinds
 import reactive.signals.{Var, Signal}
 import rx.{Propagator, Rx}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Await, Promise, ExecutionContext}
+import scala.concurrent.duration.Duration
 
 /**
  * this tries to create some common abstractions for reactive implementations
@@ -12,7 +13,7 @@ import scala.concurrent.ExecutionContext
 trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
   def map[I, O](signal: GenSig[I])(f: I => O): GenSig[O]
 
-  def observe[I](signal: GenSig[I])(f: I => Unit): Any
+  def awaiter[I](signal: GenSig[I]): () => Unit
 
   def setValue[V](source: GenVar[V])(value: V): Unit
 
@@ -28,7 +29,7 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
 object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
   def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
-  def observe[I](signal: Signal[I])(f: (I) => Unit): Any = signal.observe(f)
+  def awaiter[I](signal: Signal[I]): () => Unit = () => ()
 
   def setValue[V](source: Var[V])(value: V): Unit = source << value
 
@@ -50,7 +51,7 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
-  def observe[I](signal: Rx[I])(f: (I) => Unit): Any = rx.Obs(signal, skipInitial = true)(f(signal()))
+  def awaiter[I](signal: Rx[I]): () => Unit = () => ()
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
@@ -67,7 +68,14 @@ object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
   implicit val propagator = new Propagator.Parallelizing()(ExecutionContext.global)
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
-  def observe[I](signal: Rx[I])(f: (I) => Unit): Any = rx.Obs(signal, skipInitial = true)(f(signal()))
+  def awaiter[I](signal: Rx[I]): () => Unit = {
+    val promise = Promise[Unit]()
+    val obs = rx.Obs(signal, skipInitial = true)(promise.success(()))
+    () => {
+      Await.ready(promise.future, Duration.Inf)
+      obs.active = false
+    }
+  }
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
@@ -100,7 +108,7 @@ object ScalaReactWrapper {
 
       val observer = new domain.Observing {}
 
-      def observe[I](signal: domain.type#Signal[I])(f: (I) => Unit): Any = new observer.Observer1(signal, f)
+      def awaiter[I](signal: domain.type#Signal[I]): () => Unit = () => ()
 
       def getValue[V](sink: domain.type#Signal[V]): V = sink.getValue
 

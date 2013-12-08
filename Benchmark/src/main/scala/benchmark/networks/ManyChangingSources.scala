@@ -1,6 +1,7 @@
-package benchmark
+package benchmark.networks
 
 import scala.language.higherKinds
+import benchmark._
 
 class ManyChangingSources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, wrapper: ReactiveWrapper[GenSig, GenVar]) extends ManySources[GenSig, GenVar](size, wrapper) {
 

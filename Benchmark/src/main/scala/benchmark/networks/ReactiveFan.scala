@@ -1,8 +1,9 @@
-package benchmark
+package benchmark.networks
 
 import scala.language.higherKinds
 import scala.react.Domain
 import globalUtils.Simulate
+import benchmark._
 
 class WrappedFanBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 

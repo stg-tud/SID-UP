@@ -2,6 +2,7 @@ package benchmark
 
 import org.scalameter.api._
 import scala.language.higherKinds
+import benchmark.networks._
 
 object DistReactBenchmark extends PerformanceTest {
 
@@ -74,7 +75,7 @@ object DistReactBenchmark extends PerformanceTest {
   simpleTestGroup("three hosts with many sources",
     "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper))
     //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
@@ -129,24 +130,15 @@ trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleT
   def wrapper: ReactiveWrapper[GenSig, GenVar]
 
   def run(i: Int): Int = {
-   // val done = Promise[Int]()
-    //runDone = v => { done.success(v)}
+    val await = wrapper.awaiter(last)
     wrapper.setValue(first)(i)
-    //Await.ready(done.future,Duration.Inf)
+    await()
     wrapper.getValue(last)
   }
 
-  override def init() = {
-    //println("run init")
-    //observer
-  }
+  override def init() = {}
 
   def first: GenVar[Int]
 
   def last: GenSig[Int]
-
-  //var runDone: Int => Unit = v => ()
-  //lazy val observer = wrapper.observe(last)(v => runDone(v))
-
-
 }
