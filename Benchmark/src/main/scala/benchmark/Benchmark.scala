@@ -1,10 +1,10 @@
 package benchmark
 
 import org.scalameter.api._
-import scala.language.higherKinds
 import benchmark.networks._
+import scala.util.Random
 
-object DistReactBenchmark extends PerformanceTest {
+object Benchmark extends PerformanceTest {
 
   def measurer = new Measurer.IgnoringGC with Measurer.PeriodicReinstantiation {
     override val defaultFrequency = 12
@@ -31,7 +31,8 @@ object DistReactBenchmark extends PerformanceTest {
   val iterations = 10
   val testsize = 25
   val nanobusy = Seq(0L)
-  val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 200000L, 300000L, 1000L * 1000L, 10L * 1000L * 1000L)
+  val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 200000L, 300000L,
+    1000L * 1000L, 2 * 1000L * 1000L, 3 * 1000L * 1000L, 5 * 1000L * 1000L, 10L * 1000L * 1000L, 20L * 1000L * 1000L)
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -54,7 +55,8 @@ object DistReactBenchmark extends PerformanceTest {
     "playground" -> (new DistChainBench(_)),
     "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper))
+    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new WrappedChainBench(_, ScalaRxWrapperParallel))
   )
 
   simpleTestGroup("signal fan",
@@ -62,28 +64,29 @@ object DistReactBenchmark extends PerformanceTest {
     "playground" -> (new DistFanBench(_)),
     "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper))
+    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new WrappedFanBench(_, ScalaRxWrapperParallel))
   )
 
   simpleTestGroup("three hosts",
     "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper))
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
   simpleTestGroup("three hosts with many sources",
     "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper))
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
   simpleTestGroup("three hosts with many changing sources",
     "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper))
-    //"wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
   )
 
   def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
@@ -101,12 +104,12 @@ object DistReactBenchmark extends PerformanceTest {
             globalUtils.Simulate.nanobusy = busytime
             globalUtils.Simulate.nanosleep = sleeptime
             // manual warmup step …
-            simpleTest.run(-1)
+            simpleTest.run(-42)
             iterate(iterations) { i =>
               val res = simpleTest.run(i)
               assert(simpleTest.validateResult(i, res))
             }
-            simpleTest.run(-1)
+            simpleTest.run(-84)
           }.in { case (_, iterations, _, _, _) =>
             iterate(iterations) { i =>
               val res = simpleTest.run(i)
@@ -119,26 +122,3 @@ object DistReactBenchmark extends PerformanceTest {
 
 }
 
-trait SimpleTest {
-  def run(i: Int): Int
-  def init(): Any = ()
-  def validateResult(i: Int, res: Int): Boolean
-}
-
-trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleTest {
-
-  def wrapper: ReactiveWrapper[GenSig, GenVar]
-
-  def run(i: Int): Int = {
-    val await = wrapper.awaiter(last)
-    wrapper.setValue(first)(i)
-    await()
-    wrapper.getValue(last)
-  }
-
-  override def init() = {}
-
-  def first: GenVar[Int]
-
-  def last: GenSig[Int]
-}

@@ -49,4 +49,5 @@ println(s"$desc took ${(System.nanoTime - start) / 1000000.0} ms")
 res
 }
 import benchmark._
+import benchmark.networks._
 """

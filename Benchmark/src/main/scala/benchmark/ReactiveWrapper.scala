@@ -5,6 +5,8 @@ import reactive.signals.{Var, Signal}
 import rx.{Propagator, Rx}
 import scala.concurrent.{Await, Promise, ExecutionContext}
 import scala.concurrent.duration.Duration
+import java.util.concurrent.TimeUnit
+import org.scalameter.Executor
 
 /**
  * this tries to create some common abstractions for reactive implementations
@@ -65,14 +67,18 @@ object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
 }
 
 object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
-  implicit val propagator = new Propagator.Parallelizing()(ExecutionContext.global)
+  import ExecutionContext.Implicits.global
+  implicit val propagator = new Propagator.Parallelizing()
+
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
   def awaiter[I](signal: Rx[I]): () => Unit = {
     val promise = Promise[Unit]()
-    val obs = rx.Obs(signal, skipInitial = true)(promise.success(()))
+    val obs = rx.Obs(signal, skipInitial = true){
+      promise.success(())
+    }
     () => {
-      Await.ready(promise.future, Duration.Inf)
+      Await.ready(promise.future, Duration.apply(10, TimeUnit.SECONDS))
       obs.active = false
     }
   }
