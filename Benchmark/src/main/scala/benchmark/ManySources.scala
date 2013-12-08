@@ -1,6 +1,7 @@
 package benchmark
 
 import scala.language.higherKinds
+import globalUtils.Simulate
 
 class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 

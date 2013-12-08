@@ -2,6 +2,7 @@ package benchmark
 
 import scala.language.higherKinds
 import scala.react.Domain
+import globalUtils.Simulate
 
 class WrappedChainBench[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 

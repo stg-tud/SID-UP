@@ -97,8 +97,8 @@ object DistReactBenchmark extends PerformanceTest {
             simpleTest = test(testsize)
             simpleTest.init()
           }.setUp { case (repetitions, iterations, testsize, busytime, sleeptime) =>
-            Simulate.nanobusy = busytime
-            Simulate.nanosleep = sleeptime
+            globalUtils.Simulate.nanobusy = busytime
+            globalUtils.Simulate.nanosleep = sleeptime
             // manual warmup step …
             simpleTest.run(-1)
             iterate(iterations) { i =>
@@ -116,31 +116,6 @@ object DistReactBenchmark extends PerformanceTest {
       }
     }
 
-}
-
-object Simulate {
-  var nanobusy = 0L
-  var nanosleep = 0L
-
-  def apply(nanos: Long = nanobusy): Long =
-    if (nanos > 0) {
-      val ct = System.nanoTime()
-      var res = 0L
-      while (nanos > res) {
-        res = System.nanoTime() - ct
-      }
-      res
-    }
-    else 0L
-
-  def network(nanos: Long = nanosleep): Long =
-    if (nanos > 1000000) {
-      val ct = System.nanoTime()
-      Thread.sleep((nanos / 1000000).asInstanceOf[Int])
-      val slept = System.nanoTime() - ct
-      network(nanos - slept)
-    }
-    else apply(nanos)
 }
 
 trait SimpleTest {

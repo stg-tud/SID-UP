@@ -1,6 +1,7 @@
 package benchmark
 
 import scala.language.higherKinds
+import globalUtils.Simulate
 
 class ThreeHosts[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrapper: ReactiveWrapper[GenSig, GenVar]) extends SimpleWaitingTest[GenSig, GenVar] {
 

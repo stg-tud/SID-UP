@@ -1,6 +1,7 @@
 package benchmark
 
 import scala.language.higherKinds
+import globalUtils.Simulate
 
 object StructureBuilder {
   def makeChain[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int]): GenSig[Int] = {
