@@ -7,8 +7,8 @@ object ScalaReact extends Build {
 		id = "scala-react",
 		base = file(".")
 	)
-//	.dependsOn(core)
+	.dependsOn(simulateWork)
 
-//	lazy val core = ProjectRef(base = file("../Core"), id = "ReactivePlaygroundCore")
+	lazy val simulateWork = ProjectRef(base = file("../SimulateWork"), id = "SimulateWork")
 
 }
