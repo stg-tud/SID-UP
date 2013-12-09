@@ -1,4 +1,4 @@
-stats "results/tmp/signal_chain.playground.tsv" using 1 nooutput
+stats "results/tmp/three_hosts.wrappedplayground.tsv" using 1 nooutput
 maxruns = STATS_blocks - 1
 
 set terminal pngcairo size 800,600 enhanced font 'Verdana,10'
@@ -12,8 +12,8 @@ set xrange [1000:]
 
 filename(s,n) = sprintf("results/tmp/%s.%s.tsv", s, n)
 
-testlist = "signal_chain signal_fan three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources"
-wrapperlist = "wrappedplayground wrappedscalareact wrappedscalarx wrappedscalarxparallel"
+testlist = "three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources" #signal_chain signal_fan 
+wrapperlist = "wrappedplayground wrappedscalareact wrappedscalarx wrappedscalarxparallel hackkedelmsimulation"
 
 
 do for [run = 0:maxruns] {
@@ -22,7 +22,7 @@ do for [run = 0:maxruns] {
     plot for [wrapper in wrapperlist]\
       filename(test, wrapper) every ::2 index(run)\
       using (column("param-nanosleep")):(column("value"))\
-      title wrapper[7:] with linespoints
+      title wrapper[8:] with linespoints
   }
 }
 
