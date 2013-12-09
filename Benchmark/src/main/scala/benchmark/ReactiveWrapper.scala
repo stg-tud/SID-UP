@@ -1,8 +1,6 @@
 package benchmark
 
 import scala.language.higherKinds
-import reactive.signals.{Var, Signal}
-import rx.{Propagator, Rx}
 import scala.concurrent.{Await, Promise, ExecutionContext}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
@@ -29,6 +27,7 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
 }
 
 object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
+  import reactive.signals.{Signal, Var}
   def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
   def awaiter[I](signal: Signal[I]): () => Unit = () => ()
@@ -50,10 +49,11 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
   }, signals: _*)
 }
 
-class ElmSimulationWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
+class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish.signals.Var] {
+  import elmish.signals.{Signal, Var}
 
   // typesafety, what?
-  var sources = Set[reactive.signals.Var[Any]]()
+  var sources = Set[elmish.signals.Var[Any]]()
 
   def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
@@ -62,7 +62,7 @@ class ElmSimulationWrapper extends ReactiveWrapper[reactive.signals.Signal, reac
   def setValue[V](source: Var[V])(value: V): Unit = setValues(source -> value)
 
   def setValues[V](changes: (Var[V], V)*): Unit = {
-    val tb = new reactive.TransactionBuilder
+    val tb = new elmish.TransactionBuilder
     // create fake updates, for all vars, then set actually changed ones
     sources.foreach{ source => tb.set(source, source.now) }
     changes.foreach{case (source, v) => tb.set(source, v)}
@@ -72,17 +72,18 @@ class ElmSimulationWrapper extends ReactiveWrapper[reactive.signals.Signal, reac
   def getValue[V](sink: Signal[V]): V = sink.now
 
   def makeVar[V](value: V): Var[V] = {
-    val res = reactive.signals.Var(value)
+    val res = elmish.signals.Var(value)
     sources += res.asInstanceOf[Var[Any]]
     res
   }
 
-  def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = new reactive.signals.impl.FunctionalSignal({
+  def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = new elmish.signals.impl.FunctionalSignal({
     _ => signals.map(_.now)
   }, signals: _*)
 }
 
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
+  import rx._
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
   def awaiter[I](signal: Rx[I]): () => Unit = () => ()
@@ -99,6 +100,7 @@ object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
 }
 
 object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
+  import rx._
   import ExecutionContext.Implicits.global
   implicit val propagator = new Propagator.Parallelizing()
 

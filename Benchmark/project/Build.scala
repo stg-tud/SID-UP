@@ -8,6 +8,7 @@ object Benchmark extends Build {
 		base = file(".")
 	)
 	.dependsOn(core)
+	.dependsOn(elmish)
 	.dependsOn(scalaReact)
   .dependsOn(scalaRx)
   .dependsOn(simulateWork)
@@ -16,5 +17,6 @@ object Benchmark extends Build {
   lazy val simulateWork = ProjectRef(base = file("../SimulateWork"), id = "SimulateWork")
 	lazy val core = ProjectRef(base = file("../Core"), id = "ReactivePlaygroundCore")
 	lazy val scalaReact = ProjectRef(base = file("../scala-react"), id = "scala-react")
+	lazy val elmish = ProjectRef(base = file("../Elmish"), id = "Elmish")
 
 }
