@@ -4,7 +4,6 @@ import scala.language.higherKinds
 import scala.concurrent.{Await, Promise, ExecutionContext}
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
-import org.scalameter.Executor
 
 /**
  * this tries to create some common abstractions for reactive implementations
@@ -27,7 +26,9 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
 }
 
 object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
+
   import reactive.signals.{Signal, Var}
+
   def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
 
   def awaiter[I](signal: Signal[I]): () => Unit = () => ()
@@ -36,7 +37,7 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 
   def setValues[V](changes: (Var[V], V)*): Unit = {
     val tb = new reactive.TransactionBuilder
-    changes.foreach{case (source, v) => tb.set(source, v)}
+    changes.foreach { case (source, v) => tb.set(source, v) }
     tb.commit()
   }
 
@@ -50,6 +51,7 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 }
 
 class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish.signals.Var] {
+
   import elmish.signals.{Signal, Var}
 
   // typesafety, what?
@@ -63,9 +65,10 @@ class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish
 
   def setValues[V](changes: (Var[V], V)*): Unit = {
     val tb = new elmish.TransactionBuilder
+    print(sources)
     // create fake updates, for all vars, then set actually changed ones
-    sources.foreach{ source => tb.set(source, source.now) }
-    changes.foreach{case (source, v) => tb.set(source, v)}
+    sources.foreach { source => tb.set(source, source.now) }
+    changes.foreach { case (source, v) => tb.set(source, v) }
     tb.commit()
   }
 
@@ -73,7 +76,7 @@ class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish
 
   def makeVar[V](value: V): Var[V] = {
     val res = elmish.signals.Var(value)
-    sources += res.asInstanceOf[Var[Any]]
+    sources = sources + res.asInstanceOf[Var[Any]]
     res
   }
 
@@ -83,32 +86,36 @@ class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish
 }
 
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
+
   import rx._
+
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
   def awaiter[I](signal: Rx[I]): () => Unit = () => ()
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
-  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach{case (source, v) => source() = v}
+  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach { case (source, v) => source() = v }
 
   def getValue[V](sink: Rx[V]): V = sink()
 
   def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
 
-  def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx {signals.map(_())}
+  def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx { signals.map(_()) }
 }
 
 object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
+
   import rx._
   import ExecutionContext.Implicits.global
+
   implicit val propagator = new Propagator.Parallelizing()
 
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
   def awaiter[I](signal: Rx[I]): () => Unit = {
     val promise = Promise[Unit]()
-    val obs = rx.Obs(signal, skipInitial = true){
+    val obs = rx.Obs(signal, skipInitial = true) {
       promise.success(())
     }
     () => {
@@ -119,13 +126,13 @@ object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
 
   def setValue[V](source: rx.Var[V])(value: V): Unit = source() = value
 
-  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach{case (source, v) => source() = v}
+  def setValues[V](changes: (rx.Var[V], V)*): Unit = changes.foreach { case (source, v) => source() = v }
 
   def getValue[V](sink: Rx[V]): V = sink()
 
   def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
 
-  def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx {signals.map(_())}
+  def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx { signals.map(_()) }
 }
 
 object ScalaReactWrapper {
@@ -140,7 +147,7 @@ object ScalaReactWrapper {
       def map[I, O](signal: domain.type#Signal[I])(f: (I) => O): domain.type#Signal[O] = {
         var result: Option[domain.type#Signal[O]] = None
         domain.schedule {
-          result = Some{domain.Strict {f(signal())}}
+          result = Some { domain.Strict { f(signal()) } }
         }
         domain.runTurn(())
         result.get
@@ -153,9 +160,10 @@ object ScalaReactWrapper {
       def getValue[V](sink: domain.type#Signal[V]): V = sink.getValue
 
       def setValue[V](source: domain.type#Var[V])(value: V): Unit = setValues(source -> value)
+
       def setValues[V](changes: (domain.type#Var[V], V)*): Unit = {
         domain.schedule {
-          changes.foreach{case (source, v) => source() = v}
+          changes.foreach { case (source, v) => source() = v }
         }
         domain.runTurn(())
       }
@@ -165,7 +173,7 @@ object ScalaReactWrapper {
       def transpose[V](signals: Seq[domain.type#Signal[V]]): domain.type#Signal[Seq[V]] = {
         var res: Option[domain.type#Signal[Seq[V]]] = None
         domain.schedule {
-          res = Some{domain.Strict { signals.map(_()) }}
+          res = Some { domain.Strict { signals.map(_()) } }
         }
         domain.runTurn(())
         res.get
