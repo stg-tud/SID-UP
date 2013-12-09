@@ -32,7 +32,7 @@ object Benchmark extends PerformanceTest {
   val testsize = 25
   val nanobusy = Seq(0L)
   val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 200000L, 300000L,
-    1000L * 1000L, 2 * 1000L * 1000L, 3 * 1000L * 1000L, 5 * 1000L * 1000L, 10L * 1000L * 1000L, 20L * 1000L * 1000L)
+    1000L * 1000L, 2 * 1000L * 1000L, 3 * 1000L * 1000L, 5 * 1000L * 1000L)// 10L * 1000L * 1000L, 20L * 1000L * 1000L)
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -50,48 +50,52 @@ object Benchmark extends PerformanceTest {
     c <- Gen.single("testsize")(testsize)
   } yield (a, b, c, d, e)
 
-  simpleTestGroup("signal chain",
-    "scalareact" -> (new ReactChainBench(_)),
-    "playground" -> (new DistChainBench(_)),
-    "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new WrappedChainBench(_, ScalaRxWrapperParallel))
-  )
-
-  simpleTestGroup("signal fan",
-    "scalareact" -> (new ReactFanBench(_)),
-    "playground" -> (new DistFanBench(_)),
-    "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new WrappedFanBench(_, ScalaRxWrapperParallel))
-  )
+//  simpleTestGroup("signal chain",
+//    "scalareact" -> (new ReactChainBench(_)),
+//    "playground" -> (new DistChainBench(_)),
+//    "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
+//    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper)),
+//    "wrappedscalarxparallel" -> (new WrappedChainBench(_, ScalaRxWrapperParallel))
+//  )
+//
+//  simpleTestGroup("signal fan",
+//    "scalareact" -> (new ReactFanBench(_)),
+//    "playground" -> (new DistFanBench(_)),
+//    "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper())),
+//    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper)),
+//    "wrappedscalarxparallel" -> (new WrappedFanBench(_, ScalaRxWrapperParallel))
+//  )
 
   simpleTestGroup("three hosts",
     "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper())),
     "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
+    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
   )
 
   simpleTestGroup("three hosts with many sources",
     "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper())),
     "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
+    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
   )
 
   simpleTestGroup("three hosts with many changing sources",
     "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
     "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper())),
     "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel))
+    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
+    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
   )
 
   def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
     performance.of(groupname.replace(' ','_')).config(
-      exec.benchRuns -> repetitions
+      exec.benchRuns -> repetitions,
+      exec.maxWarmupRuns -> 4
     ).in {
       tests.foreach { case (name, test) =>
         measure.method(name).in {
@@ -103,6 +107,7 @@ object Benchmark extends PerformanceTest {
           }.setUp { case (repetitions, iterations, testsize, busytime, sleeptime) =>
             globalUtils.Simulate.nanobusy = busytime
             globalUtils.Simulate.nanosleep = sleeptime
+            globalUtils.Simulate.coordinatorsleep = sleeptime
             // manual warmup step …
             simpleTest.run(-42)
             iterate(iterations) { i =>

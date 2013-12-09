@@ -8,6 +8,8 @@ set ylabel "Time (ms)"
 
 set logscale xy
 
+set xrange [1000:]
+
 filename(s,n) = sprintf("results/tmp/%s.%s.tsv", s, n)
 
 testlist = "signal_chain signal_fan three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources"
@@ -18,9 +20,14 @@ do for [run = 0:maxruns] {
   do for [test in testlist] {
     set output sprintf("results/%s_run%02d.png", test, run)
     plot for [wrapper in wrapperlist]\
-    	filename(test, wrapper) index (run) using (column("param-nanosleep")):(column("value")) title wrapper[7:] with linespoints
+      filename(test, wrapper) every ::2 index(run)\
+      using (column("param-nanosleep")):(column("value"))\
+      title wrapper[7:] with linespoints
   }
 }
+
+# i dont know why this is needed, and i kind of dont care :D
+set xrange [0:]
 
 unset logscale x
 
@@ -41,8 +48,8 @@ do for [run = 0:maxruns] {
     set output sprintf("results/%s_run%02d.png", wrapper, run)
 
     plot for [test in testlist]\
-    	filename(test, wrapper) index (run) using (column("value")):xtic(1) title test
+      filename(test, wrapper) every ::2 index (run)\
+      using (column("value")):xtic(1) title test
 
   }
 }
-

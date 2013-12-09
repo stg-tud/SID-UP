@@ -50,6 +50,38 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
   }, signals: _*)
 }
 
+class ElmSimulationWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
+
+  // typesafety, what?
+  var sources = Set[reactive.signals.Var[Any]]()
+
+  def map[I, O](signal: Signal[I])(f: (I) => O): Signal[O] = signal.map(f)
+
+  def awaiter[I](signal: Signal[I]): () => Unit = () => ()
+
+  def setValue[V](source: Var[V])(value: V): Unit = setValues(source -> value)
+
+  def setValues[V](changes: (Var[V], V)*): Unit = {
+    val tb = new reactive.TransactionBuilder
+    // create fake updates, for all vars, then set actually changed ones
+    sources.foreach{ source => tb.set(source, source.now) }
+    changes.foreach{case (source, v) => tb.set(source, v)}
+    tb.commit()
+  }
+
+  def getValue[V](sink: Signal[V]): V = sink.now
+
+  def makeVar[V](value: V): Var[V] = {
+    val res = reactive.signals.Var(value)
+    sources += res.asInstanceOf[Var[Any]]
+    res
+  }
+
+  def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = new reactive.signals.impl.FunctionalSignal({
+    _ => signals.map(_.now)
+  }, signals: _*)
+}
+
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
   def map[I, O](signal: Rx[I])(f: (I) => O): Rx[O] = signal.map(f)
 
