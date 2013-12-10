@@ -1,14 +1,23 @@
 stats "results/tmp/three_hosts.wrappedplayground.tsv" using 1 nooutput
 maxruns = STATS_blocks - 1
 
-set terminal pngcairo size 800,600 enhanced font 'Verdana,10'
+set terminal pdf size 4,3
 
-set xlabel "Simulated Latency (ns)"
+set xlabel "Simulated Latency (ms)"
 set ylabel "Time (ms)"
 
 set logscale xy
 
-set xrange [1000:]
+set key left top
+
+#set xrange [1000:]
+
+prettyName(name) = \
+  name eq "wrappedplayground" ? "SID-UP" : \
+  name eq "wrappedscalareact" ? "scala.react" : \
+  name eq "wrappedscalarx" ? "scala.rx sequential" : \
+  name eq "wrappedscalarxparallel" ? "scala.rx parallel" : \
+  name eq "hackkedelmsimulation" ? "ELM" : name
 
 filename(s,n) = sprintf("results/tmp/%s.%s.tsv", s, n)
 
@@ -18,16 +27,18 @@ wrapperlist = "wrappedplayground wrappedscalareact wrappedscalarx wrappedscalarx
 
 do for [run = 0:maxruns] {
   do for [test in testlist] {
-    set output sprintf("results/%s_run%02d.png", test, run)
+    set output sprintf("results/%s_run%02d.pdf", test, run)
     plot for [wrapper in wrapperlist]\
-      filename(test, wrapper) every ::2 index(run)\
-      using (column("param-nanosleep")):(column("value"))\
-      title wrapper[8:] with linespoints
+      filename(test, wrapper) every ::0 index(run)\
+      using (column("param-nanosleep")/1000000):(column("value"))\
+      title prettyName(wrapper) with linespoints
   }
 }
 
 # i dont know why this is needed, and i kind of dont care :D
-set xrange [0:]
+# set xrange [0:]
+
+set xlabel "Simulated Latency (ns)"
 
 unset logscale x
 
@@ -45,10 +56,10 @@ set xtics ()
 do for [run = 0:maxruns] {
   do for [wrapper in wrapperlist] {
 
-    set output sprintf("results/%s_run%02d.png", wrapper, run)
+    set output sprintf("results/%s_run%02d.pdf", wrapper, run)
 
     plot for [test in testlist]\
-      filename(test, wrapper) every ::2 index (run)\
+      filename(test, wrapper) every ::0 index (run)\
       using (column("value")):xtic(1) title test
 
   }
