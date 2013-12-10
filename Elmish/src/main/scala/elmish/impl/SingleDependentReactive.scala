@@ -14,8 +14,4 @@ trait SingleDependentReactive {
       doReevaluation(transaction, sourceDependenciesChanged, pulsed)
     }
   }
-
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependency.sourceDependencies(transaction)
-  }
 }

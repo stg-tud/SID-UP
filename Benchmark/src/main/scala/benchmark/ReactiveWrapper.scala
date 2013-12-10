@@ -65,7 +65,6 @@ class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish
 
   def setValues[V](changes: (Var[V], V)*): Unit = {
     val tb = new elmish.TransactionBuilder
-    print(sources)
     // create fake updates, for all vars, then set actually changed ones
     sources.foreach { source => tb.set(source, source.now) }
     changes.foreach { case (source, v) => tb.set(source, v) }

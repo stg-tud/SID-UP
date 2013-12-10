@@ -20,7 +20,7 @@ trait MultiDependentReactive extends Logging {
       if (currentTransaction != transaction) {
         if (pendingNotifications != 0) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, previous transaction ${currentTransaction.uuid} not completed yet! ($pendingNotifications notifications pending)")
         currentTransaction = transaction
-        pendingNotifications = dependencies.count(_.isConnectedTo(transaction)) - 1
+        pendingNotifications = dependencies.size - 1
         anyDependenciesChanged = sourceDependenciesChanged
         anyPulse = pulsed;
       } else {
@@ -37,9 +37,5 @@ trait MultiDependentReactive extends Logging {
         logger.trace(s"$this received a notification for transaction ${transaction.uuid}, $pendingNotifications pending")
       }
     }
-  }
-
-  override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
   }
 }

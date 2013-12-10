@@ -9,8 +9,6 @@ import scala.util.Failure
 import scala.util.Try
 
 trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
-  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
-
   private[elmish] val name = {
     val classname = getClass.getName
     val unqualifiedClassname = classname.substring(classname.lastIndexOf('.') + 1)

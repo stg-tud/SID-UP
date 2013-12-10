@@ -24,7 +24,7 @@ trait DynamicDependentReactive {
         anyPulse = false;
         hasPulsed = false
       }
-      
+
       if (!hasPulsed) {
         val newDependencies = dependencies(transaction)
         val unsubscribe = lastDependencies.diff(newDependencies)
@@ -44,7 +44,7 @@ trait DynamicDependentReactive {
           _.addDependant(transaction, this)
         }
 
-        if (!lastDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
+        if (!lastDependencies.exists { dependency => !dependency.hasPulsed(transaction) }) {
           hasPulsed = true
           doReevaluation(transaction, anyDependenciesChanged, anyPulse)
         }
@@ -52,7 +52,4 @@ trait DynamicDependentReactive {
     }
   }
 
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies(transaction).flatMap(_.sourceDependencies(transaction));
-  }
 }

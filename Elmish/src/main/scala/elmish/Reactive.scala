@@ -10,8 +10,6 @@ trait Reactive[+O, +V, +P] {
   protected[elmish] def pulse(transaction: Transaction): Option[P]
   protected[elmish] def hasPulsed(transaction: Transaction): Boolean
 
-  protected[elmish] def sourceDependencies(transaction: Transaction): Set[UUID]
-  protected[elmish] def isConnectedTo(transaction: Transaction): Boolean
   protected[elmish] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
   protected[elmish] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
 

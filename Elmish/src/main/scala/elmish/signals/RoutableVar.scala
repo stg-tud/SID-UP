@@ -32,8 +32,6 @@ object RoutableVar {
     protected[elmish] override def value(transaction: Transaction): A = _output.value(transaction)
     protected[elmish] override def pulse(transaction: Transaction): Option[A] = _output.pulse(transaction)
     protected[elmish] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
-    protected[elmish] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
-    protected[elmish] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
     protected[elmish] override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.addDependant(transaction, dependant)
     protected[elmish] override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.removeDependant(transaction, dependant)
     override def log: Signal[List[A]] = _output.log

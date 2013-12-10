@@ -7,9 +7,6 @@ trait DependentReactive[V, P] extends Reactive.Dependant {
   self: ReactiveImpl[_, V, P] =>
 
   override def toString = name
-
-  private var _sourceDependencies = calculateSourceDependencies(null)
-  override def sourceDependencies(transaction: Transaction) = _sourceDependencies
   
   protected def reevaluateValue(transaction: Transaction): V
   private var _value = reevaluateValue(null)
@@ -26,18 +23,10 @@ trait DependentReactive[V, P] extends Reactive.Dependant {
       None
     }
 
-    val sourceDependenciesChanged = if (recalculateDependencies) {
-      val oldSourceDependencies = _sourceDependencies
-      _sourceDependencies = calculateSourceDependencies(transaction)
-      oldSourceDependencies != _sourceDependencies
-    } else {
-      false
-    }
 
-    doPulse(transaction, sourceDependenciesChanged, pulse);
+    doPulse(transaction, false, pulse);
   }
 
   protected def reevaluate(transaction: Transaction): Option[(V, P)]
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID]
 
 }

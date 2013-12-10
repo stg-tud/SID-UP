@@ -107,7 +107,7 @@ object Benchmark extends PerformanceTest {
           }.setUp { case (repetitions, iterations, testsize, busytime, sleeptime) =>
             globalUtils.Simulate.nanobusy = busytime
             globalUtils.Simulate.nanosleep = sleeptime
-            globalUtils.Simulate.coordinatorsleep = sleeptime
+            //globalUtils.Simulate.coordinatorsleep = sleeptime
             // manual warmup step …
             simpleTest.run(-42)
             iterate(iterations) { i =>
