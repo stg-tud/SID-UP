@@ -33,7 +33,7 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 
   def awaiter[I](signal: Signal[I]): () => Unit = () => ()
 
-  def setValue[V](source: Var[V])(value: V): Unit = source << value
+  def setValue[V](source: Var[V])(value: V): Unit = setValues(source -> value)
 
   def setValues[V](changes: (Var[V], V)*): Unit = {
     val tb = new reactive.TransactionBuilder
