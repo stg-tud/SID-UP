@@ -19,9 +19,16 @@ prettyName(name) = \
   name eq "wrappedscalarxparallel" ? "scala.rx parallel" : \
   name eq "hackkedelmsimulation" ? "ELM" : name
 
+prettyTestName(name) = \
+  name eq "three_hosts" ? "normal" : \
+  name eq "three_hosts_with_many_sources" ? "random sources" : \
+  name eq "three_hosts_with_many_changing_sources" ? "multi change" : \
+  name eq "three_hosts_with_independent_sources" ? "independent sources" : name
+
+
 filename(s,n) = sprintf("results/tmp/%s.%s.tsv", s, n)
 
-testlist = "three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources" #signal_chain signal_fan 
+testlist = "three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources three_hosts_with_independent_sources" #signal_chain signal_fan
 wrapperlist = "wrappedplayground wrappedscalareact wrappedscalarx wrappedscalarxparallel hackkedelmsimulation"
 
 
@@ -31,7 +38,7 @@ do for [run = 0:maxruns] {
     plot for [wrapper in wrapperlist]\
       filename(test, wrapper) every ::0 index(run)\
       using (column("param-nanosleep")/1000000):(column("value"))\
-      title prettyName(wrapper) with linespoints
+      title prettyName(wrapper) with linespoints pointsize 0.5
   }
 }
 
@@ -44,7 +51,7 @@ unset logscale x
 
 set boxwidth 0.9 absolute
 set style fill   solid 1.00 border lt -1
-set key inside right top vertical Right noreverse noenhanced autotitles nobox
+set key inside left top vertical Right noreverse noenhanced autotitles nobox
 set style histogram clustered gap 1 title  offset character 0, 0, 0
 set datafile missing '-'
 set style data histograms
@@ -60,7 +67,7 @@ do for [run = 0:maxruns] {
 
     plot for [test in testlist]\
       filename(test, wrapper) every ::0 index (run)\
-      using (column("value")):xtic(1) title test
+      using (column("value")):xtic(1) title prettyTestName(test)
 
   }
 }
