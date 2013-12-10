@@ -8,38 +8,35 @@ class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrappe
 
   import wrapper._
 
-  def sourceSize = size * 1000
+  def sourceSize = size
+
+  def additionalSources = 2
 
   val sourceList = Range(0, sourceSize).map(_ => makeVar(0))
 
-  val sourceListA = transpose(Range(0, sourceSize).map(_ => makeVar(0)))
-  val sourceListB = transpose(Range(0, sourceSize).map(_ => makeVar(0)))
-  val sourceListC = transpose(Range(0, sourceSize).map(_ => makeVar(0)))
-
   val first = sourceList.head
   val transposed = transpose(sourceList)
+
   val secondA = StructureBuilder.makeChain(size, wrapper, {
-    val netSig = map(transposed) { v: Seq[Int] =>
+    map(transposed) { v: Seq[Int] =>
       Simulate.network()
-      Seq(v.sum + 1000)
+      v.sum + 1000
     }
-    map(transpose(Seq(netSig, sourceListA))) { _.head.head }
-  })
+  }, additionalSources)
 
   val secondB = StructureBuilder.makeFan(size, wrapper, {
-    val netSig = map(transposed) { v: Seq[Int] =>
+    map(transposed) { v: Seq[Int] =>
       Simulate.network()
-      Seq(v.sum + 1000)
+      v.sum + 1000
     }
-    map(transpose(Seq(netSig, sourceListA))) { _.head.head }
-  })
+  }, additionalSources)
 
   val secondC = map(transposed) { v: Seq[Int] =>
     Simulate.network()
     v.sum + 1000
   }
 
-  val last = map(transpose(Seq(secondA, secondB, secondC)))(vs => {Simulate.network(); vs.sum })
+  val last = combine(Seq(secondA, secondB, secondC))(vs => {Simulate.network(); vs.sum })
 
   def validateResult(i: Int, res: Int): Boolean =
     (i + 1001) * size + (i + 1000 + size) + (i + 1000) == res

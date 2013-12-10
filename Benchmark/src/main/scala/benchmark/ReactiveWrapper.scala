@@ -23,6 +23,8 @@ trait ReactiveWrapper[GenSig[_], GenVar[_] <: GenSig[_]] {
   def makeVar[V](value: V): GenVar[V]
 
   def transpose[V](signals: Seq[GenSig[V]]): GenSig[Seq[V]]
+
+  def combine[V, R](signals: Seq[GenSig[V]])(f: Seq[V] => R): GenSig[R]
 }
 
 object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reactive.signals.Var] {
@@ -47,6 +49,10 @@ object PlaygroundWrapper extends ReactiveWrapper[reactive.signals.Signal, reacti
 
   def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = new reactive.signals.impl.FunctionalSignal({
     _ => signals.map(_.now)
+  }, signals: _*)
+
+  def combine[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = new reactive.signals.impl.FunctionalSignal({
+    _ => f(signals.map(_.now))
   }, signals: _*)
 }
 
@@ -82,6 +88,10 @@ class ElmSimulationWrapper extends ReactiveWrapper[elmish.signals.Signal, elmish
   def transpose[V](signals: Seq[Signal[V]]): Signal[Seq[V]] = new elmish.signals.impl.FunctionalSignal({
     _ => signals.map(_.now)
   }, signals: _*)
+
+  def combine[V, R](signals: Seq[Signal[V]])(f: Seq[V] => R): Signal[R] = new elmish.signals.impl.FunctionalSignal({
+    _ => f(signals.map(_.now))
+  }, signals: _*)
 }
 
 object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
@@ -101,6 +111,8 @@ object ScalaRxWrapper extends ReactiveWrapper[rx.Rx, rx.Var] {
   def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
 
   def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx { signals.map(_()) }
+
+  def combine[V, R](signals: Seq[Rx[V]])(f: (Seq[V]) => R): Rx[R] = Rx { f(signals.map(_()))  }
 }
 
 object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
@@ -132,6 +144,8 @@ object ScalaRxWrapperParallel extends ReactiveWrapper[rx.Rx, rx.Var] {
   def makeVar[V](value: V): rx.Var[V] = rx.Var(value)
 
   def transpose[V](signals: Seq[Rx[V]]): Rx[Seq[V]] = Rx { signals.map(_()) }
+
+  def combine[V, R](signals: Seq[Rx[V]])(f: (Seq[V]) => R): Rx[R] = Rx { f(signals.map(_()))  }
 }
 
 object ScalaReactWrapper {
@@ -173,6 +187,15 @@ object ScalaReactWrapper {
         var res: Option[domain.type#Signal[Seq[V]]] = None
         domain.schedule {
           res = Some { domain.Strict { signals.map(_()) } }
+        }
+        domain.runTurn(())
+        res.get
+      }
+
+      def combine[V, R](signals: Seq[domain.type#Signal[V]])(f: (Seq[V]) => R): domain.type#Signal[R] = {
+        var res: Option[domain.type#Signal[R]] = None
+        domain.schedule {
+          res = Some { domain.Strict { f(signals.map(_())) } }
         }
         domain.runTurn(())
         res.get

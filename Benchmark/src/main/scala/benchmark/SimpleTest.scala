@@ -14,10 +14,12 @@ trait SimpleWaitingTest[GenSig[Int], GenVar[Int] <: GenSig[Int]] extends SimpleT
 
   def run(i: Int): Int = {
     val await = wrapper.awaiter(last)
-    wrapper.setValue(first)(i)
+    startUpdate(i)
     await()
     wrapper.getValue(last)
   }
+
+  def startUpdate(i: Int): Unit = wrapper.setValue(first)(i)
 
   override def init() = {}
 

@@ -31,8 +31,12 @@ object Benchmark extends PerformanceTest {
   val iterations = 10
   val testsize = 25
   val nanobusy = Seq(0L)
-  val nanosleep = Seq(0L, 1L, 1000L, 10000L, 100000L, 200000L, 300000L,
-    1000L * 1000L, 2 * 1000L * 1000L, 3 * 1000L * 1000L, 5 * 1000L * 1000L)// 10L * 1000L * 1000L, 20L * 1000L * 1000L)
+  val nanosleep = {
+    val tenthmilli = 100L * 1000L
+    val milli = 1000L * 1000L
+    Seq(1L, 2L, 3L, 5L).map(_ * tenthmilli) ++
+      Seq(1L, 2L, 3L, 5L, 10L).map(_ * milli)
+  }
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -74,6 +78,14 @@ object Benchmark extends PerformanceTest {
     "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
     "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
     "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
+  )
+
+  simpleTestGroup("three hosts with independent sources",
+    "wrappedplayground" -> (new IndependentSources(_, PlaygroundWrapper)),
+    "wrappedscalareact" -> (new IndependentSources(_, ScalaReactWrapper())),
+    "wrappedscalarx" -> (new IndependentSources(_, ScalaRxWrapper)),
+    "wrappedscalarxparallel" -> (new IndependentSources(_, ScalaRxWrapperParallel)),
+    "hackkedelmsimulation" -> (new IndependentSources(_, new ElmSimulationWrapper()))
   )
 
   simpleTestGroup("three hosts with many sources",
