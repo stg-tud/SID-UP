@@ -40,5 +40,5 @@ class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrappe
   val last = combine(Seq(secondA, secondB, secondC))(vs => {Simulate.network(); vs.sum })
 
   def validateResult(i: Int, res: Int): Boolean =
-    (i + 1001) * size + (i + 1000 + size) + (i + 1000 + 4) == res
+    (i + 1001) * size + (i + 1000 + size) + (i + 1000 + 9) == res
 }
