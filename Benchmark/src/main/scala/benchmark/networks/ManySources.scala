@@ -31,13 +31,14 @@ class ManySources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val wrappe
     }
   }, additionalSources)
 
-  val secondC = map(transposed) { v: Seq[Int] =>
-    Simulate.network()
-    v.sum + 1000
-  }
+  val secondC = StructureBuilder.makeRegular(wrapper,
+    map(transposed) { v: Seq[Int] =>
+      Simulate.network()
+      v.sum + 1000
+    })
 
   val last = combine(Seq(secondA, secondB, secondC))(vs => {Simulate.network(); vs.sum })
 
   def validateResult(i: Int, res: Int): Boolean =
-    (i + 1001) * size + (i + 1000 + size) + (i + 1000) == res
+    (i + 1001) * size + (i + 1000 + size) + (i + 1000 + 4) == res
 }

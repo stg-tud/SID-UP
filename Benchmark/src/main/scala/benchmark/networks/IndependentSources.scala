@@ -16,28 +16,27 @@ class IndependentSources[GenSig[Int], GenVar[Int] <: GenSig[Int]](size: Int, val
   val firstB = makeVar(-10)
   val firstC = makeVar(-10)
 
-  val secondA = StructureBuilder.makeChain(size, wrapper, {
+  val secondA = StructureBuilder.makeChain(size, wrapper,
     map(firstA) { v: Int =>
       Simulate.network()
       v + 1000
-    }
-  })
+    })
 
-  val secondB = StructureBuilder.makeFan(size, wrapper, {
+  val secondB = StructureBuilder.makeFan(size, wrapper,
     map(firstB) { v: Int =>
       Simulate.network()
       v + 1000
-    }
-  })
+    })
 
-  val secondC = map(firstC) { v: Int =>
-    Simulate.network()
-    v + 1000
-  }
+  val secondC = StructureBuilder.makeRegular(wrapper,
+    map(firstC) { v: Int =>
+      Simulate.network()
+      v + 1000
+    })
 
   val last = combine(Seq(secondA, secondB, secondC))(vs => {Simulate.network(); vs.sum })
 
   // do not check value, because scala.rx glitches on this one
+  //(i + 1001) * size + (i + 1000 + size) + (i + 1000 + 4) == res
   def validateResult(i: Int, res: Int): Boolean = true
-    //(i + 1001) * size + (i + 1000 + size) + (i + 1000) == res
 }
