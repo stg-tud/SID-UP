@@ -80,13 +80,13 @@ object Benchmark extends PerformanceTest {
     "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
   )
 
-  simpleTestGroup("three hosts with independent sources",
-    "wrappedplayground" -> (new IndependentSources(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new IndependentSources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new IndependentSources(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new IndependentSources(_, ScalaRxWrapperParallel)),
-    "hackkedelmsimulation" -> (new IndependentSources(_, new ElmSimulationWrapper()))
-  )
+//  simpleTestGroup("three hosts with independent sources",
+//    "wrappedplayground" -> (new IndependentSources(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new IndependentSources(_, ScalaReactWrapper())),
+//    "wrappedscalarx" -> (new IndependentSources(_, ScalaRxWrapper)),
+//    "wrappedscalarxparallel" -> (new IndependentSources(_, ScalaRxWrapperParallel)),
+//    "hackkedelmsimulation" -> (new IndependentSources(_, new ElmSimulationWrapper()))
+//  )
 
   simpleTestGroup("three hosts with many sources",
     "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
@@ -96,13 +96,13 @@ object Benchmark extends PerformanceTest {
     "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
   )
 
-  simpleTestGroup("three hosts with many changing sources",
-    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
-    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
-  )
+//  simpleTestGroup("three hosts with many changing sources",
+//    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
+//    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper())),
+//    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
+//    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
+//    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
+//  )
 
   def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
     performance.of(groupname.replace(' ','_')).config(

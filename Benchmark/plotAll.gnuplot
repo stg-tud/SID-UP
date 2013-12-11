@@ -1,14 +1,16 @@
 stats "results/tmp/three_hosts.wrappedplayground.tsv" using 1 nooutput
 maxruns = STATS_blocks - 1
 
-set terminal pdf size 4,3
+set format y "10^{%L}"
 
-set xlabel "Simulated Latency (ms)"
+set terminal pdf size 4,3 enhanced font "Times New Roman, 14"
+
+set xlabel "Simulated Latency (ms)" offset 0,.5
 set ylabel "Time (ms)"
 
 set logscale xy
 
-set key left top
+set key right bottom
 
 #set xrange [1000:]
 
@@ -28,7 +30,8 @@ prettyTestName(name) = \
 
 filename(s,n) = sprintf("results/tmp/%s.%s.tsv", s, n)
 
-testlist = "three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources three_hosts_with_independent_sources" #signal_chain signal_fan
+#testlist = "three_hosts three_hosts_with_many_sources three_hosts_with_many_changing_sources three_hosts_with_independent_sources" #signal_chain signal_fan
+testlist = "three_hosts three_hosts_with_many_sources"
 wrapperlist = "wrappedplayground wrappedscalareact wrappedscalarx wrappedscalarxparallel hackkedelmsimulation"
 
 
@@ -38,7 +41,7 @@ do for [run = 0:maxruns] {
     plot for [wrapper in wrapperlist]\
       filename(test, wrapper) every ::0 index(run)\
       using (column("param-nanosleep")/1000000):(column("value"))\
-      title prettyName(wrapper) with linespoints pointsize 0.5
+      title prettyName(wrapper) with linespoints pointsize 0.5 linewidth 3
   }
 }
 
