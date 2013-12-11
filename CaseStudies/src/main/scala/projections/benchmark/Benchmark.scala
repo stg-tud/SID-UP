@@ -33,9 +33,9 @@ object SimpleBenchmark extends PerformanceTest {
   val persistor = new SerializationPersistor("./tmp/")
 
   val orderLists = for {
-    size <- Gen.exponential("size")(10, 320, 2)
-    iterations <- Gen.exponential("iterations")(10, 320, 2)
-  } yield (iterations, 1 to size map (Order(_)))
+//    size <- Gen.exponential("size")(10, 320, 2)
+    iterations <- Gen.range("iterations")(1, 1001, 100)
+  } yield (iterations, 1 to 10 map (i => Order(i * iterations)))
 
   val repetitions = 5
   //var iterations = 100
@@ -68,14 +68,14 @@ object SimpleBenchmark extends PerformanceTest {
 
   measureNetwork("rmi", () => new TestRMI())
   measureNetwork("reactives", () => new TestReactives())
-  measureNetwork("pure_calculation", () => new TestPureCalculation())
+//  measureNetwork("pure_calculation", () => new TestPureCalculation())
 
 }
 
-class TestPureCalculation extends TestCommon {
-  def name = "pure calculation"
-  def test(orders: Seq[Order]) = done(orders.map { _.value }.sum * 2 - orders.map { _.value }.sum - orders.size * 5)
-}
+//class TestPureCalculation extends TestCommon {
+//  def name = "pure calculation"
+//  def test(orders: Seq[Order]) = done(orders.map { _.value }.sum * 2 - orders.map { _.value }.sum - orders.size * 5)
+//}
 
 class TestReactives extends InitReactives {
   def test(orders: Seq[Order]) = setOrders << orders
