@@ -1,45 +1,46 @@
 package projections.observer
 
 import projections.Order
+import projections.Participant
 
-trait Division extends Observable[Message[Int]] with Observer[Seq[Order]] {
+case class Message(total: Int, direct: Boolean)
 
-  val name: String
-
-  def init(): Any
-  def deinit(): Any
+abstract class Division(participant: Participant) extends Observable[Message](participant) {
 
   var total = 0
   var currentOrders = Seq[Order]()
 
-  override def receive(orders: Seq[Order]) = {
-    currentOrders = orders
-    recalculate(false)
+  val clientObserver = new Observer[Seq[Order]](projections.client) {
+    def receive(orders: Seq[Order]) = {
+      currentOrders = orders
+      recalculate(direct = false)
+    }
   }
+
+  protected def recalculate(direct: Boolean = false) {
+    total = calculateTotal(currentOrders)
+    publish(Message(total, direct))
+  }
+
+  def sumValues(orders: Seq[Order]) = orders.map { _.value }.sum
 
   def calculateTotal(orders: Seq[Order]): Int
-
-  protected def recalculate(direct: Boolean) {
-    total = calculateTotal(currentOrders)
-    notifyObservers(Message(total, name, direct))
-  }
 }
 
-trait Purchases extends Division {
-  var perOrderCost: Int
-  val name = "purchases"
-  override def calculateTotal(orders: Seq[Order]) = orders.map { _.value }.sum + orders.length * perOrderCost
+class Purchases(var perOrderCost: Int = 5) extends Division(projections.purchases) {
+
+  override def calculateTotal(orders: Seq[Order]) = sumValues(orders) + orders.length * perOrderCost
+
   def changeOrderCost(v: Int): Unit = {
     perOrderCost = v
-    recalculate(true)
+    recalculate(direct = true)
   }
 }
 
-trait Sales extends Division {
-  val name = "sales"
-  val sleep: Int
+class Sales(sleep: Int = 0) extends Division(projections.sales) {
+
   override def calculateTotal(orders: Seq[Order]) = {
     if (sleep > 0) Thread.sleep(sleep)
-    orders.map { _.value }.sum * 2
+    sumValues(orders) * 2
   }
 }

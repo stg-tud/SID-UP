@@ -6,7 +6,7 @@ import java.util.UUID
 trait SingleDependentReactive {
   self: DependentReactive[_, _]=>
 
-  protected val dependency: Reactive[_, _, _]
+  protected val dependency: Reactive.Dependency
   dependency.addDependant(null, this)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {

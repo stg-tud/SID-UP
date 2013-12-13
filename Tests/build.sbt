@@ -2,7 +2,7 @@ name := "ReactivePlaygroundTests"
 
 version := "0.0.0"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 scalacOptions ++= List(
   "-deprecation",
@@ -16,7 +16,7 @@ scalacOptions ++= List(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "1.9.1" /* % "test" */ , 
+  "org.scalatest" %% "scalatest" % "1.9.1" /* % "test" */ ,
   "org.scala-lang" %% "scala-actors-migration" % "1.0.0",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"

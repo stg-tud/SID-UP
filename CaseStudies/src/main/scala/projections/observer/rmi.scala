@@ -1,69 +1,33 @@
 package projections.observer
 
 import projections.Order
+import projections.Participant
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import java.rmi.server.UnicastRemoteObject
 
-package object rmi {
-  def startRegistry() = java.rmi.registry.LocateRegistry.createRegistry(1099)
+@remote trait RemoteObservable[I] {
+  def addObserver(o: RemoteObserver[I]): Unit
 }
 
-package rmi {
+@remote trait RemoteObserver[I] {
+  def receive(v: I): Unit
+}
 
-  @remote trait RemoteObservable[I] {
-    def addObserver(o: Observer[I]): Unit
+class Observable[I](participant: Participant) extends UnicastRemoteObject with RemoteObservable[I] {
+  var observers = List[RemoteObserver[I]]()
+  def addObserver(o: RemoteObserver[I]) = observers ::= o
+  def publish(v: I): Unit = observers.foreach(obs => future { obs.receive(v) })
+  java.rmi.Naming.rebind(participant.name, this)
+}
+
+abstract class Observer[I](observing: Participant) extends UnicastRemoteObject with RemoteObserver[I] {
+  val observable = java.rmi.Naming.lookup(observing.name).asInstanceOf[RemoteObservable[I]]
+  observable.addObserver(this)
+}
+
+object Observer {
+  def apply[I](p: Participant)(f: I => Unit) = new Observer[I](p) {
+    def receive(v: I) = f(v)
   }
-
-  @remote trait Observer[I] {
-    def receive(v: I): Unit
-  }
-
-  trait Observable[I] {
-    var observers = List[Observer[I]]()
-    def addObserver(o: Observer[I]) = observers ::= o
-    def notifyObservers(v: I): Unit = observers.foreach(obs => future { obs.receive(v) })
-  }
-
-  class Client extends java.rmi.server.UnicastRemoteObject
-      with projections.observer.Client with Observable[Seq[Order]] with RemoteObservable[Seq[Order]] {
-    override def init(): Unit = java.rmi.Naming.rebind(s"$name", this)
-    override def deinit(): Unit = {
-      java.rmi.server.UnicastRemoteObject.unexportObject(this, true);
-      java.rmi.Naming.unbind(s"$name")
-    }
-  }
-
-  abstract class Division extends java.rmi.server.UnicastRemoteObject
-      with Observable[Message[Int]] with Observer[Seq[Order]] with RemoteObservable[Message[Int]] {
-    this: projections.observer.Division =>
-    override def init(): Unit = {
-      java.rmi.Naming.rebind(s"$name", this)
-      val remoteClient = java.rmi.Naming.lookup("client").asInstanceOf[RemoteObservable[Seq[Order]]]
-      remoteClient.addObserver(this)
-    }
-    override def deinit() = {
-      java.rmi.server.UnicastRemoteObject.unexportObject(this, true);
-      java.rmi.Naming.unbind(s"$name")
-    }
-  }
-
-  class Purchases(var perOrderCost: Int = 5) extends Division with projections.observer.Purchases
-
-  class Sales(val sleep: Int = 0) extends Division with projections.observer.Sales
-
-  class Management extends java.rmi.server.UnicastRemoteObject
-      with projections.observer.Management with Observer[Message[Int]] with Observable[Int] {
-    def init(): Unit = {
-      java.rmi.Naming.rebind("management", this)
-      val purchases = java.rmi.Naming.lookup("purchases").asInstanceOf[RemoteObservable[Message[Int]]]
-      val sales = java.rmi.Naming.lookup("sales").asInstanceOf[RemoteObservable[Message[Int]]]
-      purchases.addObserver(this)
-      sales.addObserver(this)
-    }
-    def deinit() = {
-      java.rmi.server.UnicastRemoteObject.unexportObject(this, true);
-      java.rmi.Naming.unbind("management")
-    }
-  }
-
 }
