@@ -12,3 +12,5 @@ target/
 *.md
 *.tags
 tmp/
+.idea/
+.iml
