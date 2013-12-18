@@ -15,3 +15,7 @@ class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A, A] {
   override def snapshot(when: EventStream[_]): Signal[A] = this
   override def pulse(when: EventStream[_]): EventStream[A] = when.map { _ => value }
 }
+
+object Val {
+  def apply[A](value: A) = new Val(value)
+}
