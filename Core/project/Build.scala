@@ -4,7 +4,7 @@ import Keys._
 object ReactivePlayground extends Build {
 
 	lazy val root = Project(
-		id = "ReactivePlaygroundCore",
+		id = "sidup-core",
 		base = file(".")
 	)
 
