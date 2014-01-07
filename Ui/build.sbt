@@ -1,4 +1,4 @@
-name := "ReactivePlaygroundUi"
+name := "sidup-ui"
 
 version := "0.0.0"
 
