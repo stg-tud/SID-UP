@@ -1,6 +1,6 @@
-organization := "playground"
+organization := "de.tuda.stg"
 
-name := "ReactivePlaygroundCore"
+name := "sidup-core"
 
 version := "0.0.0"
 
@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.2.1",
   "com.typesafe.akka" %% "akka-remote" % "2.2.1",
   "org.scala-lang" %% "scala-actors-migration" % "1.0.0",
-  "org.slf4j" % "slf4j-simple" % "1.7.5"
+  "org.slf4j" % "slf4j-simple" % "1.7.5",
+  "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 )
 
 initialCommands in console := """

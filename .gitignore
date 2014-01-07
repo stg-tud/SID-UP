@@ -1,7 +1,7 @@
 .cache
 .project
 .classpath
-.settings
+.settings/
 bin/
 target/
 *.pdf
