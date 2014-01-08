@@ -8,10 +8,12 @@ import reactive.events.impl.FilteredEventStream
 import reactive.events.impl.MappedEventStream
 import reactive.events.impl.ChangesEventStream
 import reactive.events.impl.PulseEventStream
-import reactive.impl.mirroring.SignalMirror
+import reactive.impl.mirroring.ReactiveMirror
+import reactive.impl.mirroring.ReactiveNotificationDependant
+import reactive.impl.mirroring.ReactiveNotification
 
 trait SignalImpl[A] extends ReactiveImpl[A, A, A, Signal[A]] with Signal[A] {
-
+  self =>
   override lazy val changes: EventStream[A] = new ChangesEventStream(this)
   override def map[B](op: A => B): Signal[B] = new MapSignal(this, op)
   override def flatMap[B](op: A => Signal[B]): Signal[B] = map(op).flatten
@@ -27,4 +29,21 @@ trait SignalImpl[A] extends ReactiveImpl[A, A, A, Signal[A]] with Signal[A] {
   override def pulse(when: EventStream[_]): EventStream[A] = new PulseEventStream(this, when);
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
+  
+  def mirror = new ReactiveMirror[A, A, A, Signal[A]] {
+    def mirror = new SignalImpl[A] {
+      private var value = self.value(null)
+      private var sourceDependencies = self.sourceDependencies(null)
+      def now = value
+      def value(t: Transaction) = value
+      def sourceDependencies(t: Transaction) = sourceDependencies
+      self.addNotificationDependant(null, new ReactiveNotificationDependant[A]{
+        def fire(notification: ReactiveNotification[A]) {
+          notification.pulse.foreach { value = _ }
+          notification.sourceDependencies.foreach { sourceDependencies = _ }
+          doPulse(notification.transaction, notification.sourceDependencies.isDefined, notification.pulse)
+        }
+      })
+    }
+  }  
 }

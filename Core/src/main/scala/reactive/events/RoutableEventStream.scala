@@ -17,5 +17,6 @@ object RoutableEventStream {
     def merge[B >: A](streams: EventStream[B]*): EventStream[B] = _output.merge(streams: _*)
     def fold[B](initialValue: B)(op: (B, A) => B): Signal[B] = _output.fold(initialValue)(op)
     def filter(op: A => Boolean): EventStream[A] = _output.filter(op)
+    override def mirror = _output.mirror
   }
 }

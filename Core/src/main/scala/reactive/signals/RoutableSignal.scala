@@ -28,5 +28,6 @@ object RoutableSignal {
     override def flatten[R <: Reactive[_, _, _, R]](implicit evidence: A <:< R): R = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
+    override def mirror = _output.mirror
   }
 }

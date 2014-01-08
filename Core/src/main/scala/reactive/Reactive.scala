@@ -17,7 +17,7 @@ trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, R]] {
   protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
   protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
 
-//  def mirror: ReactiveMirror[O, V, P, R]
+  def mirror: ReactiveMirror[O, V, P, R]
   
   def log: Signal[List[O]]
   def observe(obs: O => Unit)

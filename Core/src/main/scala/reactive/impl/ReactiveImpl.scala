@@ -8,6 +8,8 @@ import scala.actors.threadpool.Executors
 import scala.util.Failure
 import scala.util.Try
 import reactive.impl.mirroring.ReactiveMirror
+import reactive.impl.mirroring.ReactiveNotification
+import reactive.impl.mirroring.ReactiveNotificationDependant
 
 trait ReactiveImpl[O, V, P, R <: Reactive[O, V, P, R]] extends Reactive[O, V, P, R] with Logging {
   this: R =>
@@ -69,6 +71,27 @@ trait ReactiveImpl[O, V, P, R <: Reactive[O, V, P, R]] extends Reactive[O, V, P,
   private def notifyObservers(transaction: Transaction, value: O) {
     logger.trace(s"$this -> Observers(${observers.size})")
     ReactiveImpl.parallelForeach(observers) { _(value) }
+  }
+
+  // mirroring
+  private var notificationDependencies = Set[ReactiveNotificationDependant[P]]() 
+  private lazy val mirrorNotifier : Reactive.Dependant = { (transaction, pulsed, topologyChanged) => 
+  	val notification = new ReactiveNotification[P](transaction, pulse(transaction), if(topologyChanged) Some(sourceDependencies(transaction)) else None)
+  	notificationDependencies.foreach{_.fire(notification)}
+  }
+  protected def addNotificationDependant(transaction: Transaction, dependant: ReactiveNotificationDependant[P]) {
+    if(notificationDependencies.isEmpty) {
+      addDependant(transaction, mirrorNotifier);
+    }
+    notificationDependencies += dependant
+  }
+  protected def removeNotificationDependant(transaction: Transaction, dependant: ReactiveNotificationDependant[P]) {
+    if(!notificationDependencies.isEmpty) {
+      notificationDependencies -= dependant
+      if(notificationDependencies.isEmpty) {
+        removeDependant(transaction, mirrorNotifier);
+      }
+    }
   }
 }
 

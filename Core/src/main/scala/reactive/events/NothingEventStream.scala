@@ -3,7 +3,7 @@ package events
 
 import reactive.signals.Val
 import reactive.signals.Signal
-import reactive.impl.mirroring.EventStreamMirror
+import reactive.impl.mirroring.ReactiveMirror
 
 object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Unit, Nothing, EventStream[Nothing]] {
   override def now = Unit
@@ -14,4 +14,7 @@ object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Not
   override def fold[B](initialValue: B)(op: (B, Nothing) => B): Signal[B] = new Val(initialValue)
   override val log: Signal[List[Nothing]] = new Val(List[Nothing]())
   override def filter(op: Nothing => Boolean): EventStream[Nothing] = this
+  override def mirror = new ReactiveMirror[Nothing, Unit, Nothing, EventStream[Nothing]]{
+    def mirror = NothingEventStream
+  }
 }

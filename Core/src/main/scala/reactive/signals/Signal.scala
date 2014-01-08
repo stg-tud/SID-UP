@@ -2,7 +2,6 @@ package reactive
 package signals
 
 import reactive.events.EventStream
-import reactive.impl.mirroring.SignalMirror
 
 trait Signal[+A] extends Reactive[A, A, A, Signal[A]] {
   def changes: EventStream[A]
