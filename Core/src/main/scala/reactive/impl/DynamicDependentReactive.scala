@@ -3,10 +3,11 @@ package impl
 
 import java.util.UUID
 
-trait DynamicDependentReactive {
-  self: DependentReactive[_, _] =>
+import scala.language.higherKinds
+trait DynamicDependentReactive[X, +OW[+_], +VW[+_], +PW[+_], +R[+Y] <: Reactive[Y, OW, VW, PW, R]] {
+  self: DependentReactive[X, OW, VW, PW, R] =>
 
-  protected def dependencies(transaction: Transaction): Set[Reactive[_, _, _, _]]
+  protected def dependencies(transaction: Transaction): Set[DependableReactive]
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
 

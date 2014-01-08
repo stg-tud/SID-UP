@@ -21,11 +21,11 @@ import reactive.impl.RoutableReactive
 trait RoutableSignal[A] extends Signal[A] with ReactiveSource[Signal[A]]
 
 object RoutableSignal {
-  def apply[A](initialValue: Signal[A]): RoutableSignal[A] = new RoutableReactive[A, A, A, Signal[A]](initialValue) with RoutableSignal[A] {
+  def apply[A](initialValue: Signal[A]): RoutableSignal[A] = new RoutableReactive[A, Reactive.IDENTITY, Reactive.IDENTITY, Reactive.IDENTITY, Signal](initialValue) with RoutableSignal[A] {
     override def changes: EventStream[A] = _output.changes
     override def map[B](op: A => B): Signal[B] = _output.map(op)
     override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
-    override def flatten[R <: Reactive[_, _, _, R]](implicit evidence: A <:< R): R = _output.flatten
+    override def flatten[X, OW[+_], VW[+_], PW[+_], R[+Y] <: Reactive[Y, OW, VW, PW, R]](implicit evidence: A <:< R[X]): R[X] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
     override def mirror = _output.mirror

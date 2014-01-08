@@ -3,8 +3,9 @@ package impl
 
 import java.util.UUID
 
-trait DependentReactive[V, P] extends Reactive.Dependant {
-  self: ReactiveImpl[_, V, P, _] =>
+import scala.language.higherKinds
+trait DependentReactive[X, OW[+_], VW[+_], PW[+_], +R[+Y] <: Reactive[Y, OW, VW, PW, R]] extends Reactive.Dependant {
+  self: ReactiveImpl[X, OW, VW, PW, R] =>
 
   override def toString = name
 

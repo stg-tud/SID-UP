@@ -3,8 +3,9 @@ package impl
 
 import java.util.UUID
 
-trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
-  self: ReactiveImpl[_, _, P, _] =>
+import scala.language.higherKinds
+trait ReactiveSourceImpl[A, +OW[+_], +VW[+_], +PW[+_], +R[+X] <: Reactive[X, OW, VW, PW, R]] extends ReactiveSource[A] {
+  self: ReactiveImpl[A, OW, VW, PW, R] =>
   override val uuid = UUID.randomUUID();
   override val name = s"ReactiveSource($uuid)"
   override def sourceDependencies(transaction: Transaction) = Set(uuid)

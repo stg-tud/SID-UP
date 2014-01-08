@@ -7,5 +7,5 @@ import reactive.impl.ReactiveImpl
 import reactive.impl.DependentReactive
 
 object FlattenSignal {
-  def apply[R <: Reactive[_, _, _, R]](outer: Signal[R]) : R = ???
+//  def apply[R <: Reactive[_, _, _, R]](outer: Signal[R]) : R = ???
 }

@@ -5,14 +5,19 @@ import reactive.signals.Var
 import java.util.UUID
 import reactive.signals.Signal
 
-class RoutableReactive[O, V, P, R <: Reactive[O, V, P, R]](initialValue: R) extends ReactiveSource[R] {
-  this: R =>
+import scala.language.higherKinds
+class RoutableReactive[A, +OW[+_], +VW[+_], +PW[+_], R[+X] <: Reactive[X, OW, VW, PW, R]](initialValue: R[A]) extends ReactiveSource[R[A]] {
+  this: R[A] =>
+  type V = VW[A]
+  type O = OW[A]
+  type P = PW[A]
+
   protected val _input = Var(initialValue);
-  override def <<(value: R) = _input.<<(value)
-  override protected[reactive] def emit(transaction: Transaction, value: R /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
+  override def <<(value: R[A]) = _input.<<(value)
+  override protected[reactive] def emit(transaction: Transaction, value: R[A] /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
   override protected[reactive] val uuid: UUID = _input.uuid
 
-  val _output = _input.flatten
+  val _output = _input.flatten[A, OW, VW, PW, R]
   protected[reactive] override def value(transaction: Transaction): V = _output.value(transaction)
   protected[reactive] override def pulse(transaction: Transaction): Option[P] = _output.pulse(transaction)
   protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)

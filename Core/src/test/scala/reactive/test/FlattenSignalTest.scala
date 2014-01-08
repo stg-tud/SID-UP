@@ -14,7 +14,7 @@ class FlattenSignalTest extends FunSuite {
   test("inner value update works") {
     val inner = Var(123)
     val outer: Var[Signal[Int]] = Var(inner)
-    val flattened = outer.flatten;
+    val flattened = outer.flatten[Int, Reactive.IDENTITY, Reactive.IDENTITY, Reactive.IDENTITY, Signal];
     val log = new NotificationLog(flattened)
 
     expectResult(123) { flattened.now }
@@ -54,7 +54,7 @@ class FlattenSignalTest extends FunSuite {
   test("outer value update works") {
     val inner1 = Var(123)
     val outer: Var[Signal[Int]] = Var(inner1)
-    val flattened = outer.flatten;
+    val flattened = outer.flatten[Int, Reactive.IDENTITY, Reactive.IDENTITY, Reactive.IDENTITY, Signal];
     val log = new NotificationLog(flattened)
 
     expectResult(123) { flattened.now }
@@ -100,7 +100,7 @@ class FlattenSignalTest extends FunSuite {
     val inner = Var(1)
     val middle : Var[Signal[Int]] = Var(inner)
     val outer1 : Var[Signal[Signal[Int]]] = Var(middle)
-    val flattened1 = outer1.flatten.flatten
+    val flattened1 = outer1.flatten[Signal[Int], Reactive.IDENTITY, Reactive.IDENTITY, Reactive.IDENTITY, Signal].flatten[Int, Reactive.IDENTITY, Reactive.IDENTITY, Reactive.IDENTITY, Signal]
     val log1 = new NotificationLog(flattened1)
     val outer2 : Var[Signal[Int]] = Var(middle.flatten)
     val flattened2 = outer2.flatten

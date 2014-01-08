@@ -11,7 +11,7 @@ import reactive.signals.Signal
 trait RoutableEventStream[A] extends EventStream[A] with ReactiveSource[EventStream[A]]
 
 object RoutableEventStream {
-  def apply[A](initialValue: EventStream[A]): RoutableEventStream[A] = new RoutableReactive[A, Unit, A, EventStream[A]](initialValue) with RoutableEventStream[A] {
+  def apply[A](initialValue: EventStream[A]): RoutableEventStream[A] = new RoutableReactive[A, Reactive.IDENTITY, Reactive.UNIT, Reactive.IDENTITY, EventStream](initialValue) with RoutableEventStream[A] {
     def hold[B >: A](initialValue: B): Signal[B] = _output.hold(initialValue)
     def map[B](op: A => B): EventStream[B] = _output.map(op)
     def merge[B >: A](streams: EventStream[B]*): EventStream[B] = _output.merge(streams: _*)

@@ -3,10 +3,11 @@ package impl
 
 import java.util.UUID
 
-trait SingleDependentReactive {
-  self: DependentReactive[_, _]=>
+import scala.language.higherKinds
+trait SingleDependentReactive[X, +OW[+_], +VW[+_], +PW[+_], +R[+Y] <: Reactive[Y, OW, VW, PW, R]] {
+  self: DependentReactive[X, OW, VW, PW, R] =>
 
-  protected val dependency: Reactive[_, _, _, _]
+  protected val dependency: DependableReactive
   dependency.addDependant(null, this)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {

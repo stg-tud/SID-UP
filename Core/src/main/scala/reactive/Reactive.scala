@@ -3,21 +3,27 @@ package reactive
 import java.util.UUID
 import reactive.signals.Signal
 import reactive.impl.mirroring.ReactiveMirror
+import scala.language.higherKinds
 
-trait Reactive[+O, +V, +P, +R <: Reactive[O, V, P, R]] {
-  this: R =>
-  def now: V
-  
-  protected[reactive] def value(transaction: Transaction): V
-  protected[reactive] def pulse(transaction: Transaction): Option[P]
+trait DependableReactive {
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
-
   protected[reactive] def sourceDependencies(transaction: Transaction): Reactive.Topology
   protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
   protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant)
   protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant)
+}
+trait Reactive[A, +OW[+_], +VW[+_], +PW[+_], +R[+X] <: Reactive[X, OW, VW, PW, R]] extends DependableReactive {
+  this: R[A] =>
+  type V = VW[A]
+  type O = OW[A]
+  type P = PW[A]
 
-  def mirror: ReactiveMirror[O, V, P, R]
+  def now: V
+  
+  protected[reactive] def value(transaction: Transaction): V
+  protected[reactive] def pulse(transaction: Transaction): Option[P]
+
+  def mirror[X >: A]: ReactiveMirror[X, OW, VW, PW, R]
   
   def log: Signal[List[O]]
   def observe(obs: O => Unit)
@@ -47,4 +53,6 @@ object Reactive {
   //    def log = fold(List[A]())((list, elem) => list :+ elem)
   //    def filter(op: A => Boolean): EventStream[A] = new FilteredEventStream(this, op);
   //  }
+  type IDENTITY[+X] = X
+  type UNIT[+X] = Unit
 }

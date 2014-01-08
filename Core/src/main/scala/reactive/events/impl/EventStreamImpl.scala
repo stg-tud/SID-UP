@@ -9,7 +9,7 @@ import reactive.impl.mirroring.ReactiveMirror
 import reactive.impl.mirroring.ReactiveNotificationDependant
 import reactive.impl.mirroring.ReactiveNotification
 
-trait EventStreamImpl[A] extends ReactiveImpl[A, Unit, A, EventStream[A]] with EventStream[A] {
+trait EventStreamImpl[A] extends ReactiveImpl[A, Reactive.IDENTITY, Reactive.UNIT, Reactive.IDENTITY, EventStream] with EventStream[A] {
   self =>
   override def hold[B >: A](initialValue: B): Signal[B] = fold(initialValue) { (_, value) => value }
   override def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
@@ -20,11 +20,11 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, Unit, A, EventStream[A]] with E
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 
-  def mirror = new ReactiveMirror[A, Unit, A, EventStream[A]] {
-    def mirror = new EventStreamImpl[A] {
-      private var sourceDependencies = self.sourceDependencies(null)
+  def mirror[X >: A] = new ReactiveMirror[X, Reactive.IDENTITY, Reactive.UNIT, Reactive.IDENTITY, EventStream] {
+    def mirror = new EventStreamImpl[X] {
       def now = Unit
       def value(transaction: Transaction) = Unit
+      private var sourceDependencies = self.sourceDependencies(null)
       def sourceDependencies(t: Transaction) = sourceDependencies
       self.addNotificationDependant(null, new ReactiveNotificationDependant[A] {
         def fire(notification: ReactiveNotification[A]) {

@@ -5,8 +5,8 @@ package impl
 import reactive.impl.MultiDependentReactive
 
 class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends {
-  override val dependencies = streams.toSet : Set[Reactive[_, _, _, _]]
-} with DependentEventStreamImpl[A] with MultiDependentReactive {
+  override val dependencies = streams.toSet : Set[DependableReactive]
+} with DependentEventStreamImpl[A] with MultiDependentReactive[A, Reactive.IDENTITY, Reactive.UNIT, Reactive.IDENTITY, EventStream] {
 
   protected def reevaluatePulse(transaction: Transaction): Option[A] = {
     streams.find {

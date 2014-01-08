@@ -4,10 +4,11 @@ package impl
 import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 
-trait MultiDependentReactive extends Logging {
-  self: DependentReactive[_, _] =>
+import scala.language.higherKinds
+trait MultiDependentReactive[X, +OW[+_], +VW[+_], +PW[+_], +R[+Y] <: Reactive[Y, OW, VW, PW, R]] extends Logging {
+  self: DependentReactive[X, OW, VW, PW, R] =>
 
-  protected val dependencies: Set[Reactive[_, _, _, _]]
+  protected val dependencies: Set[DependableReactive]
   dependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = null
