@@ -1,5 +1,6 @@
 package whiteboard
 
+import whiteboard.ui.panels.StrokeInputPanel
 import javax.swing._
 import java.awt.{Dimension, BorderLayout}
 
@@ -7,7 +8,8 @@ import java.awt.{Dimension, BorderLayout}
 object Whiteboard {
   def main(args: Array[String]): Unit = {
     makeWindow("Whiteboard", 1000, 600)(
-      new JTabbedPane -> BorderLayout.CENTER
+      new JTabbedPane -> BorderLayout.CENTER,
+      new StrokeInputPanel -> BorderLayout.NORTH
     )
   }
 
