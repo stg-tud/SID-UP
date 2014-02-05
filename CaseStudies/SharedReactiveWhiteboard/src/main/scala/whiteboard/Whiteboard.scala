@@ -30,7 +30,7 @@ object Whiteboard {
     }
 
     window.pack()
-    window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+    window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     window.setVisible(true)
     window
   }
