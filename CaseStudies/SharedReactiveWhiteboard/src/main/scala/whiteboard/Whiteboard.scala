@@ -1,16 +1,22 @@
 package whiteboard
 
-import whiteboard.ui.panels.{ShapeSelectionPanel, StrokeInputPanel}
+import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel}
 import javax.swing._
 import java.awt.{Dimension, BorderLayout}
+import whiteboard.figures.ShapeFactory
 
 
 object Whiteboard {
+  val shapeFactory = new ShapeFactory
+  val strokeInputPanel = new StrokeInputPanel
+  val shapeSelectionPanel = new ShapeSelectionPanel
+  val drawingPanel = new DrawingPanel
+
   def main(args: Array[String]): Unit = {
     makeWindow("Whiteboard", 1000, 600)(
-      new JTabbedPane -> BorderLayout.CENTER,
-      new StrokeInputPanel -> BorderLayout.NORTH,
-      new ShapeSelectionPanel -> BorderLayout.WEST
+      drawingPanel -> BorderLayout.CENTER,
+      strokeInputPanel -> BorderLayout.NORTH,
+      shapeSelectionPanel -> BorderLayout.WEST
     )
   }
 
