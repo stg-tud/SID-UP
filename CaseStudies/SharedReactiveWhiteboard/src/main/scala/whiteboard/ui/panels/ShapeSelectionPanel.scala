@@ -3,6 +3,7 @@ package whiteboard.ui.panels
 import javax.swing.{BoxLayout, JPanel}
 import ui.ReactiveButton
 import reactive.Lift._
+import whiteboard.Whiteboard
 
 class ShapeSelectionPanel extends JPanel() {
   setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))
@@ -19,10 +20,9 @@ class ShapeSelectionPanel extends JPanel() {
   add(triangleButton.asComponent)
   add(freeDrawButton.asComponent)
 
-  // TODO Replace println with real code
-  lineButton.commits.map { _ => println("Set nextShape to 'Line'") }
-  rectangleButton.commits.map { _ => println("Set nextShape to 'Rectangle'") }
-  ovalButton.commits.map { _ => println("Set nextShape to 'Oval'") }
-  triangleButton.commits.map { _ => println("Set nextShape to 'Triangle'") }
-  freeDrawButton.commits.map { _ => println("Set nextShape to 'Free Draw'") }
+  lineButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "line" }
+  rectangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "rectangle" }
+  ovalButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "oval" }
+  triangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "triangle" }
+  freeDrawButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "freedraw" }
 }
