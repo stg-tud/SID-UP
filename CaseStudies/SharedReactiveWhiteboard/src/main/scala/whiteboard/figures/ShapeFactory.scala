@@ -11,6 +11,10 @@ class ShapeFactory {
   def makeShape: Shape = {
     nextShape match {
       case "line" => new Line(strokeWidth, color, List.empty)
+      case "rectangle" => new Rectangle(strokeWidth, color, List.empty)
+      case "triangle" => new Triangle(strokeWidth, color, List.empty)
+      case "oval" => new Oval(strokeWidth, color, List.empty)
+      case "freedraw" => new Freedraw(strokeWidth, color, List.empty)
     }
   }
 }
