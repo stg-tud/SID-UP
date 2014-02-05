@@ -20,14 +20,14 @@ class StrokeInputPanel extends JPanel(new FlowLayout) {
   add(spinner.asComponent)
   add(showColorWindow.asComponent)
 
-  spinner.value.changes.map { _ => Whiteboard.shapeFactory.strokeWidth = spinner.value.now }
+  spinner.value.map { _ => Whiteboard.shapeFactory.strokeWidth << spinner.value.now }
 }
 
 class ColorWindow extends JFrame("Choose Color") {
   private val colorChooser = new JColorChooser()
 
   private val closeButton = new ReactiveButton("OK")
-  closeButton.commits.map { _ => Whiteboard.shapeFactory.color = colorChooser.getColor; setVisible(false) }
+  closeButton.commits.map { _ => Whiteboard.shapeFactory.color << colorChooser.getColor; setVisible(false) }
 
   private val panel = new JPanel()
   panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS))

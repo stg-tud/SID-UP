@@ -20,9 +20,9 @@ class ShapeSelectionPanel extends JPanel() {
   add(triangleButton.asComponent)
   add(freeDrawButton.asComponent)
 
-  lineButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "line" }
-  rectangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "rectangle" }
-  ovalButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "oval" }
-  triangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "triangle" }
-  freeDrawButton.commits.map { _ => Whiteboard.shapeFactory.nextShape = "freedraw" }
+  lineButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "line" }
+  rectangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "rectangle" }
+  ovalButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "oval" }
+  triangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "triangle" }
+  freeDrawButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "freedraw" }
 }

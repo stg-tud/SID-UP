@@ -1,20 +1,20 @@
 package whiteboard.figures
 
-import reactive.signals.{Val, Signal}
+import reactive.signals.{Var, Val, Signal}
 import java.awt.Color
 
 class ShapeFactory {
-  var nextShape: String = "line"
-  var strokeWidth: Int = 1
-  var color: Color = Color.BLACK
+  var nextShape: Var[String] = Var("line")
+  var strokeWidth: Var[Int] = Var(1)
+  var color: Var[Color] = Var(Color.BLACK)
 
   def makeShape: Shape = {
-    nextShape match {
-      case "line" => new Line(strokeWidth, color, List.empty)
-      case "rectangle" => new Rectangle(strokeWidth, color, List.empty)
-      case "triangle" => new Triangle(strokeWidth, color, List.empty)
-      case "oval" => new Oval(strokeWidth, color, List.empty)
-      case "freedraw" => new Freedraw(strokeWidth, color, List.empty)
+    nextShape.now match {
+      case "line" => new Line(strokeWidth.now, color.now, List.empty)
+      case "rectangle" => new Rectangle(strokeWidth.now, color.now, List.empty)
+      case "triangle" => new Triangle(strokeWidth.now, color.now, List.empty)
+      case "oval" => new Oval(strokeWidth.now, color.now, List.empty)
+      case "freedraw" => new Freedraw(strokeWidth.now, color.now, List.empty)
     }
   }
 }
