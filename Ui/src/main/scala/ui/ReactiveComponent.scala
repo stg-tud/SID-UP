@@ -12,8 +12,10 @@ import reactive.signals.Var
 import java.awt.event.MouseAdapter
 import reactive.signals.RoutableVar
 import reactive.Lift.valueToSignal
+import reactive.events.EventStream
+import reactive.events.EventSource
 
-class ReactiveComponent[T <: JComponent](val asComponent : T) {
+class ReactiveComponent[T <: JComponent](val asComponent: T) {
   protected def observeInEDT[A](reactive: Signal[A])(op: A => Unit) = {
     new ReactiveComponent.ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value)) }).activate;
   }
@@ -34,27 +36,76 @@ class ReactiveComponent[T <: JComponent](val asComponent : T) {
     routableVar
   }
 
-  lazy val _mousePosition : Var[Option[Point]] = {
+  lazy val mousePosition: Signal[Option[Point]] = {
+    val _mousePosition = Var[Option[Point]](None)
     val adapter = new MouseAdapter() {
-      override def mouseMoved(evt : MouseEvent) {
+      override def mouseMoved(evt: MouseEvent) {
         _mousePosition << Some(evt.getPoint());
       }
-      override def mouseExited(evt : MouseEvent) {
+      override def mouseExited(evt: MouseEvent) {
         _mousePosition << None;
       }
-      override def mouseEntered(evt : MouseEvent) {
+      override def mouseEntered(evt: MouseEvent) {
         mouseMoved(evt);
       }
     }
     asComponent.addMouseListener(adapter);
     asComponent.addMouseMotionListener(adapter);
-    Var(None)
+    _mousePosition
   };
-  lazy val mousePosition : Signal[Option[Point]] = _mousePosition;
+
+  lazy val mouseDowns: EventStream[Point] = {
+    val source = EventSource[Point]
+    val adapter = new MouseAdapter() {
+      override def mousePressed(evt: MouseEvent) {
+        source << evt.getPoint()
+      }
+    }
+    asComponent.addMouseListener(adapter)
+    source
+  }
+
+  lazy val mouseUps: EventStream[Point] = {
+    val source = EventSource[Point]
+    val adapter = new MouseAdapter() {
+      override def mouseReleased(evt: MouseEvent) {
+        source << evt.getPoint()
+      }
+    }
+    asComponent.addMouseListener(adapter)
+    source
+  }
+
+  lazy val mouseDrags: EventStream[(Point, Point)] = {
+    val source = EventSource[(Point, Point)]
+    val adapter = new MouseAdapter() {
+      var lastPressedPosition: Point = _;
+      override def mousePressed(evt: MouseEvent) {
+        lastPressedPosition = evt.getPoint()
+      }
+      override def mouseDragged(evt: MouseEvent) {
+        source << (lastPressedPosition -> evt.getPoint());
+        mousePressed(evt)
+      }
+    }
+    asComponent.addMouseMotionListener(adapter)
+    source
+  }
+
+  lazy val wrappedMouseDowns = mouseDowns.map(ReactiveComponent.Down(_))
+  lazy val wrappedMouseUps = mouseUps.map(ReactiveComponent.Up(_))
+  lazy val wrappedMouseDrags = mouseDrags.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
+
+  lazy val mouseEvents = wrappedMouseDowns merge (wrappedMouseUps, wrappedMouseDrags)
 }
 
 object ReactiveComponent {
-    private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
+  trait MouseEvent
+  case class Down(point: Point) extends MouseEvent
+  case class Up(point: Point) extends MouseEvent
+  case class Drag(from: Point, to: Point) extends MouseEvent
+
+  private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
     def activate() {
       reactive.observe(op);
       op(reactive.now);
