@@ -79,7 +79,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   lazy val mouseDrags: EventStream[(Point, Point)] = {
     val source = EventSource[(Point, Point)]
     val adapter = new MouseAdapter() {
-    	var lastPressedPosition: Point = _;
+      var lastPressedPosition: Point = _;
       override def mousePressed(evt: MouseEvent) {
         lastPressedPosition = evt.getPoint()
       }
@@ -92,9 +92,19 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     source
   }
 
+  lazy val wrappedMouseDowns = mouseDowns.map(ReactiveComponent.Down(_))
+  lazy val wrappedMouseUps = mouseUps.map(ReactiveComponent.Up(_))
+  lazy val wrappedMouseDrags = mouseDrags.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
+
+  lazy val mouseEvents = wrappedMouseDowns merge (wrappedMouseUps, wrappedMouseDrags)
 }
 
 object ReactiveComponent {
+  trait MouseEvent
+  case class Down(point: Point) extends MouseEvent
+  case class Up(point: Point) extends MouseEvent
+  case class Drag(from: Point, to: Point) extends MouseEvent
+
   private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
     def activate() {
       reactive.observe(op);
