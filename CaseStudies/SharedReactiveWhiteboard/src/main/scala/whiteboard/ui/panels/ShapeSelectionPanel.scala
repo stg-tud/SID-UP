@@ -3,7 +3,7 @@ package whiteboard.ui.panels
 import javax.swing.{BoxLayout, JPanel}
 import ui.ReactiveButton
 import reactive.Lift._
-import whiteboard.Whiteboard
+import whiteboard.figures.factories._
 
 class ShapeSelectionPanel extends JPanel() {
   setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))
@@ -20,9 +20,12 @@ class ShapeSelectionPanel extends JPanel() {
   add(triangleButton.asComponent)
   add(freeDrawButton.asComponent)
 
-  lineButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "line" }
-  rectangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "rectangle" }
-  ovalButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "oval" }
-  triangleButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "triangle" }
-  freeDrawButton.commits.map { _ => Whiteboard.shapeFactory.nextShape << "freedraw" }
+  val setLineFactory = lineButton.commits.map { _ => new LineFactory }
+  val setRectangleFactory = rectangleButton.commits.map { _ => new RectangleFactory }
+  val setOvalFactory = ovalButton.commits.map { _ => new OvalFactory }
+  val setTriangleFactory = triangleButton.commits.map { _ => new TriangleFactory }
+  val setFreedrawFactory = freeDrawButton.commits.map { _ => new FreedrawFactory }
+
+  val setShapeFactory = setLineFactory merge(setRectangleFactory, setOvalFactory, setTriangleFactory, setFreedrawFactory)
+  val nextShapeFactory = setShapeFactory.hold(new LineFactory)
 }

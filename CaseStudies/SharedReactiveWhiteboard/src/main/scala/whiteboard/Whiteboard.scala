@@ -3,18 +3,20 @@ package whiteboard
 import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel}
 import javax.swing._
 import java.awt.{Dimension, BorderLayout}
-import whiteboard.figures.ShapeFactory
 
 
 object Whiteboard {
-  val shapeFactory = new ShapeFactory
   val strokeInputPanel = new StrokeInputPanel
   val shapeSelectionPanel = new ShapeSelectionPanel
-  val drawingPanel = new DrawingPanel
+  val drawingPanel = new DrawingPanel(
+    shapeSelectionPanel.nextShapeFactory,
+    strokeInputPanel.nextStrokeWidth,
+    strokeInputPanel.nextColor
+  )
 
   def main(args: Array[String]): Unit = {
     makeWindow("Whiteboard", 1000, 600)(
-      drawingPanel -> BorderLayout.CENTER,
+      drawingPanel.asComponent -> BorderLayout.CENTER,
       strokeInputPanel -> BorderLayout.NORTH,
       shapeSelectionPanel -> BorderLayout.WEST
     )

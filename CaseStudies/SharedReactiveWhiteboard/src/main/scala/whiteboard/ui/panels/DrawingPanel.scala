@@ -1,46 +1,36 @@
 package whiteboard.ui.panels
 
-import whiteboard.figures.{Line, Shape}
-import javax.swing.JPanel
-import java.awt.{Graphics, Dimension, Color, Graphics2D}
-import java.awt.event.{MouseMotionAdapter, MouseEvent, MouseAdapter}
-import whiteboard.Whiteboard
+import java.awt.{Dimension, Color}
+import whiteboard.figures.factories.ShapeFactory
+import reactive.signals.Signal
+import ui.ReactiveComponent
+import whiteboard.figures.Shape
+import ui.ReactiveComponent.{Drag, Down, MouseEvent}
+import reactive.events.EventStream
 
-class DrawingPanel extends JPanel {
-  var currentShape: Shape = null
-  var shapes: List[Shape] = List.empty
+class DrawingPanel(
+  val nextShapeFactory: Signal[ShapeFactory],
+  val nextStrokeWidth: Signal[Int],
+  val nextColor: Signal[Color]
+) extends ReactiveComponent(new ShapePanel) {
+  asComponent.setPreferredSize(new Dimension(200, 200))
 
-  setPreferredSize(new Dimension(200, 200))
-
-  override def paintComponent(g: Graphics) {
-    g.setColor(Color.WHITE)
-    g.fillRect(0, 0, getWidth, getHeight)
-    g.setColor(Color.BLACK)
-
-    if (currentShape != null)
-      currentShape.draw(g.asInstanceOf[Graphics2D])
-
-    for (shape <- shapes.reverse)
-      shape.draw(g.asInstanceOf[Graphics2D])
+  val constructingShape: Signal[Option[Shape]] = mouseEvents.fold[Option[Shape]](None) {
+    (currentShape: Option[Shape], event: MouseEvent) =>
+      event match {
+        case Down(point) => Some(nextShapeFactory.now.nextShape(nextStrokeWidth.now, nextColor.now, List(point)))
+        case Drag(from, to) => Some(currentShape.get.copy(currentShape.get.strokeWidth, currentShape.get.color, to :: currentShape.get.mousePath))
+        case _ => currentShape
+      }
   }
 
-  addMouseListener(new MouseAdapter() {
-    override def mousePressed(e: MouseEvent) {
-      currentShape = Whiteboard.shapeFactory.makeShape
-      currentShape.mousePath = List(e.getPoint)
-    }
+  val newShapes : EventStream[Shape] =
+    constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
+  val currentShape: Signal[Option[Shape]] = (constructingShape.changes merge mouseUps.map( _ => None)) hold None
+  asComponent.currentShape = currentShape
 
-    override def mouseReleased(e: MouseEvent) {
-      shapes = currentShape :: shapes
-      currentShape = null
-      repaint()
-    }
-  })
+  asComponent.shapes = newShapes.log
 
-  addMouseMotionListener(new MouseMotionAdapter {
-    override def mouseDragged(e: MouseEvent) {
-      currentShape.mousePath = e.getPoint :: currentShape.mousePath
-      repaint()
-    }
-  })
+  // Repaint when current shape changes
+  constructingShape.changes.observe { _ => asComponent.repaint() }
 }

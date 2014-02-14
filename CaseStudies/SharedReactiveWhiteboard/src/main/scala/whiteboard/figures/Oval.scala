@@ -15,4 +15,6 @@ class Oval(
 
     g.drawOval(x, y, width, height)
   }
+
+  override def copy(strokeWidth: Int, color: Color, mousePath: List[Point]) = new Oval(strokeWidth, color, mousePath)
 }

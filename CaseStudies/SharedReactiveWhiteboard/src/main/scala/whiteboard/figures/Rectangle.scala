@@ -15,4 +15,6 @@ class Rectangle(
 
     g.drawRect(x, y, width, height)
   }
+
+  override def copy(strokeWidth: Int, color: Color, mousePath: List[Point]) = new Rectangle(strokeWidth, color, mousePath)
 }

@@ -16,4 +16,6 @@ class Freedraw(
         g.drawLine(a.x, a.y, b.x, b.y)
     }
   }
+
+  override def copy(strokeWidth: Int, color: Color, mousePath: List[Point]) = new Freedraw(strokeWidth, color, mousePath)
 }

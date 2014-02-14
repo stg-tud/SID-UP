@@ -16,4 +16,6 @@ class Triangle(
     g.drawLine(b.x, b.y, c.x, c.y)
     g.drawLine(a.x, a.y, c.x, c.y)
   }
+
+  override def copy(strokeWidth: Int, color: Color, mousePath: List[Point]) = new Triangle(strokeWidth, color, mousePath)
 }
