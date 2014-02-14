@@ -6,9 +6,10 @@ import java.util.UUID
 
 import reactive.Transaction
 import reactive.signals.Signal
+import reactive.events.EventStream
 
 @remote trait RemoteDependency[V] {
-  protected[reactive] def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V]): (V, Set[UUID])
+  protected[reactive] def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V]): (Option[V], Set[UUID])
 }
 
 @remote trait RemoteDependant[V] {
@@ -20,4 +21,11 @@ object RemoteSignal {
   def apply[A](dependency: RemoteDependency[A]): Signal[A] = new RemoteSignalSinkImpl(dependency)
   def rebind[A](name: String, signal: Signal[A]): Unit = Naming.rebind(name, apply(signal))
   def lookup[A](name: String): Signal[A] = apply(Naming.lookup(name).asInstanceOf[RemoteDependency[A]])
+}
+
+object RemoteEvent {
+  def apply[A](event: EventStream[A]): Remote = new RemoteEventSourceImpl(event)
+  def apply[A](dependency: RemoteDependency[A]): EventStream[A] = new RemoteEventSinkImpl(dependency)
+  def rebind[A](name: String, signal: EventStream[A]): Unit = Naming.rebind(name, apply(signal))
+  def lookup[A](name: String): EventStream[A] = apply(Naming.lookup(name).asInstanceOf[RemoteDependency[A]])
 }
