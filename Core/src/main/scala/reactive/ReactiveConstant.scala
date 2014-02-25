@@ -2,7 +2,7 @@ package reactive
 
 import java.util.UUID
 
-trait ReactiveConstant[+O, +V, +P] extends Reactive[O, V, P] {
+trait ReactiveConstant[+O, +P] extends Reactive[O, P] {
   override def pulse(transaction: Transaction) = None
   override def hasPulsed(transaction: Transaction) = false
   override def sourceDependencies(transaction: Transaction) = Set[UUID]()

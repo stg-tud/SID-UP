@@ -3,8 +3,8 @@ package impl
 
 import java.util.UUID
 
-trait DependentReactive[V, P] extends Reactive.Dependant {
-  self: ReactiveImpl[_, V, P] =>
+trait DependentReactive[P] extends Reactive.Dependant {
+  self: ReactiveImpl[_, P] =>
 
   override def toString = name
 

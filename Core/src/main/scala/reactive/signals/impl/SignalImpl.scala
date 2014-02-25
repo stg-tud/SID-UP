@@ -9,7 +9,7 @@ import reactive.events.impl.MappedEventStream
 import reactive.events.impl.ChangesEventStream
 import reactive.events.impl.PulseEventStream
 
-trait SignalImpl[A] extends ReactiveImpl[A, A, A] with Signal[A] {
+trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 
   override lazy val changes: EventStream[A] = new ChangesEventStream(this)
   override def map[B](op: A => B): Signal[B] = new MapSignal(this, op)

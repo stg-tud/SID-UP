@@ -4,4 +4,4 @@ package impl
 
 import reactive.impl.DependentReactive
 
-abstract class DependentEventStreamImpl[A] extends EventStreamImpl[A] with DependentReactive[Unit, A]
+abstract class DependentEventStreamImpl[P] extends EventStreamImpl[P] with DependentReactive[P]

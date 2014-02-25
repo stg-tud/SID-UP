@@ -11,7 +11,7 @@ import reactive.events.EventStream
 trait commonUpdateProcessing[P] {
   this: Reactive.Dependant =>
 
-  def dependency: Reactive[_,_,P]
+  def dependency: Reactive[_, P]
   var dependants: Set[RemoteDependant[P]] = Set()
 
   dependency.addDependant(null, this)

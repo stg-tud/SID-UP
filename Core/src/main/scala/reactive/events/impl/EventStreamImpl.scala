@@ -6,7 +6,7 @@ import reactive.impl.ReactiveImpl
 import reactive.signals.Signal
 import reactive.signals.impl.FoldSignal
 
-trait EventStreamImpl[A] extends ReactiveImpl[A, Unit, A] with EventStream[A] {
+trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
   override def hold[B >: A](initialValue: B): Signal[B] = fold(initialValue) { (_, value) => value }
   override def map[B](op: A => B): EventStream[B] = new MappedEventStream(this, op);
   override def merge[B >: A](streams: EventStream[B]*): EventStream[B] = new MergeStream(this :: streams.toList);

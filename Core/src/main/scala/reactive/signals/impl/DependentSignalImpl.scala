@@ -3,7 +3,7 @@ package reactive.signals.impl
 import reactive.Transaction
 import reactive.impl.DependentReactive
 
-trait DependentSignalImpl[A] extends SignalImpl[A] with DependentReactive[A, A] {
+trait DependentSignalImpl[A] extends SignalImpl[A] with DependentReactive[A] {
 
   protected def reevaluateValue(transaction: Transaction): A
 

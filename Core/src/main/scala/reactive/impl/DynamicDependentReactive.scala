@@ -4,9 +4,9 @@ package impl
 import java.util.UUID
 
 trait DynamicDependentReactive {
-  self: DependentReactive[_, _] =>
+  self: DependentReactive[_] =>
 
-  protected def dependencies(transaction: Transaction): Set[Reactive[_, _, _]]
+  protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
 

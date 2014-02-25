@@ -3,7 +3,7 @@ package signals
 
 import reactive.events.EventStream
 
-trait Signal[+A] extends Reactive[A, A, A] {
+trait Signal[+A] extends Reactive[A, A] {
   def now: A
   protected[reactive] def value(transaction: Transaction): A
   def changes: EventStream[A]

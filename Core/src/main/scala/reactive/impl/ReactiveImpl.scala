@@ -7,7 +7,7 @@ import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
 
-trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private[reactive] val name = {
