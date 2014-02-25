@@ -16,7 +16,7 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
   override val dependencies = Set[Reactive.Dependency](events, signal)
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
 
-  override protected def reevaluatePulse(transaction: Transaction): Option[A] = {
+  override protected def reevaluate(transaction: Transaction): Option[A] = {
     events.pulse(transaction).map { eventVal =>
       signal.pulse(transaction).getOrElse(signal.value(transaction))
     }

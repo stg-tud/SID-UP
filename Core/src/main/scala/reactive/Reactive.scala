@@ -4,9 +4,7 @@ import java.util.UUID
 import reactive.signals.Signal
 
 trait Reactive[+O, +V, +P] extends Reactive.Dependency {
-  def now: V
 
-  protected[reactive] def value(transaction: Transaction): V
   protected[reactive] def pulse(transaction: Transaction): Option[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 

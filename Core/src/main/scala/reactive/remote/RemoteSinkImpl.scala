@@ -32,8 +32,6 @@ class RemoteEventSinkImpl[A](val dependency: RemoteDependency[A])
   var (None, _sourceDependencies) = dependency.registerRemoteDependant(null, this)
 
   protected[reactive] def sourceDependencies(transaction: reactive.Transaction): Set[java.util.UUID] = _sourceDependencies
-  override def now: Unit = ()
-  override protected[reactive] def value(transaction: Transaction): Unit = ()
 
   def update(transaction: reactive.Transaction, pulse: Option[A], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
     val sdChanged = updatedSourceDependencies match {

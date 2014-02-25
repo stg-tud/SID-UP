@@ -4,6 +4,8 @@ package signals
 import reactive.events.EventStream
 
 trait Signal[+A] extends Reactive[A, A, A] {
+  def now: A
+  protected[reactive] def value(transaction: Transaction): A
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
   def flatMap[B](op: A => Signal[B]): Signal[B]

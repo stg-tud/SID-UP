@@ -10,7 +10,5 @@ import reactive.events.impl.DependentEventStreamImpl
 class TransposeEventStream[A](events: Seq[EventStream[A]]) extends {
   override val dependencies = events.toSet[Reactive.Dependency]
 } with DependentEventStreamImpl[Seq[A]] with MultiDependentReactive {
-  override def reevaluateValue(transaction: Transaction) = events.map(_.value(transaction))
-
-  protected def reevaluatePulse(transaction: Transaction): Option[Seq[A]] = Option(events.map(_.pulse(transaction)).flatten)
+  protected def reevaluate(transaction: Transaction): Option[Seq[A]] = Option(events.map(_.pulse(transaction)).flatten)
 }
