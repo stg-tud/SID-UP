@@ -15,7 +15,7 @@ class SerializableSignal[A] extends Externalizable {
   def this(dependency: Signal[A]) = {
     this()
     uuid = UUID.randomUUID()
-    RemoteSignal.rebind(uuid.toString, dependency)
+    RemoteReactives.rebind(uuid.toString, dependency)
   }
 
   def readExternal(o: ObjectInput): Unit = {
@@ -26,7 +26,7 @@ class SerializableSignal[A] extends Externalizable {
   @throws(classOf[ObjectStreamException])
   private def readResolve(): AnyRef = {
     println("read resolve")
-    RemoteSignal.lookup(uuid.toString)
+    RemoteReactives.lookupSignal(uuid.toString)
   }
 
   def writeExternal(o: ObjectOutput): Unit = {
