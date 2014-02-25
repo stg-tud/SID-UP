@@ -1,6 +1,7 @@
 package util
-import scala.actors.threadpool.locks.ReentrantReadWriteLock
-import scala.actors.threadpool.locks.Lock
+
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.locks.Lock
 
 class LockWithExecute(lock: ReentrantReadWriteLock) {
   def readLocked[A](op: => A): A = {

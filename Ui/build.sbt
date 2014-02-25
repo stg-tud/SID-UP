@@ -16,7 +16,6 @@ scalacOptions ++= List(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-	"org.scala-lang" %% "scala-actors-migration" % "1.0.0",
 	"org.slf4j" % "slf4j-simple" % "1.7.5",
 	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 )

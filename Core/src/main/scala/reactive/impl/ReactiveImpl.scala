@@ -3,8 +3,7 @@ package impl
 
 import scala.collection.mutable
 import com.typesafe.scalalogging.slf4j.Logging
-import scala.actors.threadpool.ExecutorService
-import scala.actors.threadpool.Executors
+import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
 
