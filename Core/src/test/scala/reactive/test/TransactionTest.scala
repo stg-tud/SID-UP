@@ -14,23 +14,23 @@ class TransactionTest extends FunSuite {
     val sumLog = sum.log
 
     var1 << 4;
-    expectResult(List(6, 9)) { sumLog.now }
+    assertResult(List(6, 9)) { sumLog.now }
     var2 << 4;
-    expectResult(List(6, 9, 8)) { sumLog.now }
+    assertResult(List(6, 9, 8)) { sumLog.now }
 
     val transaction = new TransactionBuilder();
 
     transaction.set(var1, 5);
     transaction.set(var2, 5);
     transaction.commit();
-    expectResult(List(6, 9, 8, 10)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10)) { sumLog.now }
 
     transaction.set(var1, 2);
     transaction.set(var2, -2);
     transaction.commit();
-    expectResult(List(6, 9, 8, 10, 0)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10, 0)) { sumLog.now }
 
     var2 << 4;
-    expectResult(List(6, 9, 8, 10, 0, 6)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10, 0, 6)) { sumLog.now }
   }
 }

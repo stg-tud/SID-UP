@@ -45,20 +45,20 @@
 //    super.test(testName, testTags: _*) {
 //      testFun
 //      Thread.sleep(100);
-//      expectResult(Some(Success(()))) { futureVar1Set.value }
-//      expectResult(Some(Success(()))) { futureVar2Set.value }
+//      assertResult(Some(Success(()))) { futureVar1Set.value }
+//      assertResult(Some(Success(()))) { futureVar2Set.value }
 //    }
 //  }
 //
 //  ignore("release int first") {
 //    delayVar1.releaseQueue();
 //    delayVar2.releaseQueue();
-//    expectResult(((2, "b"), (2, "b")), "erroneous endstate, value progression was: " + log.now) { tuple3.now }
+//    assertResult(((2, "b"), (2, "b")), "erroneous endstate, value progression was: " + log.now) { tuple3.now }
 //  }
 //
 //  ignore("release string first") {
 //    delayVar2.releaseQueue();
 //    delayVar1.releaseQueue();
-//    expectResult(((2, "b"), (2, "b")), "erroneous endstate, value progression was: " + log.now) { tuple3.now }
+//    assertResult(((2, "b"), (2, "b")), "erroneous endstate, value progression was: " + log.now) { tuple3.now }
 //  }
 //}

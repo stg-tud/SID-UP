@@ -23,18 +23,18 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   var log: NotificationLog[Int] = _
   var commitFuture: Future[Unit] = _
   def expectSilent() = {
-    expectResult(0) { log.size }
+    assertResult(0) { log.size }
   }
 
   def expectNotification() = {
-    expectResult(1) { log.size }
+    assertResult(1) { log.size }
     val notification1 = log.dequeue
-    expectResult(5) { flattened.now }
-    expectResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
-    expectResult(true) { notification1.valueChanged }
-    expectResult(5) { notification1.newValue }
-    expectResult(true) { notification1.sourceDependenciesChanged }
-    expectResult(Set(inner2.uuid, outer.uuid)) { notification1.newSourceDependencies }
+    assertResult(5) { flattened.now }
+    assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
+    assertResult(true) { notification1.valueChanged }
+    assertResult(5) { notification1.newValue }
+    assertResult(true) { notification1.sourceDependenciesChanged }
+    assertResult(Set(inner2.uuid, outer.uuid)) { notification1.newSourceDependencies }
   }
 
   before {
@@ -45,8 +45,8 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     flattened = outerBuffered.flatten;
     log = new NotificationLog(flattened)
 
-    expectResult(123) { flattened.now }
-    expectResult(Set(inner1.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
+    assertResult(123) { flattened.now }
+    assertResult(Set(inner1.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
 
     inner2 = Var(234)
     inner2Buffered = new MessageBuffer(inner2)
@@ -63,7 +63,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   override def test(testName: String, testTags: Tag*)(testFun: => Unit) {
     super.test(testName, testTags: _*) {
       testFun
-      expectResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
+      assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
     }
   }
 

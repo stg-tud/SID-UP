@@ -13,29 +13,29 @@ class MergeTest extends FunSuite {
 
     val mergeLog = merge.log
 
-    e1 << "bla";
-    e2 << 123;
-    e3 << 5;
+    e1 << "bla"
+    e2 << 123
+    e3 << 5
     val transaction = new TransactionBuilder
-    transaction.set(e1, "x");
-    transaction.set(e2, 2);
-    transaction.commit();
+    transaction.set(e1, "x")
+    transaction.set(e2, 2)
+    transaction.commit()
 
-    assert(List("bla", 123, 5, "x") === mergeLog.now flatMap { _ => List("bla", 123, 5, 2) === mergeLog.now })
+    assert((List("bla", 123, 5, "x") === mergeLog.now) || (List("bla", 123, 5, 2) === mergeLog.now))
   }
 
   test("merge signal change streams") {
     val sx = Var(1)
     val sy = Var(2)
-    val merged = sx.changes.merge(sy.changes);
+    val merged = sx.changes.merge(sy.changes)
   }
 
   test("merge signal changes and eventstream") {
     val sx = Var(1)
-    expectResult(Set(sx.uuid)) { sx.sourceDependencies(null) }
+    assertResult(Set(sx.uuid)) { sx.sourceDependencies(null) }
     val cx = sx.changes
-    expectResult(Set(sx.uuid)) { cx.sourceDependencies(null) }
+    assertResult(Set(sx.uuid)) { cx.sourceDependencies(null) }
     val e1 = EventSource[Int]
-    val merged = e1.merge(cx);
+    val merged = e1.merge(cx)
   }
 }

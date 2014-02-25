@@ -23,7 +23,7 @@ class LateSignalCreationTest extends FunSuite {
     var2 << 2;
     var3 << 2;
 
-    expectResult(List(12, 11, 9, 6)) { log.now }
+    assertResult(List(12, 11, 9, 6)) { log.now }
     println("cookie!");
   }
 }
