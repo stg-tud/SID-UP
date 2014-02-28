@@ -7,6 +7,9 @@ import ui.ReactiveComponent
 import whiteboard.figures.Shape
 import ui.ReactiveComponent.{Drag, Down, MouseEvent}
 import reactive.events.EventStream
+import java.rmi.Naming
+import whiteboard.WhiteboardServer.RemoteWhiteboard
+import reactive.remote.{RemoteSignal, RemoteEvent}
 
 class DrawingPanel(
   val nextShapeFactory: Signal[ShapeFactory],
@@ -26,10 +29,14 @@ class DrawingPanel(
 
   val newShapes : EventStream[Shape] =
     constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
+  RemoteEvent.rebind("newShapes", newShapes)
+
+  val remoteWhiteboard = Naming.lookup("remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
+  val shapeListIdentifier = remoteWhiteboard.connectShapes("newShapes")
+  asComponent.shapes = RemoteSignal.lookup(shapeListIdentifier)
+
   val currentShape: Signal[Option[Shape]] = (constructingShape.changes merge mouseUps.map( _ => None)) hold None
   asComponent.currentShape = currentShape
-
-  asComponent.shapes = newShapes.log
 
   // Repaint when current shape changes
   constructingShape.changes.observe { _ => asComponent.repaint() }
