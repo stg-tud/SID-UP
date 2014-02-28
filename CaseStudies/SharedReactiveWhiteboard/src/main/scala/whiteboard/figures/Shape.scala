@@ -7,7 +7,7 @@ abstract class Shape(
   val strokeWidth: Int = 1,
   val color: Color = Color.BLACK,
   val mousePath: List[Point] = List.empty
-) {
+) extends Serializable {
   def start = if (mousePath.isEmpty) null else mousePath.head
   def end = if (mousePath.isEmpty) null else mousePath.last
 
