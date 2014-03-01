@@ -4,8 +4,6 @@ package impl
 
 import reactive.impl.ReactiveImpl
 import reactive.events.EventStream
-import reactive.events.impl.FilteredEventStream
-import reactive.events.impl.MappedEventStream
 import reactive.events.impl.ChangesEventStream
 import reactive.events.impl.PulseEventStream
 

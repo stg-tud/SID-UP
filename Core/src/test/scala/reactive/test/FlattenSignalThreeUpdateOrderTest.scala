@@ -9,7 +9,6 @@ import reactive.testtools.NotificationLog
 import reactive.TransactionBuilder
 import scala.concurrent._
 import ExecutionContext.Implicits.global
-import scala.util.Success
 import org.scalatest.Tag
 
 class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
@@ -28,7 +27,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   def expectNotification() = {
     assertResult(1) { log.size }
-    val notification1 = log.dequeue
+    val notification1 = log.dequeue()
     assertResult(5) { flattened.now }
     assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     assertResult(true) { notification1.valueChanged }
@@ -42,7 +41,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     inner1Buffered = new MessageBuffer(inner1)
     outer = Var(inner1Buffered)
     outerBuffered = new MessageBuffer(outer)
-    flattened = outerBuffered.flatten;
+    flattened = outerBuffered.flatten
     log = new NotificationLog(flattened)
 
     assertResult(123) { flattened.now }
@@ -51,13 +50,13 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     inner2 = Var(234)
     inner2Buffered = new MessageBuffer(inner2)
     val transaction = new TransactionBuilder()
-    transaction.set(inner1, 0);
-    transaction.set(outer, inner2Buffered);
-    transaction.set(inner2, 5);
+    transaction.set(inner1, 0)
+    transaction.set(outer, inner2Buffered)
+    transaction.set(inner2, 5)
     commitFuture = future {
-      transaction.commit;
+      transaction.commit()
     }
-    Thread.sleep(100);
+    Thread.sleep(100)
   }
 
   override def test(testName: String, testTags: Tag*)(testFun: => Unit) {
@@ -69,27 +68,27 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   List("old", "new", "outer").permutations.foreach { permutation =>
     test(permutation.mkString(", ")) {
-      var timeUntilNotification = 2;
+      var timeUntilNotification = 2
       permutation.foreach { name =>
         val relevant = name match {
           case "old" =>
-            inner1Buffered.releaseQueue
+            inner1Buffered.releaseQueue()
             false
           case "new" =>
-            inner2Buffered.releaseQueue
+            inner2Buffered.releaseQueue()
             true
           case "outer" =>
-            outerBuffered.releaseQueue
+            outerBuffered.releaseQueue()
             true
         }
         if (relevant) {
           timeUntilNotification -= 1
         }
         if (timeUntilNotification == 0) {
-          timeUntilNotification = -1;
-          expectNotification
+          timeUntilNotification = -1
+          expectNotification()
         } else {
-          expectSilent
+          expectSilent()
         }
       }
     }
