@@ -1,7 +1,7 @@
 package whiteboard
 
 import java.rmi.server.UnicastRemoteObject
-import reactive.remote.{RemoteSignal, RemoteEvent}
+import reactive.remote.RemoteReactives
 import whiteboard.figures.Shape
 import java.rmi.Naming
 
@@ -11,10 +11,10 @@ object WhiteboardServer extends App {
   }
   class RemoteWhiteboardImpl extends UnicastRemoteObject with RemoteWhiteboard {
     override def connectShapes(shapeStreamIdentifier: String): String = {
-      val shapeStream = RemoteEvent.lookup[Shape](shapeStreamIdentifier)
+      val shapeStream = RemoteReactives.lookupEvent[Shape](shapeStreamIdentifier)
       val allShapes = shapeStream.log
 
-      RemoteSignal.rebind("shapeList", allShapes)
+      RemoteReactives.rebind("shapeList", allShapes)
       "shapeList"
     }
   }
