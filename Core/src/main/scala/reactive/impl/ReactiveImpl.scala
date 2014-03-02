@@ -3,18 +3,17 @@ package impl
 
 import scala.collection.mutable
 import com.typesafe.scalalogging.slf4j.Logging
-import scala.actors.threadpool.ExecutorService
-import scala.actors.threadpool.Executors
+import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
 
-trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private[reactive] val name = {
     val classname = getClass.getName
     val unqualifiedClassname = classname.substring(classname.lastIndexOf('.') + 1)
-    s"${unqualifiedClassname}(${hashCode})"
+    s"$unqualifiedClassname($hashCode)"
   }
   override def toString = name
 
@@ -41,11 +40,11 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
     synchronized {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
       this.pulse = pulse
-      this.currentTransaction = transaction;
+      this.currentTransaction = transaction
       val pulsed = pulse.isDefined
-      ReactiveImpl.parallelForeach(dependants) { _.apply(transaction, sourceDependenciesChanged, pulsed) };
+      ReactiveImpl.parallelForeach(dependants) { _.apply(transaction, sourceDependenciesChanged, pulsed) }
       if (pulsed) {
-        val value = getObserverValue(transaction, pulse.get);
+        val value = getObserverValue(transaction, pulse.get)
         notifyObservers(transaction, value)
       }
     }
@@ -87,7 +86,7 @@ object ReactiveImpl extends Logging {
       Nil
     } else {
       val iterator = elements.iterator
-      val head = iterator.next;
+      val head = iterator.next()
 
       val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
         (element -> future { op(element) }) :: futures

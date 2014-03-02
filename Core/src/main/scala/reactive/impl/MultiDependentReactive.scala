@@ -5,7 +5,7 @@ import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 
 trait MultiDependentReactive extends Logging {
-  self: DependentReactive[_, _] =>
+  self: DependentReactive[_] =>
 
   protected val dependencies: Set[Reactive.Dependency]
   dependencies.foreach { _.addDependant(null, this) }

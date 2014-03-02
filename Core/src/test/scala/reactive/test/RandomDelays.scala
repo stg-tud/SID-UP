@@ -3,7 +3,7 @@ package reactive.test
 import org.scalatest.FunSuite
 import java.text.SimpleDateFormat
 import java.util.Date
-import scala.actors.threadpool.AtomicInteger
+import java.util.concurrent.atomic.AtomicInteger
 import reactive.signals.Signal
 import reactive.Lift._
 import reactive.signals.Var
@@ -51,7 +51,7 @@ class RandomDelays extends FunSuite {
     val c = C(b1, a2, b2)
 
     val valueLog = c.log
-    expectResult(List(8)) { valueLog.now };
+    assertResult(List(8)) { valueLog.now };
 
     println
     println("--------------------------")
@@ -76,7 +76,7 @@ class RandomDelays extends FunSuite {
     timeStampPrint("waiting period completed.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    expectResult(List(8, 10)) { valueLog.now };
+    assertResult(List(8, 10)) { valueLog.now };
 
     println
     println("--------------------------")
@@ -89,7 +89,7 @@ class RandomDelays extends FunSuite {
     timeStampPrint("waiting period completed.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    expectResult(List(8, 10, 16)) { valueLog.now };
+    assertResult(List(8, 10, 16)) { valueLog.now };
 
     println
     println("--------------------------")
@@ -103,7 +103,7 @@ class RandomDelays extends FunSuite {
     timeStampPrint("waiting period completed, terminating thread pool.");
     // sleep a bit more because the changed value might still have to be propagated to the log
     Thread.sleep(100);
-    expectResult(List(8, 10, 16, 20, 26)) { valueLog.now };
+    assertResult(List(8, 10, 16, 20, 26)) { valueLog.now };
     //    }
   }
 }

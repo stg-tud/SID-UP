@@ -1,31 +1,26 @@
 package reactive.remote
 
 import java.rmi.Naming
-import java.rmi.Remote
-import java.util.UUID
 
-import reactive.Transaction
 import reactive.signals.Signal
 import reactive.events.EventStream
+import reactive.remote.impl._
 
-@remote trait RemoteDependency[V] {
-  protected[reactive] def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[V]): (Option[V], Set[UUID])
-}
 
-@remote trait RemoteDependant[V] {
-  def update(transaction: Transaction, pulse: Option[V], updatedSourceDependencies: Option[Set[UUID]]): Unit
-}
+object RemoteReactives {
+  def makeRemote[A](signal: Signal[A]) = new RemoteSignalSourceImpl(signal)
 
-object RemoteSignal {
-  def apply[A](signal: Signal[A]): Remote = new RemoteSignalSourceImpl(signal)
-  def apply[A](dependency: RemoteDependency[A]): Signal[A] = new RemoteSignalSinkImpl(dependency)
-  def rebind[A](name: String, signal: Signal[A]): Unit = Naming.rebind(name, apply(signal))
-  def lookup[A](name: String): Signal[A] = apply(Naming.lookup(name).asInstanceOf[RemoteDependency[A]])
-}
+  def makeRemote[A](event: EventStream[A]) = new RemoteEventSourceImpl(event)
 
-object RemoteEvent {
-  def apply[A](event: EventStream[A]): Remote = new RemoteEventSourceImpl(event)
-  def apply[A](dependency: RemoteDependency[A]): EventStream[A] = new RemoteEventSinkImpl(dependency)
-  def rebind[A](name: String, signal: EventStream[A]): Unit = Naming.rebind(name, apply(signal))
-  def lookup[A](name: String): EventStream[A] = apply(Naming.lookup(name).asInstanceOf[RemoteDependency[A]])
+  def makeLocal[A](dependency: RemoteDependency[A]): EventStream[A] = new RemoteEventSinkImpl(dependency)
+
+  def makeLocal[A](dependency: RemoteSignalDependency[A]): Signal[A] = new RemoteSignalSinkImpl(dependency)
+
+  def rebind[A](name: String, signal: Signal[A]): Unit = Naming.rebind(name, makeRemote(signal))
+
+  def rebind[A](name: String, event: EventStream[A]): Unit = Naming.rebind(name, makeRemote(event))
+
+  def lookupSignal[A](name: String): Signal[A] = makeLocal(Naming.lookup(name).asInstanceOf[RemoteSignalDependency[A]])
+
+  def lookupEvent[A](name: String): EventStream[A] = makeLocal(Naming.lookup(name).asInstanceOf[RemoteDependency[A]])
 }
