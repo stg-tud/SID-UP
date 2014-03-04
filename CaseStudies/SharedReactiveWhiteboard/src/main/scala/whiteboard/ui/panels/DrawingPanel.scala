@@ -40,4 +40,7 @@ class DrawingPanel(
 
   // Repaint when current shape changes
   constructingShape.changes.observe { _ => asComponent.repaint() }
+
+  // Repaint when a new shape was added
+  asComponent.shapes.changes.observe { _ => asComponent.repaint() }
 }
