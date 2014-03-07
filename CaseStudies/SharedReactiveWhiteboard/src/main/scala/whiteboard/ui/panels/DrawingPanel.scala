@@ -35,11 +35,15 @@ class DrawingPanel(
   val shapeListIdentifier = remoteWhiteboard.connectShapes("newShapes")
   asComponent.shapes = RemoteReactives.lookupSignal(shapeListIdentifier)
 
-  val currentShape: Signal[Option[Shape]] = (constructingShape.changes merge mouseUps.map( _ => None)) hold None
+  val currentShapeStream = constructingShape.changes merge mouseUps.map( _ => None)
+  RemoteReactives.rebind("currentShapes", currentShapeStream)
+
+  val currentShapeIdentifier = remoteWhiteboard.connectCurrentShape("currentShapes")
+  val currentShape = RemoteReactives.lookupSignal[Option[Shape]](currentShapeIdentifier)
   asComponent.currentShape = currentShape
 
   // Repaint when current shape changes
-  constructingShape.changes.observe { _ => asComponent.repaint() }
+  currentShape.changes.observe { _ => asComponent.repaint() }
 
   // Repaint when a new shape was added
   asComponent.shapes.changes.observe { _ => asComponent.repaint() }

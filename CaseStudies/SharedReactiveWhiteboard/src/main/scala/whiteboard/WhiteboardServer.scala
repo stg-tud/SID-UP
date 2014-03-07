@@ -9,6 +9,7 @@ import reactive.events.impl.DynamicMergeStream
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
     def connectShapes(shapeStreamIdentifier: String): String
+    def connectCurrentShape(currentShapeIdentifier: String): String
   }
   class RemoteWhiteboardImpl extends UnicastRemoteObject with RemoteWhiteboard {
     override def connectShapes(shapeStreamIdentifier: String): String = {
@@ -16,6 +17,13 @@ object WhiteboardServer extends App {
       allClientsShapeStream.addEvents(newClientShapeStream)
 
       "shapes"
+    }
+
+    override def connectCurrentShape(currentShapeIdentifier: String): String = {
+      val newClientCurrentShapeStream = RemoteReactives.lookupEvent[Option[Shape]](currentShapeIdentifier)
+      allClientsCurrentShapeStream.addEvents(newClientCurrentShapeStream)
+
+      "currentShape"
     }
   }
 
@@ -26,6 +34,10 @@ object WhiteboardServer extends App {
   val allClientsShapeStream = new DynamicMergeStream[Shape]()
   val shapes = allClientsShapeStream.log
   RemoteReactives.rebind("shapes", shapes)
+
+  val allClientsCurrentShapeStream = new DynamicMergeStream[Option[Shape]]()
+  val currentShape = allClientsCurrentShapeStream hold None
+  RemoteReactives.rebind("currentShape", currentShape)
 
   while (true) {
     Thread.sleep(1000)
