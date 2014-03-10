@@ -15,7 +15,7 @@ class TransposeTest extends FunSuite {
     val transposed = new TransposeSignal[String](list)
     val transposeLog = transposed.log
 
-    assertResult(transposeLog.now) {Seq(Seq("s1", "s2", "s3"))}
+    assertResult(transposeLog.now) { Seq(Seq("s1", "s2", "s3")) }
 
     s1 << "s1updated"
 
@@ -53,11 +53,11 @@ class TransposeTest extends FunSuite {
   test("TransposeEventStream does something sane") {
     val e1, e2, e3 = EventSource[String]
 
-    val list = Seq(e1, e2, e3)
-    val transposed = new TransposeEventStream[String](list)
+    val listSig = Var(Seq(e1, e2, e3))
+    val transposed = new TransposeEventStream[String](listSig)
     val transposeLog = transposed.log
 
-    assertResult {Seq()}(transposeLog.now)
+    assertResult { Seq() }(transposeLog.now)
 
     e1 << "e1fired"
 
@@ -84,6 +84,38 @@ class TransposeTest extends FunSuite {
         Seq("e1fired"),
         Seq("e3fired"),
         Seq("e2fired", "e3fired")
+      )
+    }(transposeLog.now)
+
+
+    listSig << Seq(e2, e3)
+
+    assertResult {
+      Seq(
+        Seq("e1fired"),
+        Seq("e3fired"),
+        Seq("e2fired", "e3fired")
+      )
+    }(transposeLog.now)
+
+    e1 << "e1firedAgain"
+
+    assertResult {
+      Seq(
+        Seq("e1fired"),
+        Seq("e3fired"),
+        Seq("e2fired", "e3fired")
+      )
+    }(transposeLog.now)
+
+    e2 << "e2firedAgain"
+
+    assertResult {
+      Seq(
+        Seq("e1fired"),
+        Seq("e3fired"),
+        Seq("e2fired", "e3fired"),
+        Seq("e2firedAgain")
       )
     }(transposeLog.now)
 
