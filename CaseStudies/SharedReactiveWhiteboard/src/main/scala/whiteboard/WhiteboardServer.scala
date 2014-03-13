@@ -4,7 +4,8 @@ import java.rmi.server.UnicastRemoteObject
 import reactive.remote.RemoteReactives
 import whiteboard.figures.Shape
 import java.rmi.Naming
-import reactive.events.impl.DynamicMergeStream
+import reactive.events.{EventStream, TransposeEventStream}
+import reactive.signals.Var
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
@@ -14,14 +15,14 @@ object WhiteboardServer extends App {
   class RemoteWhiteboardImpl extends UnicastRemoteObject with RemoteWhiteboard {
     override def connectShapes(shapeStreamIdentifier: String): String = {
       val newClientShapeStream = RemoteReactives.lookupEvent[Shape](shapeStreamIdentifier)
-      allClientsShapeStream.addEvents(newClientShapeStream)
+      allClientShapes << allClientShapes.now :+ newClientShapeStream
 
       "shapes"
     }
 
     override def connectCurrentShape(currentShapeIdentifier: String): String = {
       val newClientCurrentShapeStream = RemoteReactives.lookupEvent[Option[Shape]](currentShapeIdentifier)
-      allClientsCurrentShapeStream.addEvents(newClientCurrentShapeStream)
+      allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeStream
 
       "currentShape"
     }
@@ -31,12 +32,16 @@ object WhiteboardServer extends App {
   catch { case _: Exception => println("registry already initialised") }
   Naming.rebind("remoteWhiteboard", new RemoteWhiteboardImpl)
 
-  val allClientsShapeStream = new DynamicMergeStream[Shape]()
-  val shapes = allClientsShapeStream.log
+  val allClientShapes = Var(Seq.empty[EventStream[Shape]])
+  val allClientShapesTransposeStream = new TransposeEventStream[Shape](allClientShapes)
+  val allClientShapesHeadStream = allClientShapesTransposeStream.map { _.head }
+  val shapes = allClientShapesHeadStream.fold[List[Shape]](List.empty[Shape]) { (list, shape) => shape :: list }
   RemoteReactives.rebind("shapes", shapes)
 
-  val allClientsCurrentShapeStream = new DynamicMergeStream[Option[Shape]]()
-  val currentShape = allClientsCurrentShapeStream hold None
+  val allClientsCurrentShape = Var(Seq.empty[EventStream[Option[Shape]]])
+  val allClientCurrentShapeTransposeStream = new TransposeEventStream[Option[Shape]](allClientsCurrentShape)
+  val allClientCurrentShapeHeadStream = allClientCurrentShapeTransposeStream.map { _.head }
+  val currentShape =  allClientCurrentShapeHeadStream hold None
   RemoteReactives.rebind("currentShape", currentShape)
 
   while (true) {
