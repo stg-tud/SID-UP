@@ -32,7 +32,6 @@ class DrawingPanel(
 
   val newShapes : EventStream[Shape] =
     constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
-  RemoteReactives.rebind("newShapes", newShapes)
 
   val serverHostName = JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
   

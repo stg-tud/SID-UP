@@ -13,6 +13,10 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
 
   var _sourceDependencies = dependency.registerRemoteDependant(null, this)
 
+  def disconnect() {
+    dependency.unregisterRemoteDependant(null, this)
+  }
+  
   protected[reactive] def sourceDependencies(transaction: reactive.Transaction): Set[java.util.UUID] = _sourceDependencies
 
   override def update(transaction: Transaction, pulse: Option[P], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {

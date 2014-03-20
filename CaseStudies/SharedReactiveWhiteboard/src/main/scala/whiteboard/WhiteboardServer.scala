@@ -31,6 +31,7 @@ object WhiteboardServer extends App {
 
   object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
     override def connectShapes(shapeStreamIdentifier: RemoteDependency[Shape]) = {
+      println("new client connecting: "+shapeStreamIdentifier);
       val newClientShapeStream = new RemoteEventSinkImpl(shapeStreamIdentifier)
       allClientShapes << allClientShapes.now :+ newClientShapeStream
       shapesRemote

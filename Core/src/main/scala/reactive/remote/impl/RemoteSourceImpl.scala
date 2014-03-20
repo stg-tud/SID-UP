@@ -24,4 +24,7 @@ abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dep
     dependants += dependant
     dependency.sourceDependencies(transaction)
   }
+  override def unregisterRemoteDependant(transaction: Transaction, dependant: RemoteDependant[P]) {
+    dependants -= dependant
+  }
 }
