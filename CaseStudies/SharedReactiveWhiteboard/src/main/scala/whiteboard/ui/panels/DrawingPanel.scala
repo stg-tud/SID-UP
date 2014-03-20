@@ -10,6 +10,9 @@ import reactive.events.EventStream
 import java.rmi.Naming
 import whiteboard.WhiteboardServer.RemoteWhiteboard
 import reactive.remote.RemoteReactives
+import reactive.remote.impl.RemoteEventSourceImpl
+import reactive.remote.impl.RemoteSignalSinkImpl
+import javax.swing.JOptionPane
 
 class DrawingPanel(
   val nextShapeFactory: Signal[ShapeFactory],
@@ -31,15 +34,16 @@ class DrawingPanel(
     constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
   RemoteReactives.rebind("newShapes", newShapes)
 
-  val remoteWhiteboard = Naming.lookup("remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
-  val shapeListIdentifier = remoteWhiteboard.connectShapes("newShapes")
-  asComponent.shapes = RemoteReactives.lookupSignal(shapeListIdentifier)
+  val serverHostName = JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
+  
+  val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
+  val shapeListIdentifier = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapes))
+  asComponent.shapes = new RemoteSignalSinkImpl(shapeListIdentifier)
 
   val currentShapeStream = constructingShape.changes merge mouseUps.map( _ => None)
-  RemoteReactives.rebind("currentShapes", currentShapeStream)
 
-  val currentShapeIdentifier = remoteWhiteboard.connectCurrentShape("currentShapes")
-  val currentShape = RemoteReactives.lookupSignal[Option[Shape]](currentShapeIdentifier)
+  val currentShapeIdentifier = remoteWhiteboard.connectCurrentShape(new RemoteEventSourceImpl(currentShapeStream))
+  val currentShape = new RemoteSignalSinkImpl(currentShapeIdentifier)
   asComponent.currentShape = currentShape
 
   // Repaint when current shape changes

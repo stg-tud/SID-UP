@@ -4,47 +4,46 @@ import java.rmi.server.UnicastRemoteObject
 import reactive.remote.RemoteReactives
 import whiteboard.figures.Shape
 import java.rmi.Naming
-import reactive.events.{EventStream, TransposeEventStream}
+import reactive.events.{ EventStream, TransposeEventStream }
 import reactive.signals.Var
+import reactive.remote.impl.RemoteEventSinkImpl
+import reactive.remote.RemoteDependency
+import reactive.remote.impl.RemoteSignalSourceImpl
+import reactive.remote.RemoteSignalDependency
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
-    def connectShapes(shapeStreamIdentifier: String): String
-    def connectCurrentShape(currentShapeIdentifier: String): String
+    def connectShapes(shapeStreamIdentifier: RemoteDependency[Shape]): RemoteSignalDependency[List[Shape]]
+    def connectCurrentShape(currentShapeIdentifier: RemoteDependency[Option[Shape]]): RemoteSignalDependency[Option[Shape]]
   }
-  class RemoteWhiteboardImpl extends UnicastRemoteObject with RemoteWhiteboard {
-    override def connectShapes(shapeStreamIdentifier: String): String = {
-      val newClientShapeStream = RemoteReactives.lookupEvent[Shape](shapeStreamIdentifier)
-      allClientShapes << allClientShapes.now :+ newClientShapeStream
+  
+  val allClientShapes = Var(Seq.empty[EventStream[Shape]])
+  val allClientShapesTransposeStream = new TransposeEventStream[Shape](allClientShapes)
+  val allClientShapesHeadStream = allClientShapesTransposeStream.map { _.head }
+  val shapes = allClientShapesHeadStream.fold[List[Shape]](List.empty[Shape]) { (list, shape) => shape :: list }
+  val shapesRemote = new RemoteSignalSourceImpl(shapes)
 
-      "shapes"
+  val allClientsCurrentShape = Var(Seq.empty[EventStream[Option[Shape]]])
+  val allClientCurrentShapeTransposeStream = new TransposeEventStream[Option[Shape]](allClientsCurrentShape)
+  val allClientCurrentShapeHeadStream = allClientCurrentShapeTransposeStream.map { _.head }
+  val currentShape = allClientCurrentShapeHeadStream hold None
+  val currentShapeRemote = new RemoteSignalSourceImpl(currentShape)
+
+  object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
+    override def connectShapes(shapeStreamIdentifier: RemoteDependency[Shape]) = {
+      val newClientShapeStream = new RemoteEventSinkImpl(shapeStreamIdentifier)
+      allClientShapes << allClientShapes.now :+ newClientShapeStream
+      shapesRemote
     }
 
-    override def connectCurrentShape(currentShapeIdentifier: String): String = {
-      val newClientCurrentShapeStream = RemoteReactives.lookupEvent[Option[Shape]](currentShapeIdentifier)
+    override def connectCurrentShape(currentShapeIdentifier: RemoteDependency[Option[Shape]]) = {
+      val newClientCurrentShapeStream = new RemoteEventSinkImpl(currentShapeIdentifier)
       allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeStream
-
-      "currentShape"
+      currentShapeRemote
     }
   }
 
   try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
   catch { case _: Exception => println("registry already initialised") }
-  Naming.rebind("remoteWhiteboard", new RemoteWhiteboardImpl)
-
-  val allClientShapes = Var(Seq.empty[EventStream[Shape]])
-  val allClientShapesTransposeStream = new TransposeEventStream[Shape](allClientShapes)
-  val allClientShapesHeadStream = allClientShapesTransposeStream.map { _.head }
-  val shapes = allClientShapesHeadStream.fold[List[Shape]](List.empty[Shape]) { (list, shape) => shape :: list }
-  RemoteReactives.rebind("shapes", shapes)
-
-  val allClientsCurrentShape = Var(Seq.empty[EventStream[Option[Shape]]])
-  val allClientCurrentShapeTransposeStream = new TransposeEventStream[Option[Shape]](allClientsCurrentShape)
-  val allClientCurrentShapeHeadStream = allClientCurrentShapeTransposeStream.map { _.head }
-  val currentShape =  allClientCurrentShapeHeadStream hold None
-  RemoteReactives.rebind("currentShape", currentShape)
-
-  while (true) {
-    Thread.sleep(1000)
-  }
+  Naming.rebind("remoteWhiteboard", remoteImpl)
 }
