@@ -15,8 +15,8 @@ import reactive.remote.impl.RemoteSignalSinkImpl
 import javax.swing.JOptionPane
 
 class DrawingPanel(
-  val nextShapeFactory: Signal[ShapeFactory],
-  val nextStrokeWidth: Signal[Int],
+  val nextShapeFactory: Signal[ShapeFactory], 
+  val nextStrokeWidth: Signal[Int], 
   val nextColor: Signal[Color]
 ) extends ReactiveComponent(new ShapePanel) {
   asComponent.setPreferredSize(new Dimension(200, 200))
@@ -37,13 +37,16 @@ class DrawingPanel(
   
   val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
   val shapeListIdentifier = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapes))
-  asComponent.shapes = new RemoteSignalSinkImpl(shapeListIdentifier)
-
+  
+  val asdf = new RemoteSignalSinkImpl(shapeListIdentifier)
+  asdf.disconnect()
+  asComponent.shapes << asdf
+  
   val currentShapeStream = constructingShape.changes merge mouseUps.map( _ => None)
 
   val currentShapeIdentifier = remoteWhiteboard.connectCurrentShape(new RemoteEventSourceImpl(currentShapeStream))
   val currentShape = new RemoteSignalSinkImpl(currentShapeIdentifier)
-  asComponent.currentShape = currentShape
+  asComponent.currentShape << currentShape
 
   // Repaint when current shape changes
   currentShape.changes.observe { _ => asComponent.repaint() }

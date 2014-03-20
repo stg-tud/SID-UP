@@ -2,12 +2,13 @@ package whiteboard.ui.panels
 
 import javax.swing.JPanel
 import java.awt.{Graphics2D, Color, Graphics}
-import reactive.signals.{Var, Signal}
+import reactive.Lift._
+import reactive.signals.{RoutableVar, Signal}
 import whiteboard.figures.Shape
 
 class ShapePanel extends JPanel {
-  var currentShape: Signal[Option[Shape]] = Var(None)
-  var shapes: Signal[List[Shape]] = Var(List.empty)
+  var currentShape = RoutableVar[Option[Shape]](None)
+  var shapes = RoutableVar(List.empty[Shape])
 
   override def paintComponent(g: Graphics) {
     g.setColor(Color.WHITE)
