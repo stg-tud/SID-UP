@@ -3,25 +3,27 @@ package reactive
 import java.util.UUID
 import reactive.signals.Signal
 
-trait Reactive[+O, +P] extends Reactive.Dependency {
+trait Reactive[+O, +P] extends Reactive.Dependency with Reactive.Observable[O] {
 
   protected[reactive] def pulse(transaction: Transaction): Option[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
-  def log: Signal[Seq[O]]
-  def observe(obs: O => Unit)
-  def unobserve(obs: O => Unit)
 }
 
 object Reactive {
   trait Dependant {
-    protected[reactive] def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
+    protected[reactive] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
   }
   trait Dependency {
     protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
     protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
     protected[reactive] def addDependant(transaction: Transaction, dependant: Dependant): Unit
     protected[reactive] def removeDependant(transaction: Transaction, dependant: Dependant): Unit
+  }
+  trait Observable[+O] {
+    def log: Signal[Seq[O]]
+    def observe(obs: O => Unit)
+    def unobserve(obs: O => Unit)
   }
   //  type RSeq[+A] = Reactive[Seq[A], Seq[A], Delta[A]]
   //  type Signal[+A] = Reactive[A, A, Update[A]]

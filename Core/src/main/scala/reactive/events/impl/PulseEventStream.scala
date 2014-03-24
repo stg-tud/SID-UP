@@ -24,9 +24,9 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
 
   // if the transaction does not touch the events all notifications are discarded,
   // because it is expected that this will not pulse.
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
   	if(events.isConnectedTo(transaction)) {
-  		super.apply(transaction, sourceDependenciesChanged, pulsed)
+  		super.ping(transaction, sourceDependenciesChanged, pulsed)
   	}
   }
 

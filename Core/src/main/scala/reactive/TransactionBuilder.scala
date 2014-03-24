@@ -53,6 +53,7 @@ class TransactionBuilder extends Logging {
 //      }
 //    }
 //    if(reply != COMMIT) { throw new IllegalStateException("Did not receive a transaction action consensus") }
+    reset()
   }
 
   private def setBoxFromMap[A](/*replyChannel : TicketAccumulator.Receiver, */t: Transaction, box: ReactiveSource[A]) {

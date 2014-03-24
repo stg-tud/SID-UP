@@ -1,112 +1,55 @@
-package reactive
-package impl
+package reactive.impl
 
-import scala.collection.mutable
+import reactive.{Transaction, Reactive}
+import scala.concurrent.stm.TSet
+import scala.concurrent.stm.atomic
 import com.typesafe.scalalogging.slf4j.Logging
-import java.util.concurrent.Executors
-import scala.util.Failure
-import scala.util.Try
 
-trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with ObservableImpl[O] with Logging {
+  private val currentTransactions: TSet[Transaction] = TSet[Transaction]()
+
+  private[reactive] def addTransaction(transaction: Transaction): Unit = atomic { implicit tx =>
+    transaction.addDependencies(currentTransactions)
+    currentTransactions += transaction
+  }
+
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
-  private[reactive] val name = {
+  /**
+   * get the pulse of this reactive
+   * @param transaction each pulse is associated to a specific transaction
+   * @return Some(pulse) if the reactive has a new pulse for the transaction, None if not
+   */
+  def pulse(transaction: Transaction): Option[P] = atomic { implicit tx =>
+    if (currentTransactions(transaction))
+      transaction.pulse(this)
+    else None
+  }
+
+  def hasPulsed(transaction: Transaction): Boolean = ???
+
+  protected def getObserverValue(transaction: Transaction, value: P): O
+
+  /**
+   * sets the pulse of the current transaction
+   * this method is called with the calculated pulse after all dependencies have a fixed pulse for this transaction
+   * @param transaction the transaction in which the pulse is valid
+   * @param pulse the pulse of the transaction
+   */
+  protected[reactive] def setPulse(transaction: Transaction, pulse: Option[P]): Unit = {
+    logger.trace(s"$this => Pulse($pulse) [${Option(transaction).map { _.uuid } }]")
+    transaction.setPulse(this, pulse)
+  }
+
+  /**
+   * name is used for logging purposes
+   */
+  protected[reactive] val name = {
     val classname = getClass.getName
     val unqualifiedClassname = classname.substring(classname.lastIndexOf('.') + 1)
     s"$unqualifiedClassname($hashCode)"
   }
+
   override def toString = name
 
-  private var currentTransaction: Transaction = _
-  private var pulse: Option[P] = None
-  def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
-  def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
-
-  private var dependants = Set[Reactive.Dependant]()
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {
-    synchronized {
-      logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants += dependant
-    }
-  }
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {
-    synchronized {
-      logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants -= dependant
-    }
-  }
-
-  protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) {
-    synchronized {
-      logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
-      this.pulse = pulse
-      this.currentTransaction = transaction
-      val pulsed = pulse.isDefined
-      ReactiveImpl.parallelForeach(dependants) { _.apply(transaction, sourceDependenciesChanged, pulsed) }
-      if (pulsed) {
-        val value = getObserverValue(transaction, pulse.get)
-        notifyObservers(transaction, value)
-      }
-    }
-  }
-  protected def getObserverValue(transaction: Transaction, pulseValue: P): O
-
-  // ====== Observing stuff ======
-
-  private val observers = mutable.Set[O => Unit]()
-  def observe(obs: O => Unit) {
-    observers += obs
-    logger.trace(s"$this observers: ${observers.size}")
-  }
-  def unobserve(obs: O => Unit) {
-    observers -= obs
-    logger.trace(s"$this observers: ${observers.size}")
-  }
-
-  private def notifyObservers(transaction: Transaction, value: O) {
-    logger.trace(s"$this -> Observers(${observers.size})")
-    ReactiveImpl.parallelForeach(observers) { _(value) }
-  }
-}
-
-object ReactiveImpl extends Logging {
-  import scala.concurrent._
-  private val pool = Executors.newCachedThreadPool()
-  private implicit val myExecutionContext = new ExecutionContext {
-    def execute(runnable: Runnable) {
-      pool.submit(runnable)
-    }
-    def reportFailure(t: Throwable) = {
-      t.printStackTrace()
-    }
-  }
-
-  def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
-    if (elements.isEmpty) {
-      Nil
-    } else {
-      val iterator = elements.iterator
-      val head = iterator.next()
-
-      val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
-        (element -> future { op(element) }) :: futures
-      }
-      val headResult = Try { op(head) }
-      val results = headResult :: futures.map {
-        case (element, future) =>
-          logger.trace(s"$this join $element")
-          Await.ready(future, duration.Duration.Inf)
-          future.value.get
-      }
-
-      logger.trace(s"$this fork/join completed")
-      // TODO this should probably be converted into an exception thrown forward to
-      // the original caller and be accumulated through all fork/joins along the path?
-      results.foreach {
-        case Failure(e) => e.printStackTrace()
-        case _ =>
-      }
-      results
-    }
-  }
 }
