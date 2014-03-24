@@ -7,7 +7,7 @@ import reactive.signals.{RoutableVar, Signal}
 import whiteboard.figures.Shape
 
 class ShapePanel extends JPanel {
-  var currentShape = RoutableVar[Option[Shape]](None)
+  var currentShapes = RoutableVar[Iterable[Option[Shape]]](Seq.empty[Option[Shape]])
   var shapes = RoutableVar(List.empty[Shape])
 
   override def paintComponent(g: Graphics) {
@@ -15,8 +15,9 @@ class ShapePanel extends JPanel {
     g.fillRect(0, 0, getWidth, getHeight)
     g.setColor(Color.BLACK)
 
-    if (currentShape.now.isDefined)
-      currentShape.now.get.draw(g.asInstanceOf[Graphics2D])
+    for (currentShape <- currentShapes.now)
+      if (currentShape.isDefined)
+        currentShape.get.draw(g.asInstanceOf[Graphics2D])
 
     for (shape <- shapes.now.reverse)
       shape.draw(g.asInstanceOf[Graphics2D])

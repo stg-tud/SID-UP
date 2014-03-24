@@ -5,16 +5,15 @@ import reactive.remote.RemoteReactives
 import whiteboard.figures.Shape
 import java.rmi.Naming
 import reactive.events.{ EventStream, TransposeEventStream }
-import reactive.signals.Var
-import reactive.remote.impl.RemoteEventSinkImpl
+import reactive.signals.{TransposeSignal, Signal, Var}
+import reactive.remote.impl.{RemoteSignalSinkImpl, RemoteEventSinkImpl, RemoteSignalSourceImpl}
 import reactive.remote.RemoteDependency
-import reactive.remote.impl.RemoteSignalSourceImpl
 import reactive.remote.RemoteSignalDependency
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
-    def connectShapes(shapeStreamIdentifier: RemoteDependency[Shape]): RemoteSignalDependency[List[Shape]]
-    def connectCurrentShape(currentShapeIdentifier: RemoteDependency[Option[Shape]]): RemoteSignalDependency[Option[Shape]]
+    def connectShapes(shapeStream: RemoteDependency[Shape]): RemoteSignalDependency[List[Shape]]
+    def connectCurrentShape(currentShapeSignal: RemoteSignalDependency[Option[Shape]]): RemoteSignalDependency[Iterable[Option[Shape]]]
   }
   
   val allClientShapes = Var(Seq.empty[EventStream[Shape]])
@@ -23,22 +22,20 @@ object WhiteboardServer extends App {
   val shapes = allClientShapesHeadStream.fold[List[Shape]](List.empty[Shape]) { (list, shape) => shape :: list }
   val shapesRemote = new RemoteSignalSourceImpl(shapes)
 
-  val allClientsCurrentShape = Var(Seq.empty[EventStream[Option[Shape]]])
-  val allClientCurrentShapeTransposeStream = new TransposeEventStream[Option[Shape]](allClientsCurrentShape)
-  val allClientCurrentShapeHeadStream = allClientCurrentShapeTransposeStream.map { _.head }
-  val currentShape = allClientCurrentShapeHeadStream hold None
+  val allClientsCurrentShape = Var(Seq.empty[Signal[Option[Shape]]])
+  val currentShape = new TransposeSignal[Option[Shape]](allClientsCurrentShape)
   val currentShapeRemote = new RemoteSignalSourceImpl(currentShape)
 
   object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
-    override def connectShapes(shapeStreamIdentifier: RemoteDependency[Shape]) = {
-      println("new client connecting: "+shapeStreamIdentifier);
-      val newClientShapeStream = new RemoteEventSinkImpl(shapeStreamIdentifier)
+    override def connectShapes(shapeStream: RemoteDependency[Shape]) = {
+      println("new client connecting: "+shapeStream)
+      val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
       allClientShapes << allClientShapes.now :+ newClientShapeStream
       shapesRemote
     }
 
-    override def connectCurrentShape(currentShapeIdentifier: RemoteDependency[Option[Shape]]) = {
-      val newClientCurrentShapeStream = new RemoteEventSinkImpl(currentShapeIdentifier)
+    override def connectCurrentShape(currentShapeSignal: RemoteSignalDependency[Option[Shape]]) = {
+      val newClientCurrentShapeStream = new RemoteSignalSinkImpl(currentShapeSignal)
       allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeStream
       currentShapeRemote
     }
