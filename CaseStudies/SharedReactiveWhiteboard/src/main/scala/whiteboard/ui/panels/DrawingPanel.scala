@@ -39,7 +39,6 @@ class DrawingPanel(
   val shapeListIdentifier = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapes))
   
   val asdf = new RemoteSignalSinkImpl(shapeListIdentifier)
-  asdf.disconnect()
   asComponent.shapes << asdf
   
   val currentShapeStream = constructingShape.changes merge mouseUps.map( _ => None)
