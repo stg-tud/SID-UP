@@ -11,8 +11,8 @@ class TransposeTest extends FunSuite {
     val s2 = Var("s2")
     val s3 = Var("s3")
 
-    val list = Seq(s1, s2, s3)
-    val transposed = new TransposeSignal[String](list)
+    val listSig = Var(Seq(s1, s2, s3))
+    val transposed = new TransposeSignal[String](listSig)
     val transposeLog = transposed.log
 
     assertResult(transposeLog.now) { Seq(Seq("s1", "s2", "s3")) }
@@ -45,6 +45,43 @@ class TransposeTest extends FunSuite {
         Seq("s1updated", "s2", "s3"),
         Seq("s1updated", "s2", "s3updated"),
         Seq("s1updated", "s2transaction", "s3transaction")
+      )
+    }(transposeLog.now)
+
+    listSig << Seq(s2, s3)
+
+    assertResult {
+      Seq(
+        Seq("s1", "s2", "s3"),
+        Seq("s1updated", "s2", "s3"),
+        Seq("s1updated", "s2", "s3updated"),
+        Seq("s1updated", "s2transaction", "s3transaction"),
+        Seq("s2transaction", "s3transaction")
+      )
+    }(transposeLog.now)
+
+    s1 << "s1updatedAgain"
+
+    assertResult {
+      Seq(
+        Seq("s1", "s2", "s3"),
+        Seq("s1updated", "s2", "s3"),
+        Seq("s1updated", "s2", "s3updated"),
+        Seq("s1updated", "s2transaction", "s3transaction"),
+        Seq("s2transaction", "s3transaction")
+      )
+    }(transposeLog.now)
+
+    s2 << "s2updatedAgain"
+
+    assertResult {
+      Seq(
+        Seq("s1", "s2", "s3"),
+        Seq("s1updated", "s2", "s3"),
+        Seq("s1updated", "s2", "s3updated"),
+        Seq("s1updated", "s2transaction", "s3transaction"),
+        Seq("s2transaction", "s3transaction"),
+        Seq("s2updatedAgain", "s3transaction")
       )
     }(transposeLog.now)
 
