@@ -1,21 +1,10 @@
 package reactive
 package impl
 
-import java.util.UUID
+trait SingleDependentReactive extends MultiDependentReactive {
+  self: DependentReactive[_] =>
 
-trait SingleDependentReactive {
-  self: DependentReactive[_]=>
+  protected def dependency: Reactive[_, _]
 
-  protected val dependency: Reactive.Dependency
-  dependency.addDependant(null, this)
-
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    synchronized {
-      doReevaluation(transaction, sourceDependenciesChanged, pulsed)
-    }
-  }
-
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependency.sourceDependencies(transaction)
-  }
+  override protected def dependencies: Set[Reactive[_, _]] = Set(dependency)
 }

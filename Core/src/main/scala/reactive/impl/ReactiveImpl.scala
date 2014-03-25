@@ -20,13 +20,13 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
    * @param transaction each pulse is associated to a specific transaction
    * @return Some(pulse) if the reactive has a new pulse for the transaction, None if not
    */
-  def pulse(transaction: Transaction): Option[P] = atomic { implicit tx =>
-    if (currentTransactions(transaction))
+  override def pulse(transaction: Transaction): Option[P] = atomic { implicit tx =>
+    if (isConnectedTo(transaction))
       transaction.pulse(this)
     else None
   }
 
-  def hasPulsed(transaction: Transaction): Boolean = ???
+  override def hasPulsed(transaction: Transaction): Boolean = !isConnectedTo(transaction) || transaction.hasPulsed(this)
 
   protected def getObserverValue(transaction: Transaction, value: P): O
 

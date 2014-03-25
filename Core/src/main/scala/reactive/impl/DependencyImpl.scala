@@ -4,7 +4,8 @@ import scala.concurrent.stm._
 import reactive.{Transaction, Reactive}
 import util.ParallelForeach
 
-
+//TODO: this will need to be refactored to use some kind of weak ref,
+//TODO: such that reactive graphs can be garbage collected if downstream nodes are no longer needed
 trait DependencyImpl {
   this: ReactiveImpl[_, _] =>
 

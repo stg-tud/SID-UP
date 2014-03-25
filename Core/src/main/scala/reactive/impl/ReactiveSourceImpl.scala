@@ -6,6 +6,7 @@ import scala.concurrent.stm.atomic
 
 trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   self: ReactiveImpl[_, P] =>
+
   override val uuid = UUID.randomUUID()
   override val name = s"ReactiveSource($uuid)"
 
@@ -13,9 +14,8 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
 
   override def isConnectedTo(transaction: Transaction) = transaction.sources.contains(uuid)
 
-  override def <<(value: A) {
+  override def <<(value: A): Transaction =
     TransactionBuilder().set(this, value).commit()
-  }
 
   protected[reactive] def emit(transaction: Transaction, value: A): Unit = {
     val pulse = makePulse(value)
