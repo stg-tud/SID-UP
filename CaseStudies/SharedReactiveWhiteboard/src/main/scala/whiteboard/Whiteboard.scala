@@ -11,7 +11,8 @@ object Whiteboard {
   val drawingPanel = new DrawingPanel(
     shapeSelectionPanel.nextShapeFactory,
     strokeInputPanel.nextStrokeWidth,
-    strokeInputPanel.nextColor
+    strokeInputPanel.nextColor,
+    shapeSelectionPanel.clearCommands
   )
 
   def main(args: Array[String]): Unit = {

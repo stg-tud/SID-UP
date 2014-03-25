@@ -17,7 +17,8 @@ import whiteboard.{ShapeCommand, Command}
 class DrawingPanel(
   val nextShapeFactory: Signal[ShapeFactory], 
   val nextStrokeWidth: Signal[Int], 
-  val nextColor: Signal[Color]
+  val nextColor: Signal[Color],
+  val clearCommandStream: EventStream[Command]
 ) extends ReactiveComponent(new ShapePanel) {
   asComponent.setPreferredSize(new Dimension(200, 200))
 
@@ -32,7 +33,7 @@ class DrawingPanel(
 
   val newShapes: EventStream[Shape] =
     constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
-  val newShapesCommands: EventStream[Command] = newShapes.map[ShapeCommand] { ShapeCommand }
+  val newShapesCommands: EventStream[Command] = newShapes.map[Command] { ShapeCommand } merge clearCommandStream
 
   val serverHostName = JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
   
