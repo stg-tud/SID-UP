@@ -12,14 +12,15 @@ import reactive.remote.RemoteSignalDependency
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
-    def connectShapes(shapeStream: RemoteDependency[Shape]): RemoteSignalDependency[List[Shape]]
+    def connectShapes(shapeStream: RemoteDependency[Command]): RemoteSignalDependency[List[Shape]]
     def connectCurrentShape(currentShapeSignal: RemoteSignalDependency[Option[Shape]]): RemoteSignalDependency[Iterable[Option[Shape]]]
   }
   
-  val allClientShapes = Var(Seq.empty[EventStream[Shape]])
-  val allClientShapesTransposeStream = new TransposeEventStream[Shape](allClientShapes)
-  val allClientShapesHeadStream = allClientShapesTransposeStream.map { _.head }
-  val shapes = allClientShapesHeadStream.fold[List[Shape]](List.empty[Shape]) { (list, shape) => shape :: list }
+  val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
+  val allClientShapeCommandsTransposeStream = new TransposeEventStream[Command](allClientShapeCommands)
+  val allClientShapeCommandsHeadStream = allClientShapeCommandsTransposeStream.map { _.head }
+  val shapeCommands = allClientShapeCommandsHeadStream.fold[List[Command]](List.empty[Command]) { (list, shape) => shape :: list }
+  val shapes = shapeCommands.map { clearCommandList }.map { _.map {_.shape}}
   val shapesRemote = new RemoteSignalSourceImpl(shapes)
 
   val allClientsCurrentShape = Var(Seq.empty[Signal[Option[Shape]]])
@@ -27,10 +28,10 @@ object WhiteboardServer extends App {
   val currentShapeRemote = new RemoteSignalSourceImpl(currentShape)
 
   object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
-    override def connectShapes(shapeStream: RemoteDependency[Shape]) = {
+    override def connectShapes(shapeStream: RemoteDependency[Command]) = {
       println("new client connecting: "+shapeStream)
       val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
-      allClientShapes << allClientShapes.now :+ newClientShapeStream
+      allClientShapeCommands << allClientShapeCommands.now :+ newClientShapeStream
       shapesRemote
     }
 
@@ -39,6 +40,13 @@ object WhiteboardServer extends App {
       allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeStream
       currentShapeRemote
     }
+  }
+
+  def clearCommandList(l: List[Command]): List[ShapeCommand] = {
+    l.foldRight[List[ShapeCommand]](List.empty) { (cmd, list) => cmd match {
+      case ShapeCommand(_) => cmd.asInstanceOf[ShapeCommand] :: list
+      case ClearCommand => List.empty
+    }}
   }
 
   try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
