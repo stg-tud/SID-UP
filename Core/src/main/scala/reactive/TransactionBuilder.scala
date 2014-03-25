@@ -1,62 +1,24 @@
 package reactive
 
-import java.util.UUID
-import scala.collection.immutable.TreeMap
-import util.TicketAccumulator
-import util.TransactionAction
-import util.COMMIT
 import com.typesafe.scalalogging.slf4j.Logging
 
-class TransactionBuilder extends Logging {
-//  private val accu = new TicketAccumulator
-  
-  // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
-  private var boxes = new TreeMap[ReactiveSource[_], Any]()(new Ordering[ReactiveSource[_]] {
-    override def compare(a: ReactiveSource[_], b: ReactiveSource[_]) = a.uuid.compareTo(b.uuid)
-  })
+case class TransactionBuilder(private val boxes: Map[ReactiveSource[_], Any] = Map()) extends Logging {
 
-  def set[A](box: ReactiveSource[A], value: A) = {
-    boxes += box -> value;
-    this
-  }
+  def set[A](box: ReactiveSource[A], value: A): TransactionBuilder = copy(boxes = boxes.updated(box, value))
 
-  def forget[A](box: ReactiveSource[A]) {
-    boxes -= box;
-  }
-
-  private def reset() {
-    boxes = boxes.empty
-  }
-
-  def commit() {
+  def commit(): Transaction = {
     val boxSet = boxes.keySet
-    val sourceIds = boxSet.map(_.uuid);
-//    new TransactionExecutor[Transaction] {
-//      override def newTransactionId = new Transaction(sourceIds);
-//    }.retryUntilSuccess { implicit t =>
-//      TransactionExecutor.spawnSubtransactions(boxSet) { setBoxFromMap(t, _) }
-//    }
-    val transaction = new Transaction(sourceIds);
+    val sourceIds = boxSet.map(_.uuid)
+
+    val transaction = new Transaction(sourceIds)
+
     logger.trace(s"start $transaction")
-//    var reply : TransactionAction = null
-//    accu.initializeForNotification(boxSet.size) { result => accu.synchronized { reply = result; accu.notifyAll(); } };
-    boxSet.foreach(setBoxFromMap(/*accu, */transaction, _));
+    boxSet.foreach(setBoxFromMap(transaction, _))
     logger.trace(s"finish $transaction")
 
-//    val start = System.currentTimeMillis();
-//    accu.synchronized {
-//      val timeout = 10000;
-//      var wait = (start - System.currentTimeMillis() + timeout);
-//      while(reply == null && wait > 0) {
-//        accu.wait(wait);
-//        wait = (start - System.currentTimeMillis() + timeout);
-//      }
-//    }
-//    if(reply != COMMIT) { throw new IllegalStateException("Did not receive a transaction action consensus") }
-    reset()
+    transaction
   }
 
-  private def setBoxFromMap[A](/*replyChannel : TicketAccumulator.Receiver, */t: Transaction, box: ReactiveSource[A]) {
-    box.emit(t, boxes(box).asInstanceOf[A]/*, replyChannel*/)
-  }
+  private def setBoxFromMap[A](t: Transaction, box: ReactiveSource[A]) =
+    box.emit(t, boxes(box).asInstanceOf[A])
 }
