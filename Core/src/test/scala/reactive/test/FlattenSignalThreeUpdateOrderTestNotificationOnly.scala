@@ -61,7 +61,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
         }
       }
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
-      
+
       assertResult(5) { flattened.now }
       assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
       assertResult(1) { log.size }

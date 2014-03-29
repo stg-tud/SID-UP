@@ -6,7 +6,7 @@ import reactive.LiftableWrappers._
 import org.scalatest.FunSuite
 
 class LateSignalCreationTest extends FunSuite {
-  test("late creation works") { 
+  test("late creation works") {
     val var1 = Var(1);
     val var2 = Var(2);
     val var3 = Var(3);

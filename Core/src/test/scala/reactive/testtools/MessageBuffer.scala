@@ -10,11 +10,11 @@ import reactive.signals.impl.DependentSignalImpl
 
 class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A] with DependentSignalImpl[A] with SingleDependentReactive {
 
-  val messages = mutable.MutableList[(Transaction, Boolean, Boolean)]()
+  val messages = mutable.MutableList[(Transaction)]()
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction) {
     messages.synchronized {
-      messages += ((transaction, sourceDependenciesChanged, pulsed))
+      messages += ((transaction))
     }
   }
 
@@ -23,7 +23,7 @@ class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A]
       val release = messages.toList
       messages.clear()
       release
-    }.foreach { case (transaction, sourceDependenciesChanged, pulsed) =>
+    }.foreach { case (transaction) =>
       ???
       //doReevaluation(transaction, sourceDependenciesChanged, pulsed)
     }

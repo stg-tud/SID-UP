@@ -95,7 +95,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(false) { notification3.sourceDependenciesChanged }
     assertResult(Set(inner3.uuid, outer.uuid)) { notification3.newSourceDependencies }
   }
-  
+
   test("double nested") {
     val inner = Var(1)
     val middle : Var[Signal[Int]] = Var(inner)
@@ -105,14 +105,14 @@ class FlattenSignalTest extends FunSuite {
     val outer2 : Var[Signal[Int]] = Var(middle.flatten)
     val flattened2 = outer2.flatten
     val log2 = new NotificationLog(flattened2)
-    
+
     assertResult(1) { flattened1.now }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1) { flattened2.now }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
 
     inner << 123;
-    
+
     assertResult(123) { flattened1.now }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1) { log1.size }
@@ -121,7 +121,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(123) { notification1.newValue }
     assertResult(false) { notification1.sourceDependenciesChanged }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { notification1.newSourceDependencies }
-    
+
     assertResult(123) { flattened2.now }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     assertResult(1) { log2.size }
@@ -130,9 +130,9 @@ class FlattenSignalTest extends FunSuite {
     assertResult(123) { notification2.newValue }
     assertResult(false) { notification2.sourceDependenciesChanged }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { notification2.newSourceDependencies }
-    
+
     middle << 234;
-        
+
     assertResult(234) { flattened1.now }
     assertResult(Set(middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1) { log1.size }
@@ -141,7 +141,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { notification3.newValue }
     assertResult(true) { notification3.sourceDependenciesChanged }
     assertResult(Set(middle.uuid, outer1.uuid)) { notification3.newSourceDependencies }
-    
+
     assertResult(234) { flattened2.now }
     assertResult(Set(middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     assertResult(1) { log2.size }
@@ -150,14 +150,14 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { notification4.newValue }
     assertResult(true) { notification4.sourceDependenciesChanged }
     assertResult(Set(middle.uuid, outer2.uuid)) { notification4.newSourceDependencies }
-    
+
     inner << 234
-    
+
     assertResult(0) { log1.size }
     assertResult(0) { log2.size }
-    
+
     middle << inner
-    
+
     assertResult(234) { flattened1.now }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1, log1) { log1.size }
@@ -166,7 +166,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { notification5.newValue }
     assertResult(true) { notification5.sourceDependenciesChanged }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { notification5.newSourceDependencies }
-    
+
     assertResult(234) { flattened2.now }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     assertResult(1) { log2.size }
@@ -175,13 +175,13 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { notification6.newValue }
     assertResult(true) { notification6.sourceDependenciesChanged }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { notification6.newSourceDependencies }
-    
+
     val inner2 = Var(0)
     val middle2 = Var(inner2)
-    
+
     outer1 << middle2
     outer2 << middle2.flatten
-    
+
     assertResult(0) { flattened1.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1) { log1.size }
@@ -190,7 +190,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(0) { notification7.newValue }
     assertResult(true) { notification7.sourceDependenciesChanged }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { notification7.newSourceDependencies }
-    
+
     assertResult(0) { flattened2.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     assertResult(1) { log2.size }
@@ -199,9 +199,9 @@ class FlattenSignalTest extends FunSuite {
     assertResult(0) { notification8.newValue }
     assertResult(true) { notification8.sourceDependenciesChanged }
     assertResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { notification8.newSourceDependencies }
-    
+
     inner2 << 999;
-    
+
     assertResult(999) { flattened1.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.sourceDependencies(null) }
     assertResult(1) { log1.size }
@@ -210,7 +210,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(999) { notification9.newValue }
     assertResult(false) { notification9.sourceDependenciesChanged }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { notification9.newSourceDependencies }
-    
+
     assertResult(999) { flattened2.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.sourceDependencies(null) }
     assertResult(1) { log2.size }

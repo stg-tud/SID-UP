@@ -148,7 +148,7 @@ class SignalMonadicTest extends FunSuite {
     val s = Var(1)
     val s2 = s.map(_-3)
     val s1 = s.map(_+3)
-    
+
     val sall = for(v1 <- s1; v2 <- s2) yield (v1,v2)
 
     val allLog = sall.log
@@ -159,7 +159,7 @@ class SignalMonadicTest extends FunSuite {
 
     assertResult(List((4,-2),(8,2)))(allLog.now)
   }
-  
+
   test("Val and Routable") {
     val s1 = new Val(1)
     val s2 = new Val(2)
