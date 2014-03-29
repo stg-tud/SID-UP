@@ -5,6 +5,7 @@ import scala.concurrent.stm._
 
 class Transaction(val sources: scala.collection.Set[UUID], val uuid: UUID = UUID.randomUUID()) {
   private val pulses = TMap[Reactive[_, _], Pulse[_]]()
+  private val queue = TSet[Reactive.Dependant]()
 
   protected[reactive] def pulse[O, P](reactive: Reactive[O, P]): Pulse[P] = atomic { implicit tx =>
     pulses(reactive).asInstanceOf[Pulse[P]]
@@ -16,6 +17,10 @@ class Transaction(val sources: scala.collection.Set[UUID], val uuid: UUID = UUID
 
   protected[reactive] def setPulse[O, P](reactive: Reactive[O, P], pulse: Pulse[P]): Unit = atomic { implicit tx =>
     pulses += reactive -> pulse
+  }
+
+  protected[reactive] def pingDependants(dependants: TSet[Reactive.Dependant]): Unit = atomic {implicit tx =>
+    queue ++= dependants
   }
 
   protected[reactive] def addDependencies(transactions: Iterable[Transaction]): Unit = ()

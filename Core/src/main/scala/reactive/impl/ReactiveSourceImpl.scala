@@ -22,9 +22,8 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
     atomic { implicit tx =>
       addTransaction(transaction)
       setPulse(transaction, pulse)
+      transaction.pingDependants(dependants)
     }
-    //TODO: this should probably work in some other way …
-    pingDependants(transaction)
   }
 
   protected def makePulse(value: A): Pulse[P]

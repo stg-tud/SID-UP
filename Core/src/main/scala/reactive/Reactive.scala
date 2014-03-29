@@ -18,7 +18,7 @@ object Reactive {
     protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
     protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
     protected[reactive] def addDependant(transaction: Transaction, dependant: Dependant): Unit
-    protected[reactive] def removeDependant(transaction: Transaction, dependant: Dependant): Unit
+    //protected[reactive] def removeDependant(transaction: Transaction, dependant: Dependant): Unit
   }
   trait Observable[+O] {
     def log: Signal[Seq[O]]

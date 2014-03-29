@@ -24,7 +24,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
       val pulse = if (anySourcePulseChanged(transaction)) reevaluate(transaction) else None
       val sourceDependencies = if (anySourceDependenciesChanged(transaction)) Some(calculateSourceDependencies(transaction)) else None
       setPulse(transaction, Pulse(pulse, sourceDependencies))
-      pingDependants(transaction)
+      transaction.pingDependants(dependants)
     }
 
   /**

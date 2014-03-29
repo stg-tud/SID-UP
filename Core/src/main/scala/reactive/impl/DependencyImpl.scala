@@ -16,12 +16,12 @@ trait DependencyImpl {
     dependants += dependant
   }
 
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = atomic { implicit tx =>
-    logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid } }]")
-    dependants -= dependant
-  }
-
-  protected[reactive] def pingDependants(transaction: Transaction): Unit = {
-    ParallelForeach.parallelForeach(dependants.snapshot) { _.ping(transaction) }
-  }
+//  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = atomic { implicit tx =>
+//    logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid } }]")
+//    dependants -= dependant
+//  }
+//
+//  protected[reactive] def pingDependants(transaction: Transaction): Unit = {
+//    ParallelForeach.parallelForeach(dependants.snapshot) { _.ping(transaction) }
+//  }
 }
