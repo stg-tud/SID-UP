@@ -2,24 +2,28 @@ package reactive.signals.impl
 
 import reactive.Transaction
 import reactive.impl.DependentReactive
+import scala.concurrent.stm._
 
 trait DependentSignalImpl[A] extends SignalImpl[A] with DependentReactive[A] {
 
   protected def reevaluateValue(transaction: Transaction): A
 
-  private var _value = reevaluateValue(null)
+  //TODO: using null here was never a good idea, and by now it actually crashes
+  private val _value = Ref(reevaluateValue(null))
 
-  def now = _value
+  override protected def setValue(value: A)(implicit tx: InTxn): Unit = _value() = value
 
-  override def value(transaction: Transaction) = _value
+  def now = atomic { tx => _value()(tx) }
 
   protected override def reevaluate(transaction: Transaction): Option[A] = {
     val newValue = reevaluateValue(transaction)
     if (newValue == now) {
       None
     } else {
-      _value = newValue
       Some(newValue)
     }
   }
+
+
+
 }

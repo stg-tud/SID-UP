@@ -2,7 +2,7 @@ package reactive
 package impl
 
 trait SingleDependentReactive extends MultiDependentReactive {
-  self: DependentReactive[_] =>
+  self: Reactive[_, _] with DependentReactive[_] =>
 
   protected def dependency: Reactive[_, _]
 

@@ -3,21 +3,22 @@ package signals
 package impl
 
 import reactive.impl.ReactiveSourceImpl
+import scala.concurrent.stm._
 
 class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
-  private var value = initialValue
+  private val _value = Ref(initialValue)
 
-  override def now = value
+  override def now = atomic { tx => _value()(tx) }
 
-  override def value(t: Transaction) = t.pulse(this).value.getOrElse(value)
+  override protected def setValue(value: A)(implicit tx: InTxn): Unit = _value() = value
 
   override protected def makePulse(newValue: A): Pulse[A] = {
-    if (value == newValue) {
+    if (_value == newValue) {
       Pulse.noChange
     }
     else {
-      value = newValue
       Pulse.change(newValue)
     }
   }
+
 }

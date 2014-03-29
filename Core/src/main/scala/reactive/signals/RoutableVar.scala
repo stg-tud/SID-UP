@@ -3,6 +3,7 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
+import scala.concurrent.stm.InTxn
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -34,7 +35,7 @@ object RoutableVar {
     protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
     protected[reactive] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
-    protected[reactive] override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.addDependant(transaction, dependant)
+    protected[reactive] override def addDependant(transaction: Transaction, dependant: Reactive.Sink) = _output.addDependant(transaction, dependant)
     //protected[reactive] override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.removeDependant(transaction, dependant)
     override def log: Signal[Seq[A]] = _output.log
     override def observe(obs: A => Unit) = _output.observe(obs)
@@ -48,5 +49,8 @@ object RoutableVar {
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
+
+    //TODO: what to do on commit?
+    override protected[reactive] def commit(transaction: Transaction)(implicit tx: InTxn): Unit = ???
   }
 }

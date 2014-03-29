@@ -12,7 +12,7 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
 
   override def sourceDependencies(transaction: Transaction) = Set(uuid)
 
-  override def isConnectedTo(transaction: Transaction) = transaction.sources.contains(uuid)
+  override def isConnectedTo(transaction: Transaction) = transaction.sourceIDs.contains(uuid)
 
   override def <<(value: A): Transaction =
     TransactionBuilder().set(this, value).commit()

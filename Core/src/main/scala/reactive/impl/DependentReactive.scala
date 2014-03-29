@@ -2,8 +2,10 @@ package reactive
 package impl
 
 import java.util.UUID
+import scala.concurrent.stm.atomic
+import com.typesafe.scalalogging.slf4j.Logging
 
-trait DependentReactive[P] extends Reactive.Dependant {
+trait DependentReactive[P] extends Reactive.Dependant with Logging {
   self: ReactiveImpl[_, P] =>
 
   override def toString = name
@@ -19,13 +21,17 @@ trait DependentReactive[P] extends Reactive.Dependant {
   protected[reactive] def anySourceDependenciesChanged(transaction: Transaction): Boolean =
     dependencies(transaction).exists { _.pulse(transaction).sourceDependencies.isDefined }
 
-  override protected[reactive] def ping(transaction: Transaction) =
+  override protected[reactive] def ping(transaction: Transaction) = {
+    logger.trace(s"$this got ping, dependencies pulsed: ${sourceDependenciesPulsed(transaction) }")
     if (sourceDependenciesPulsed(transaction)) {
       val pulse = if (anySourcePulseChanged(transaction)) reevaluate(transaction) else None
       val sourceDependencies = if (anySourceDependenciesChanged(transaction)) Some(calculateSourceDependencies(transaction)) else None
-      setPulse(transaction, Pulse(pulse, sourceDependencies))
-      transaction.pingDependants(dependants)
+      atomic { implicit tx =>
+        setPulse(transaction, Pulse(pulse, sourceDependencies))
+        transaction.pingDependants(dependants)
+      }
     }
+  }
 
   /**
    * this method is called after all the source dependencies have pulsed.

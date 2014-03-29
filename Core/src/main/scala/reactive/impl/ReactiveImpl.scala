@@ -1,8 +1,7 @@
 package reactive.impl
 
 import reactive.{Pulse, Transaction, Reactive}
-import scala.concurrent.stm.TSet
-import scala.concurrent.stm.atomic
+import scala.concurrent.stm.{InTxn, TSet, atomic}
 import com.typesafe.scalalogging.slf4j.Logging
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with ObservableImpl[O] with Logging {
@@ -13,7 +12,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
     currentTransactions += transaction
   }
 
-  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
+  override def isConnectedTo(transaction: Transaction) = !(transaction.sourceIDs & sourceDependencies(transaction)).isEmpty
 
   /**
    * get the pulse of this reactive
@@ -40,6 +39,10 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
     logger.trace(s"$this => Pulse($pulse) [${Option(transaction).map { _.uuid } }]")
     transaction.setPulse(this, pulse)
   }
+
+
+  override protected[reactive] def commit(transaction: Transaction)(implicit tx: InTxn): Unit =
+    pulse(transaction).value.foreach(v => notifyObservers(transaction, getObserverValue(transaction, v)))
 
   /**
    * name is used for logging purposes

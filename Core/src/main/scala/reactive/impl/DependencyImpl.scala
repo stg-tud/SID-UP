@@ -9,9 +9,9 @@ import util.ParallelForeach
 trait DependencyImpl {
   this: ReactiveImpl[_, _] =>
 
-  private[reactive] val dependants: TSet[Reactive.Dependant] = TSet[Reactive.Dependant]()
+  private[reactive] val dependants: TSet[Reactive.Sink] = TSet[Reactive.Sink]()
 
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = atomic { implicit tx =>
+  override def addDependant(transaction: Transaction, dependant: Reactive.Sink): Unit = atomic { implicit tx =>
     logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid } }]")
     dependants += dependant
   }
