@@ -5,14 +5,14 @@ import reactive.signals.Signal
 
 trait Reactive[+O, +P] extends Reactive.Dependency with Reactive.Observable[O] {
 
-  protected[reactive] def pulse(transaction: Transaction): Option[P]
+  protected[reactive] def pulse(transaction: Transaction): Pulse[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
 }
 
 object Reactive {
   trait Dependant {
-    protected[reactive] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
+    protected[reactive] def ping(transaction: Transaction): Unit
   }
   trait Dependency {
     protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]

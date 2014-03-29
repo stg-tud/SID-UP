@@ -7,17 +7,17 @@ import reactive.impl.ReactiveSourceImpl
 class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
   private var value = initialValue
 
-  def now = value
+  override def now = value
 
-  def value(t: Transaction) = t.pulse(this).getOrElse(value)
+  override def value(t: Transaction) = t.pulse(this).value.getOrElse(value)
 
-  protected def makePulse(newValue: A): Option[A] = {
+  override protected def makePulse(newValue: A): Pulse[A] = {
     if (value == newValue) {
-      None
+      Pulse.noChange
     }
     else {
       value = newValue
-      Some(newValue)
+      Pulse.change(newValue)
     }
   }
 }

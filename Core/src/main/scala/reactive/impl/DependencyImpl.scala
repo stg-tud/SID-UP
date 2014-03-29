@@ -21,7 +21,7 @@ trait DependencyImpl {
     dependants -= dependant
   }
 
-  protected[reactive] def pingDependants(transaction: Transaction, sourceDependenciesChanged: Boolean, hasPulsed: Boolean): Unit = {
-    ParallelForeach.parallelForeach(dependants.snapshot) { _.ping(transaction, sourceDependenciesChanged, hasPulsed) }
+  protected[reactive] def pingDependants(transaction: Transaction): Unit = {
+    ParallelForeach.parallelForeach(dependants.snapshot) { _.ping(transaction) }
   }
 }

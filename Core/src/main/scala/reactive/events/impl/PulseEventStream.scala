@@ -17,16 +17,16 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
 
   override protected def reevaluate(transaction: Transaction): Option[A] = {
-    events.pulse(transaction).map { eventVal =>
-      signal.pulse(transaction).getOrElse(signal.value(transaction))
+    events.pulse(transaction).value.map { eventVal =>
+      signal.pulse(transaction).value.getOrElse(signal.value(transaction))
     }
   }
 
   // if the transaction does not touch the events all notifications are discarded,
   // because it is expected that this will not pulse.
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction) {
   	if(events.isConnectedTo(transaction)) {
-  		super.ping(transaction, sourceDependenciesChanged, pulsed)
+  		super.ping(transaction)
   	}
   }
 

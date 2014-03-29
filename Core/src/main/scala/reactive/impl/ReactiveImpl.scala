@@ -1,6 +1,6 @@
 package reactive.impl
 
-import reactive.{Transaction, Reactive}
+import reactive.{Pulse, Transaction, Reactive}
 import scala.concurrent.stm.TSet
 import scala.concurrent.stm.atomic
 import com.typesafe.scalalogging.slf4j.Logging
@@ -20,10 +20,10 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
    * @param transaction each pulse is associated to a specific transaction
    * @return Some(pulse) if the reactive has a new pulse for the transaction, None if not
    */
-  override def pulse(transaction: Transaction): Option[P] = atomic { implicit tx =>
+  override def pulse(transaction: Transaction): Pulse[P] = atomic { implicit tx =>
     if (isConnectedTo(transaction))
       transaction.pulse(this)
-    else None
+    else Pulse.noChange
   }
 
   override def hasPulsed(transaction: Transaction): Boolean = !isConnectedTo(transaction) || transaction.hasPulsed(this)
@@ -36,7 +36,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
    * @param transaction the transaction in which the pulse is valid
    * @param pulse the pulse of the transaction
    */
-  protected[reactive] def setPulse(transaction: Transaction, pulse: Option[P]): Unit = {
+  protected[reactive] def setPulse(transaction: Transaction, pulse: Pulse[P]): Unit = {
     logger.trace(s"$this => Pulse($pulse) [${Option(transaction).map { _.uuid } }]")
     transaction.setPulse(this, pulse)
   }

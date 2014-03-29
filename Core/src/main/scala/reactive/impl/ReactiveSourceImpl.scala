@@ -23,8 +23,9 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
       addTransaction(transaction)
       setPulse(transaction, pulse)
     }
-    pingDependants(transaction, sourceDependenciesChanged = false, hasPulsed = pulse.isDefined)
+    //TODO: this should probably work in some other way …
+    pingDependants(transaction)
   }
 
-  protected def makePulse(value: A): Option[P]
+  protected def makePulse(value: A): Pulse[P]
 }

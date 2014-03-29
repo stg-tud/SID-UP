@@ -14,13 +14,17 @@ trait DependentReactive[P] extends Reactive.Dependant {
     dependencies(transaction).forall { _.hasPulsed(transaction) }
 
   protected[reactive] def anySourcePulseChanged(transaction: Transaction): Boolean =
-    dependencies(transaction).exists { _.pulse(transaction).isDefined }
+    dependencies(transaction).exists { _.pulse(transaction).hasChanged }
 
-  override protected[reactive] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) =
+  protected[reactive] def anySourceDependenciesChanged(transaction: Transaction): Boolean =
+    dependencies(transaction).exists { _.pulse(transaction).sourceDependencies.isDefined }
+
+  override protected[reactive] def ping(transaction: Transaction) =
     if (sourceDependenciesPulsed(transaction)) {
       val pulse = if (anySourcePulseChanged(transaction)) reevaluate(transaction) else None
-      setPulse(transaction, pulse)
-      pingDependants(transaction, sourceDependenciesChanged, pulsed)
+      val sourceDependencies = if (anySourceDependenciesChanged(transaction)) Some(calculateSourceDependencies(transaction)) else None
+      setPulse(transaction, Pulse(pulse, sourceDependencies))
+      pingDependants(transaction)
     }
 
   /**
@@ -30,7 +34,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
    * this should not have any side effects.
    *
    * @param transaction the transaction for which the pulse should be calculated
-   * @return the pulse of the current transaction or none if nothing happened
+   * @return the pulse value of the current transaction or none if nothing happened
    */
   protected def reevaluate(transaction: Transaction): Option[P]
 

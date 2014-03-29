@@ -1,7 +1,7 @@
 package reactive.events
 
 import reactive.impl.DynamicDependentReactive
-import reactive.{Reactive, Transaction}
+import reactive.{Pulse, Reactive, Transaction}
 import reactive.signals.Signal
 import reactive.events.impl.DependentEventStreamImpl
 
@@ -11,7 +11,7 @@ import reactive.events.impl.DependentEventStreamImpl
 class TransposeEventStream[A](events: Signal[Iterable[EventStream[A]]]) extends DependentEventStreamImpl[Iterable[A]] with DynamicDependentReactive {
   override protected def reevaluate(transaction: Transaction): Option[Iterable[A]] = {
     // get the flat list of pulses, if none changed, we also propagate no change
-    val pulses = events.value(transaction).map(_.pulse(transaction)).flatten
+    val pulses = events.value(transaction).map(_.pulse(transaction).value).flatten
     if (pulses.isEmpty) None else Some(pulses)
   }
 
