@@ -19,7 +19,7 @@ object WhiteboardServer extends App {
   val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
   val allClientShapeCommandsTransposeStream = new TransposeEventStream[Command](allClientShapeCommands)
   val allClientShapeCommandsHeadStream = allClientShapeCommandsTransposeStream.map { _.head }
-  val shapeCommands = allClientShapeCommandsHeadStream.fold[List[Command]](List.empty[Command]) { (list, shape) => shape :: list }
+  val shapeCommands = allClientShapeCommandsHeadStream.fold[List[Command]](List.empty[Command]) { (list, cmd) => cmd :: list }
   val shapes = shapeCommands.map { clearCommandList }.map { _.map {_.shape}}
   val shapesRemote = new RemoteSignalSourceImpl(shapes)
 
