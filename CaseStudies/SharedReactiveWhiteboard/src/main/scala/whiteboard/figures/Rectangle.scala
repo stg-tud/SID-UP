@@ -2,10 +2,10 @@ package whiteboard.figures
 
 import java.awt.{Graphics2D, Point, Color}
 
-class Rectangle(
-  strokeWidth: Int = 1,
-  color: Color = Color.BLACK,
-  mousePath: List[Point] = List.empty
+case class Rectangle(
+  override val strokeWidth: Int = 1,
+  override val color: Color = Color.BLACK,
+  override val mousePath: List[Point] = List.empty
 ) extends Shape(strokeWidth, color, mousePath) {
   override def doDraw(g: Graphics2D) = {
     val x = math.min(start.x, end.x)

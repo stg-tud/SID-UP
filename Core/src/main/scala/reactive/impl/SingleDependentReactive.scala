@@ -10,9 +10,7 @@ trait SingleDependentReactive {
   dependency.addDependant(null, this)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    synchronized {
-      doReevaluation(transaction, sourceDependenciesChanged, pulsed)
-    }
+    doReevaluation(transaction, sourceDependenciesChanged, pulsed)
   }
 
   protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {

@@ -5,7 +5,6 @@ import java.util.concurrent.Semaphore
 import org.scalameter.api._
 import projections._
 import reactive.events.EventSource
-import reactive.remote.RemoteSignal
 import reactive.signals.Var
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.future
@@ -13,6 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
 import com.typesafe.scalalogging.slf4j._
 import projections._
+import reactive.remote.RemoteReactives
 
 trait InitReactives extends TestCommon {
   import projections.reactives._
@@ -27,7 +27,7 @@ trait InitReactives extends TestCommon {
   val p = new Purchases(Var(perOrderCost))
   val m = new Management()
 
-  RemoteSignal.lookup[Int](projections.management).observe { v => done(v) }
+  RemoteReactives.lookupSignal[Int](projections.management).observe { v => done(v) }
 
   println("done")
 

@@ -13,7 +13,7 @@ abstract class Shape(
 
   def draw(g: Graphics2D) = {
     if (start != null && end != null) {
-      val stroke = new BasicStroke(strokeWidth)
+      val stroke = new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER)
 
       g.setStroke(stroke)
       g.setColor(color)

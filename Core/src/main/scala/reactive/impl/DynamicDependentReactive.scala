@@ -14,23 +14,20 @@ trait DynamicDependentReactive extends Logging {
   private var currentTransaction: Transaction = _
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
-  private var hasPulsed: Boolean = true
-
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    synchronized {
+    if (synchronized {
       if (currentTransaction != transaction) {
-        if (!hasPulsed) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid }, Previous transaction ${currentTransaction.uuid } not completed yet!")
+        if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
         currentTransaction = transaction
         anyDependenciesChanged = false
         anyPulse = false
-        hasPulsed = false
       }
 
-      if (hasPulsed) {
+      if (hasPulsed(transaction)) {
         throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
-      }
-      else {
+        false
+      } else {
         val newDependencies = dependencies(transaction)
         val unsubscribe = lastDependencies.diff(newDependencies)
         val subscribe = newDependencies.diff(lastDependencies)
@@ -53,13 +50,14 @@ trait DynamicDependentReactive extends Logging {
 
         //if (!lastDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
         if (waitingFor.isEmpty) {
-          hasPulsed = true
-          doReevaluation(transaction, anyDependenciesChanged, anyPulse)
-        }
-        else {
+          true
+        } else {
           logger.trace(s"$name still waits for updates from $waitingFor)")
+          false
         }
       }
+    }) {
+      doReevaluation(transaction, anyDependenciesChanged, anyPulse)
     }
   }
 
