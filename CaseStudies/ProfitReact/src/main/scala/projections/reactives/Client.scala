@@ -1,9 +1,9 @@
 package projections.reactives
 
 import projections.Order
-import reactive.remote.RemoteSignal
 import reactive.signals.Signal
+import reactive.remote.RemoteReactives
 
 class Client(val orders: Signal[Seq[Order]]) {
-  RemoteSignal.rebind(projections.client, orders)
+  RemoteReactives.rebind(projections.client, orders)
 }
