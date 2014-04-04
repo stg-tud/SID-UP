@@ -38,8 +38,14 @@ object Philosophers extends App {
     }
   }
 
+  
   // size of the table == number of forks == number of philosophers
-  val n = 3
+  val n = if(args.length < 1) {
+    println("Using default table size 3. Supply an integer as first argument to customize.");
+    3
+  } else { 
+    Integer.parseInt(args(0))
+  }
 
   // create forks
   val fork = for (i <- 0 until n) yield Var(FREE)
