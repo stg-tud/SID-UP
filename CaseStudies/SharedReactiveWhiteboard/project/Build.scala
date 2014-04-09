@@ -7,8 +7,9 @@ object Whiteboard extends Build {
 		id = "sidup-casestudy-sharedreactivewhiteboard",
 		base = file(".")
 	)
-	.dependsOn(ui)
+	.dependsOn(core, ui)
 
 	lazy val ui = ProjectRef(base = file("../../Ui"), id = "sidup-ui")
+  lazy val core = ProjectRef(base = file("../../Core"), id = "sidup-core")
 
 }

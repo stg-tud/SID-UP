@@ -41,7 +41,11 @@ class DrawingPanel(
 
   val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
   val shapes = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapesCommands), Some(new RemoteSignalSourceImpl(currentShapeSignal)))
-  
+
   val shapesRemote = new RemoteSignalSinkImpl(shapes)
   asComponent.shapes << shapesRemote
+
+  def disconnect() = {
+    shapesRemote.disconnect()
+  }
  }

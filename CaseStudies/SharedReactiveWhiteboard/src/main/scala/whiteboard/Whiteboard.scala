@@ -3,6 +3,7 @@ package whiteboard
 import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel}
 import javax.swing._
 import java.awt.{Dimension, BorderLayout}
+import java.awt.event.{WindowEvent, WindowAdapter}
 
 
 object Whiteboard {
@@ -20,7 +21,11 @@ object Whiteboard {
       drawingPanel.asComponent -> BorderLayout.CENTER,
       strokeInputPanel -> BorderLayout.NORTH,
       shapeSelectionPanel -> BorderLayout.WEST
-    )
+    ).addWindowListener(new WindowAdapter {
+      override def windowClosing(e: WindowEvent) = {
+        drawingPanel.disconnect()
+      }
+    })
   }
 
   def makeWindow(name: String, width: Int, height: Int)(components: (JComponent, String)*) = {
