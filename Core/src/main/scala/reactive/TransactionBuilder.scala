@@ -12,8 +12,7 @@ case class TransactionBuilder(private val boxes: Map[Reactive.Source[_], Any] = 
     val idSet = boxSet.map(_.uuid)
 
     val transaction = new Transaction(idSet)
-    val tboxSet = TSet.apply[Reactive[_, _]](boxSet.toSeq: _*)
-    transaction.addAwait(tboxSet)
+    transaction.addAwait(boxSet.toSet[Reactive[_, _]])
 
     logger.trace(s"start $transaction")
     atomic { implicit tx =>
