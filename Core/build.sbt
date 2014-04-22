@@ -6,6 +6,8 @@ version := "0.0.0"
 
 scalaVersion := "2.11.0"
 
+incOptions := incOptions.value.withNameHashing(true)
+
 scalacOptions ++= List(
   "-deprecation",
   "-encoding", "UTF-8",
