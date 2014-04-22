@@ -7,11 +7,11 @@ import reactive.impl.MultiDependentReactive
 import reactive.signals.Signal
 
 /** triggers an event with the value of `signal` every time `events` fires
-	*
-	* depends on the value of both the signal and the event stream, so both are dependencies.
-	* but reports only the events stream as an actual dependency downstream,
-	* because a change in only the value of the signal will never change the pulse of this.
-	*/
+  *
+  * depends on the value of both the signal and the event stream, so both are dependencies.
+  * but reports only the events stream as an actual dependency downstream,
+  * because a change in only the value of the signal will never change the pulse of this.
+  */
 class PulseEventStream[A](private val signal: Signal[A], private val events: EventStream[_]) extends {
   override val dependencies = Set[Reactive[_, _]](events, signal)
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
@@ -24,10 +24,10 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
 
   // if the transaction does not touch the events all notifications are discarded,
   // because it is expected that this will not pulse.
-  override def ping(transaction: Transaction) {
-  	if(events.isConnectedTo(transaction)) {
-  		super.ping(transaction)
-  	}
+  override def ping(transaction: Transaction): Unit = {
+    if (events.isConnectedTo(transaction)) {
+      super.ping(transaction)
+    }
   }
 
   // report that this only pulses on changes of the event stream

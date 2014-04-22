@@ -29,7 +29,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 
   override def value(transaction: Transaction) = if ((transaction != null) && isConnectedTo(transaction)) pulse(transaction).value.getOrElse(now) else now
 
-  protected def setValue(value: A)(implicit tx: InTxn)
+  protected def setValue(value: A)(implicit tx: InTxn): Unit
 
   override protected[reactive] def commit(transaction: Transaction)(implicit tx: InTxn): Unit = {
     setValue(value(transaction))

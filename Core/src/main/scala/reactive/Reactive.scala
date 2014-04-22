@@ -24,8 +24,8 @@ object Reactive {
   }
   trait Observable[+O] {
     def log: Signal[Seq[O]]
-    def observe(obs: O => Unit)
-    def unobserve(obs: O => Unit)
+    def observe(obs: O => Unit): Unit
+    def unobserve(obs: O => Unit): Unit
   }
 
   type Source[A] = Reactive[_, _] with ReactiveSource[A]
