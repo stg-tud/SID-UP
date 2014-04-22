@@ -4,7 +4,7 @@ name := "sidup-core"
 
 version := "0.0.0"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.0"
 
 scalacOptions ++= List(
   "-deprecation",
@@ -21,9 +21,9 @@ scalacOptions ++= List(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.0",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "org.scalatest" %% "scalatest" % "2.0" % "test",
+  "org.scalatest" %% "scalatest" % "2.1.3" % "test",
   "org.scala-stm" %% "scala-stm" % "0.7"
 )
 
