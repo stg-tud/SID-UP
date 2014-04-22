@@ -2,9 +2,9 @@ package reactive.impl
 
 import reactive.{Pulse, Transaction, Reactive}
 import scala.concurrent.stm.{InTxn, TSet, atomic}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
-trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with ObservableImpl[O] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with ObservableImpl[O] with StrictLogging {
   private val currentTransactions: TSet[Transaction] = TSet[Transaction]()
 
   private[reactive] def addTransaction(transaction: Transaction): Unit = atomic { implicit tx =>

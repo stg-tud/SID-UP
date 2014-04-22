@@ -1,7 +1,7 @@
 package reactive
 
-import scala.concurrent._
-import ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import reactive.signals.Var
 import reactive.signals.Signal
 
@@ -9,7 +9,7 @@ object Environment extends App {
   lazy val timestamp: Signal[Long] = {
     val millis = Var(System.currentTimeMillis());
     val thread = new Thread(new Runnable() {
-      def run {
+      def run(): Unit = {
         while (true) {
           while (millis.asInstanceOf[Signal[Long]].now < System.currentTimeMillis()) {
             millis << millis.asInstanceOf[Signal[Long]].now + 1;
@@ -19,7 +19,7 @@ object Environment extends App {
       }
     }, "millis");
     thread.setDaemon(true);
-    future { Thread.sleep(100); thread.start(); }
+    Future { Thread.sleep(100); thread.start(); }
     millis;
   }
 }

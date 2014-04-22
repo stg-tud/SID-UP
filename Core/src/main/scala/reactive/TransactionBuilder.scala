@@ -1,9 +1,9 @@
 package reactive
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import scala.concurrent.stm._
 
-case class TransactionBuilder(private val boxes: Map[Reactive.Source[_], Any] = Map()) extends Logging {
+case class TransactionBuilder(private val boxes: Map[Reactive.Source[_], Any] = Map()) extends StrictLogging {
 
   def set[A](box: Reactive.Source[A], value: A): TransactionBuilder = copy(boxes = boxes.updated(box, value))
 
@@ -21,7 +21,6 @@ case class TransactionBuilder(private val boxes: Map[Reactive.Source[_], Any] = 
     logger.trace(s"propagate $transaction")
     transaction.propagate()
     logger.trace(s"finish $transaction")
-
 
     transaction
   }

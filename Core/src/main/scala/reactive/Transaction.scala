@@ -2,12 +2,12 @@ package reactive
 
 import java.util.UUID
 import scala.concurrent.stm._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import scala.collection._
 import scala.annotation.tailrec
 import util.ParallelForeach
 
-class Transaction(val sourceIDs: Set[UUID], val uuid: UUID = UUID.randomUUID()) extends Logging {
+class Transaction(val sourceIDs: Set[UUID], val uuid: UUID = UUID.randomUUID()) extends StrictLogging {
   private val pulses: concurrent.Map[Reactive[_, _], Pulse[_]] = concurrent.TrieMap()
   private val needPing: concurrent.Map[Reactive.Dependant, Unit] = concurrent.TrieMap()
   private val awaitPulse: concurrent.Map[Reactive[_, _], Unit] = concurrent.TrieMap()

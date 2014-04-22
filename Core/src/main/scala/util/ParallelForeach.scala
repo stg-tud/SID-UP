@@ -1,11 +1,11 @@
 package util
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import java.util.concurrent.Executors
 import scala.util.Try
 import scala.util.Failure
 
-object ParallelForeach extends Logging {
+object ParallelForeach extends StrictLogging {
 
   import scala.concurrent._
 

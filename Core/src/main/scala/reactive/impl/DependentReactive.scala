@@ -3,9 +3,9 @@ package impl
 
 import java.util.UUID
 import scala.concurrent.stm.atomic
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
-trait DependentReactive[P] extends Reactive.Dependant with Logging {
+trait DependentReactive[P] extends Reactive.Dependant with StrictLogging {
   self: ReactiveImpl[_, P] =>
 
   override def toString = name

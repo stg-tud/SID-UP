@@ -2,9 +2,9 @@ package reactive
 package impl
 
 import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
-trait DynamicDependentReactive extends Logging {
+trait DynamicDependentReactive extends StrictLogging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
     protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]

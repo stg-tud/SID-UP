@@ -2,7 +2,7 @@ package reactive
 package impl
 
 import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.Logging
 
 trait MultiDependentReactive extends Logging {
   self: Reactive[_, _] with DependentReactive[_] =>
