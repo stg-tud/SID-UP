@@ -2,16 +2,18 @@ package reactive
 package impl
 
 import java.util.UUID
+import scala.concurrent.stm.Ref
+import scala.concurrent.stm.atomic
 
 trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, P] =>
 
   override def toString = name
 
-  private var _sourceDependencies = calculateSourceDependencies(null)
-  override def sourceDependencies(transaction: Transaction) = _sourceDependencies
+  private var _sourceDependencies = Ref(calculateSourceDependencies(null))
+  override def sourceDependencies(transaction: Transaction) = atomic { tx => _sourceDependencies()(tx) }
 
-  protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean) {
+  protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean): Unit = atomic { tx =>
     val pulse = if (recalculateValueAndPulse) {
       reevaluate(transaction: Transaction)
     } else {
@@ -20,7 +22,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
     val sourceDependenciesChanged = if (recalculateDependencies) {
       val oldSourceDependencies = _sourceDependencies
-      _sourceDependencies = calculateSourceDependencies(transaction)
+      _sourceDependencies.set(calculateSourceDependencies(transaction))(tx)
       oldSourceDependencies != _sourceDependencies
     } else {
       false

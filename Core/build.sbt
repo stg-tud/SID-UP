@@ -22,7 +22,8 @@ scalacOptions ++= List(
 libraryDependencies ++= Seq(
   "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "org.scalatest" %% "scalatest" % "2.0" % "test"
+  "org.scalatest" %% "scalatest" % "2.0" % "test",
+  "org.scala-stm" %% "scala-stm" % "0.7"
 )
 
 initialCommands in console := """
