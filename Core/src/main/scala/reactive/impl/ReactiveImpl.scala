@@ -21,11 +21,11 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def toString = name
 
   private var pulse: Ref[Option[P]] = Ref(None)
-  private var hasPulsed: Ref[Boolean] = Ref(false)
+  private var currentTransaction: Ref[Transaction] = Ref(null)
 
-  def pulse(transaction: Transaction): Option[P] = atomic { tx => pulse()(tx) }
+  def pulse(transaction: Transaction): Option[P] = atomic { tx => if (hasPulsed(transaction)) pulse()(tx) else None }
 
-  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => hasPulsed()(tx) }
+  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => currentTransaction()(tx) == transaction }
 
   private var dependants = Set[Reactive.Dependant]()
 
@@ -48,6 +48,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
       atomic { tx =>
         logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid } }]")
         this.pulse.set(pulse)(tx)
+        currentTransaction.set(transaction)(tx)
         val pulsed = pulse.isDefined
         dependants.foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
         if (pulsed) {

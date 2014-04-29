@@ -19,7 +19,6 @@ trait DynamicDependentReactive extends Logging {
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = atomic { implicit tx =>
     if (synchronized {
-
       if (currentTransaction() != transaction) {
         if (!hasPulsed(currentTransaction())) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid }, Previous transaction ${currentTransaction().uuid } not completed yet!")
         currentTransaction() = transaction

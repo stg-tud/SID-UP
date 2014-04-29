@@ -6,6 +6,7 @@ import util.TicketAccumulator
 import util.TransactionAction
 import util.COMMIT
 import com.typesafe.scalalogging.slf4j.Logging
+import scala.concurrent.stm.atomic
 
 class TransactionBuilder extends Logging {
 //  private val accu = new TicketAccumulator
@@ -40,7 +41,9 @@ class TransactionBuilder extends Logging {
     logger.trace(s"start $transaction")
 //    var reply : TransactionAction = null
 //    accu.initializeForNotification(boxSet.size) { result => accu.synchronized { reply = result; accu.notifyAll(); } };
-    boxSet.foreach(setBoxFromMap(/*accu, */transaction, _));
+    atomic { tx =>
+      boxSet.foreach(setBoxFromMap(/*accu, */ transaction, _))
+    }
     logger.trace(s"finish $transaction")
 
 //    val start = System.currentTimeMillis();
