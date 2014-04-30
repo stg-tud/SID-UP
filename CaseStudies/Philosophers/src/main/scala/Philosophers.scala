@@ -8,32 +8,38 @@ import reactive.signals.TransposeSignal
 import scala.concurrent.stm.atomic
 import scala.concurrent.stm.Txn
 import reactive.Reactive
+import reactive.events.EventStream
 
 object Philosophers extends App {
   def log(msg: String) = {
-    println ("["+Thread.currentThread().getName()+" @ "+System.currentTimeMillis()+"] "+msg)
+    println("[" + Thread.currentThread().getName() + " @ " + System.currentTimeMillis() + "] " + msg)
   }
-//  def transientAndSteadyPrintObserve[X](x: Reactive[X, _], observer: X => String) = {
-//    x.observe{value => println(observer(value).replaceFirst("\\]", "] [Steady]")) }
-//    x.map{value => println(observer(value).replaceFirst("\\]", "] [Transient]")) }
-//  }
-  
+  def transientAndSteadyPrintObserve[X](x: Signal[X], observer: X => String) = {
+    x.observe { value => log("[Steady] " + observer(value)) }
+    x.map { value => log("[Transient] " + observer(value)) }
+  }
+  def transientAndSteadyPrintObserve[X](x: EventStream[X], observer: X => String) = {
+    x.observe { value => log("[Steady] " + observer(value)) }
+    x.map { value => log("[Transient] "+observer(value)) }
+  }
+
   class Fork(val id: Int) {
-    val in = Var[Set[Signal[Option[Int]]]](Set())
+    val in = Var[Set[Signal[Option[Philosopher]]]](Set())
     private val requestStates = new TransposeSignal(in)
     private val requests = requestStates.map(_.flatten)
-    requests.changes.filter(_.size > 1).observe(bla => log("Multiple owners requested for fork "+id+": " + bla))
+    transientAndSteadyPrintObserve(requests.changes.filter(_.size > 1), "Multiple owners requested for " + this + ": " + _)
     val owner = requests.map(_.headOption)
-    owner.map { owner =>
-      log("Fork " + id + " now " + (owner match {
-        case Some(x) => "owned by Philosopher " + x
+    transientAndSteadyPrintObserve(owner, { owner: Option[Philosopher] =>
+      this + " now " + (owner match {
+        case Some(x) => "owned by " + x
         case None => "free"
-      }))
-    }
+      })
+    })
+    override def toString(): String = "Fork " + id
   }
 
   // a philosopher is eating whenever she owns both forks
-  val calculateEating: (Int, Option[Int], Option[Int]) => Boolean = (id, left, right) => (left, right) match {
+  val calculateEating: (Philosopher, Option[Philosopher], Option[Philosopher]) => Boolean = (id, left, right) => (left, right) match {
     case (Some(`id`), Some(`id`)) => true
     case _ => false
   }
@@ -42,53 +48,57 @@ object Philosophers extends App {
     val tryingToEat = Var(false)
     val request = tryingToEat.map(_ match {
       case false => None
-      case true => Some(id)
+      case true => Some(this)
     })
 
     leftFork.in << leftFork.in.now + request
     rightFork.in << rightFork.in.now + request
 
     // connect this philosopher's eating state with her forks
-    val isEating = signal3(calculateEating)(id, leftFork.owner, rightFork.owner)
+    val isEating = signal3(calculateEating)(this, leftFork.owner, rightFork.owner)
     // print a notification whenever this philosopher starts or stops eating
     isEating.observe { value =>
-      log("Philosopher %d is %s eating.".format(id, if (value) "now" else "no longer"));
+      log(this + " is " + (if (value) "now" else "no longer") + " eating");
     }
 
     // kill-switch
     private var killed = false
     def kill() = killed = true
     // acting thread: The philosopher repeatedly tries to acquire both forks until she is killed
+    var working = true
     Future {
-      log("Philosopher " + id + ": Thread id " + Thread.currentThread().getName())
+      println(this + ": Thread id " + Thread.currentThread().getName())
       while (!killed) {
         if (atomic { tx =>
           if (leftFork.owner.now.isEmpty) {
-//            log("Philosopher " + id + ": left fork " + leftFork.id + ": free")
+//            log(this + ": left " + leftFork + ": free")
             if (rightFork.owner.now.isEmpty) {
-//              log("Philosopher " + id + ": right fork " + rightFork.id + ": free")
+//              log(this + ": right " + rightFork + ": free")
               tryingToEat << true
               true
             } else {
-//              log("Philosopher " + id + ": right fork " + rightFork.id + ": busy")
+//              log(this + ": right " + rightFork + ": busy")
               false
             }
           } else {
-//            log("Philosopher " + id + ": left fork " + leftFork.id + ": busy")
+//            log(this + ": left " + leftFork + ": busy")
             false
           }
         }) {
-          Thread.sleep(1000)
+          Thread.sleep(100)
           // release forks
           tryingToEat << false
         }
       }
+      working = false
     }
+
+    override def toString(): String = "Philosopher " + id
   }
 
   // size of the table == number of forks == number of philosophers
   val n = if (args.length < 1) {
-    log("Using default table size 3. Supply an integer as first argument to customize.");
+    println("Using default table size 3. Supply an integer as first argument to customize.");
     3
   } else {
     Integer.parseInt(args(0))
@@ -103,7 +113,8 @@ object Philosophers extends App {
   System.in.read();
   // kill all philosophers
   philosopher.foreach(_.kill())
-  
-  Thread.sleep((n+1)*1000)
-  println("Terminating; active non-deamon Threads: "+scala.collection.JavaConversions.mapAsScalaMap(Thread.getAllStackTraces()).keys.filter(!_.isDaemon()).filter(_ != Thread.currentThread()))
+
+  println("Received Termination Signal, Terminating...")
+  Thread.sleep((n + 1) * 1000)
+  println("Philosophers that have not terminated: " + philosopher.filter(_.working))
 }
