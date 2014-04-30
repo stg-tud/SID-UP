@@ -7,11 +7,17 @@ import scala.concurrent.ExecutionContext.Implicits._
 import reactive.signals.TransposeSignal
 import scala.concurrent.stm.atomic
 import scala.concurrent.stm.Txn
+import reactive.Reactive
 
 object Philosophers extends App {
   def log(msg: String) = {
-    println ("["+Thread.currentThread().getName()+"@"+System.currentTimeMillis()+"] "+msg)
+    println ("["+Thread.currentThread().getName()+" @ "+System.currentTimeMillis()+"] "+msg)
   }
+//  def transientAndSteadyPrintObserve[X](x: Reactive[X, _], observer: X => String) = {
+//    x.observe{value => println(observer(value).replaceFirst("\\]", "] [Steady]")) }
+//    x.map{value => println(observer(value).replaceFirst("\\]", "] [Transient]")) }
+//  }
+  
   class Fork(val id: Int) {
     val in = Var[Set[Signal[Option[Int]]]](Set())
     private val requestStates = new TransposeSignal(in)
@@ -99,5 +105,5 @@ object Philosophers extends App {
   philosopher.foreach(_.kill())
   
   Thread.sleep((n+1)*1000)
-  println("Terminating; active non-deamon Threads: "+scala.collection.JavaConversions.mapAsScalaMap(Thread.getAllStackTraces()).keys.filter(_.isDaemon()))
+  println("Terminating; active non-deamon Threads: "+scala.collection.JavaConversions.mapAsScalaMap(Thread.getAllStackTraces()).keys.filter(!_.isDaemon()).filter(_ != Thread.currentThread()))
 }
