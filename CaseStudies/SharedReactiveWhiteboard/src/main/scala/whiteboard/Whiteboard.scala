@@ -4,6 +4,10 @@ import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel
 import javax.swing._
 import java.awt.{Dimension, BorderLayout}
 import java.awt.event.{WindowEvent, WindowAdapter}
+import java.rmi.Naming
+import whiteboard.WhiteboardServer.RemoteWhiteboard
+import reactive.events.EventStream
+import reactive.remote.impl.{RemoteSignalSourceImpl, RemoteEventSourceImpl, RemoteSignalSinkImpl}
 
 
 object Whiteboard {
@@ -16,6 +20,19 @@ object Whiteboard {
     shapeSelectionPanel.clearCommands
   )
 
+  val serverHostName =
+    JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
+  val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
+
+  val newShapesCommands: EventStream[Command] =
+    drawingPanel.newShapes.map[Command] { ShapeCommand } merge shapeSelectionPanel.clearCommands
+
+  val shapesRemote = new RemoteSignalSinkImpl(remoteWhiteboard.connectShapes(
+    new RemoteEventSourceImpl(newShapesCommands),
+    Some(new RemoteSignalSourceImpl(drawingPanel.currentShape)))
+  )
+  drawingPanel.shapes << shapesRemote
+
   def main(args: Array[String]): Unit = {
     makeWindow("Whiteboard", 1000, 600)(
       drawingPanel.asComponent -> BorderLayout.CENTER,
@@ -23,7 +40,7 @@ object Whiteboard {
       shapeSelectionPanel -> BorderLayout.WEST
     ).addWindowListener(new WindowAdapter {
       override def windowClosing(e: WindowEvent) = {
-        drawingPanel.disconnect()
+        shapesRemote.disconnect()
       }
     })
   }
