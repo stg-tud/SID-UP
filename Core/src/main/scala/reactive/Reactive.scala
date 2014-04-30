@@ -5,7 +5,7 @@ import reactive.signals.Signal
 
 trait Reactive[+O, +P] extends Reactive.Dependency {
 
-  protected[reactive] def pulse(transaction: Transaction): Option[P]
+  protected[reactive] def pulse(transaction: Transaction): Reactive.PulsedState[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
   def log: Signal[Seq[O]]
@@ -14,6 +14,34 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 }
 
 object Reactive {
+  object PulsedState {
+    def apply[X](opt: Option[X]) : PulsedState[X] = opt match {
+      case None => Reactive.Unchanged
+      case Some(x) => Reactive.Changed(x)
+    }
+  }
+  
+  trait PulsedState[+X] {
+    def changed: Boolean
+    def pulsed: Boolean
+    def asOption : Option[X]
+  }
+  object Pending extends PulsedState[Nothing] {
+    override def changed = ???
+    override val pulsed = false
+    override def asOption = ???
+  }
+  object Unchanged extends PulsedState[Nothing] {
+    override val changed = false
+    override val pulsed = true
+    override val asOption = None
+  }
+  case class Changed[+X](x: X) extends PulsedState[X] {
+    override val changed = true
+    override val pulsed = true
+    override val asOption = Some(x)
+  }
+
   trait Dependant {
     protected[reactive] def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
   }

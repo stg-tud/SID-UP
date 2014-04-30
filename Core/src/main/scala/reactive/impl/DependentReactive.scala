@@ -4,6 +4,7 @@ package impl
 import java.util.UUID
 import scala.concurrent.stm.Ref
 import scala.concurrent.stm.atomic
+import reactive.Reactive.PulsedState
 
 trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, P] =>

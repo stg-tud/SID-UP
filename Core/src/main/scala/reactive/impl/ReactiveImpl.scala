@@ -8,6 +8,8 @@ import scala.util.Failure
 import scala.util.Try
 import scala.concurrent.stm.Ref
 import scala.concurrent.stm.atomic
+import Reactive._
+import scala.concurrent.stm.Txn
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
@@ -20,26 +22,27 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
 
   override def toString = name
 
-  private var pulse: Ref[Option[P]] = Ref(None)
-  private var currentTransaction: Ref[Transaction] = Ref(null)
+  private val pulse: Ref[PulsedState[P]] = Ref(Pending)
+  def pulse(transaction: Transaction): PulsedState[P] = atomic { tx => pulse()(tx) }
+  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => pulse()(tx).changed }
 
-  def pulse(transaction: Transaction): Option[P] = atomic { tx => if (hasPulsed(transaction)) pulse()(tx) else None }
-
-  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => currentTransaction()(tx) == transaction }
-
-  private var dependants = Set[Reactive.Dependant]()
+  private val dependants = Ref(Set[Reactive.Dependant]())
 
   override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {
     synchronized {
       logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid } }]")
-      dependants += dependant
+      atomic{ tx =>
+        dependants.transform(_ + dependant)(tx)
+      }
     }
   }
 
   override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {
     synchronized {
       logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid } }]")
-      dependants -= dependant
+      atomic{ tx =>
+        dependants.transform(_ - dependant)(tx)
+      }
     }
   }
 
@@ -47,13 +50,14 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
     synchronized {
       atomic { tx =>
         logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid } }]")
-        this.pulse.set(pulse)(tx)
-        currentTransaction.set(transaction)(tx)
+        this.pulse.set(PulsedState(pulse))(tx)
         val pulsed = pulse.isDefined
-        dependants.foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
+        dependants()(tx).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
         if (pulsed) {
           val value = getObserverValue(transaction, pulse.get)
-          notifyObservers(transaction, value)
+          Txn.afterCommit{_ =>
+            notifyObservers(transaction, value)
+          }(tx)
         }
       }
     }

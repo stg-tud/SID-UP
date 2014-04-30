@@ -30,7 +30,7 @@ object RoutableVar {
     // the flattened Signal[A] with delegates of all Signal[A] output methods
     val _output = _input.flatten
     protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
-    protected[reactive] override def pulse(transaction: Transaction): Option[A] = _output.pulse(transaction)
+    protected[reactive] override def pulse(transaction: Transaction): Reactive.PulsedState[A] = _output.pulse(transaction)
     protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
     protected[reactive] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);

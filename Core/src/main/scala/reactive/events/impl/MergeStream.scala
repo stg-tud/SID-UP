@@ -10,9 +10,9 @@ class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends {
 
   protected def reevaluate(transaction: Transaction): Option[A] = {
     streams.find {
-      _.pulse(transaction).isDefined
+      _.pulse(transaction).changed
     }.flatMap {
-      _.pulse(transaction)
+      _.pulse(transaction).asOption
     }
   }
 }

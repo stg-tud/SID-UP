@@ -2,6 +2,7 @@ package reactive
 package impl
 
 import java.util.UUID
+import reactive.Reactive.PulsedState
 
 trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   self: ReactiveImpl[_, P] =>
