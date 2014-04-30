@@ -27,9 +27,9 @@ object Reactive {
     def asOption : Option[X]
   }
   object Pending extends PulsedState[Nothing] {
-    override def changed = ???
+    override val changed = false
     override val pulsed = false
-    override def asOption = ???
+    override val asOption = None
   }
   object Unchanged extends PulsedState[Nothing] {
     override val changed = false

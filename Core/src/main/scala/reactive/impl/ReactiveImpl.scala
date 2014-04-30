@@ -24,7 +24,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
 
   private val pulse: Ref[PulsedState[P]] = Ref(Pending)
   def pulse(transaction: Transaction): PulsedState[P] = atomic { tx => pulse()(tx) }
-  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => pulse()(tx).changed }
+  def hasPulsed(transaction: Transaction): Boolean = atomic { tx => pulse()(tx).pulsed }
 
   private val dependants = Ref(Set[Reactive.Dependant]())
 
@@ -51,6 +51,9 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
       atomic { tx =>
         logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid } }]")
         this.pulse.set(PulsedState(pulse))(tx)
+        Txn.beforeCommit(inTxnBeforeCommit => {
+          this.pulse.set(Pending)(inTxnBeforeCommit)
+        })(tx)
         val pulsed = pulse.isDefined
         dependants()(tx).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
         if (pulsed) {

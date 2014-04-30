@@ -22,9 +22,8 @@ trait DependentReactive[P] extends Reactive.Dependant {
     }
 
     val sourceDependenciesChanged = if (recalculateDependencies) {
-      val oldSourceDependencies = _sourceDependencies
-      _sourceDependencies.set(calculateSourceDependencies(transaction))(tx)
-      oldSourceDependencies != _sourceDependencies
+        val newDepdencies = calculateSourceDependencies(transaction)
+      _sourceDependencies.swap(newDepdencies)(tx) != newDepdencies
     } else {
       false
     }

@@ -21,6 +21,8 @@ class MergeTest extends FunSuite {
     transaction.set(e2, 2)
     transaction.commit()
 
+    println(mergeLog.now)
+    
     assert((List("bla", 123, 5, "x") === mergeLog.now) || (List("bla", 123, 5, 2) === mergeLog.now))
   }
 

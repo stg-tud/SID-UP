@@ -5,6 +5,7 @@ import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.stm.Ref
 import scala.concurrent.stm.atomic
+import scala.concurrent.stm.Txn
 
 trait DynamicDependentReactive extends Logging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
@@ -13,56 +14,47 @@ trait DynamicDependentReactive extends Logging {
 
   private var lastDependencies = Ref(dependencies(null))
   atomic { tx => lastDependencies()(tx).foreach { _.addDependant(null, this) } }
-  private var currentTransaction: Ref[Transaction] = Ref(null)
   private var anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private var anyPulse: Ref[Boolean] = Ref(false)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = atomic { implicit tx =>
     if (synchronized {
-      if (currentTransaction() != transaction) {
-        if (!hasPulsed(currentTransaction())) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid }, Previous transaction ${currentTransaction().uuid } not completed yet!")
-        currentTransaction() = transaction
-        anyDependenciesChanged() = false
-        anyPulse() = false
-      }
-
       if (hasPulsed(transaction)) {
-        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid } but received another update")
-        false
-      }
-      else {
-        val newDependencies = dependencies(transaction)
-        val unsubscribe = lastDependencies().diff(newDependencies)
-        val subscribe = newDependencies.diff(lastDependencies())
-
-        lastDependencies() = newDependencies
-        anyDependenciesChanged() = anyDependenciesChanged() | sourceDependenciesChanged
-        anyPulse() = anyPulse() | pulsed
-        unsubscribe.foreach { dep =>
-          anyDependenciesChanged() = true
-          anyPulse() = true
-          dep.removeDependant(transaction, this)
-        }
-        subscribe.foreach { dep =>
-          anyDependenciesChanged() = true
-          anyPulse() = true
-          dep.addDependant(transaction, this)
+        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
+      } else {
+        anyPulse.transform(_ || pulsed)
+        anyDependenciesChanged.transform(_ || sourceDependenciesChanged)
+        if (pulsed) {
+          val newDependencies = dependencies(transaction)
+          val unsubscribe = lastDependencies().diff(newDependencies)
+          val subscribe = newDependencies.diff(lastDependencies())
+          lastDependencies() = newDependencies
+          unsubscribe.foreach { dep =>
+            dep.removeDependant(transaction, this)
+          }
+          subscribe.foreach { dep =>
+            dep.addDependant(transaction, this)
+          }
+          if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
+            println(s"replacing dependencies: $unsubscribe with $subscribe")
+            anyDependenciesChanged() = true
+          }
         }
 
         val waitingFor = lastDependencies().filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
 
-        //if (!lastDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
+        //if (!lastDependencies().exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
         if (waitingFor.isEmpty) {
           true
-        }
-        else {
+        } else {
           logger.trace(s"$name still waits for updates from $waitingFor)")
           false
         }
       }
-
     }) {
       doReevaluation(transaction, anyDependenciesChanged(), anyPulse())
+      anyDependenciesChanged() = false
+      anyPulse() = false
     }
   }
 
