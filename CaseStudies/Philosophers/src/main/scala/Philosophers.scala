@@ -9,15 +9,18 @@ import scala.concurrent.stm.atomic
 import scala.concurrent.stm.Txn
 
 object Philosophers extends App {
+  def log(msg: String) = {
+    println ("["+Thread.currentThread().getName()+"@"+System.currentTimeMillis()+"] "+msg)
+  }
   class Fork(val id: Int) {
     val in = Var[Set[Signal[Option[Int]]]](Set())
     private val requestStates = new TransposeSignal(in)
     private val requests = requestStates.map(_.flatten)
-    requests.changes.filter(_.size > 1).observe(bla => println("Multiple owners requested: " + bla))
+    requests.changes.filter(_.size > 1).observe(bla => log("Multiple owners requested for fork "+id+": " + bla))
     val owner = requests.map(_.headOption)
-    owner.observe { owner =>
-      println("Fork " + id + " now " + (owner match {
-        case Some(x) => "owned by " + x
+    owner.map { owner =>
+      log("Fork " + id + " now " + (owner match {
+        case Some(x) => "owned by Philosopher " + x
         case None => "free"
       }))
     }
@@ -43,7 +46,7 @@ object Philosophers extends App {
     val isEating = signal3(calculateEating)(id, leftFork.owner, rightFork.owner)
     // print a notification whenever this philosopher starts or stops eating
     isEating.observe { value =>
-      println("Philosopher %d is %s eating.".format(id, if (value) "now" else "no longer"));
+      log("Philosopher %d is %s eating.".format(id, if (value) "now" else "no longer"));
     }
 
     // kill-switch
@@ -51,36 +54,35 @@ object Philosophers extends App {
     def kill() = killed = true
     // acting thread: The philosopher repeatedly tries to acquire both forks until she is killed
     Future {
-      println("Philosopher " + id + ": Thread id " + Thread.currentThread().getName())
+      log("Philosopher " + id + ": Thread id " + Thread.currentThread().getName())
       while (!killed) {
-        atomic { tx =>
-          if (leftFork.owner.now.isDefined) {
-            println("Philosopher " + id + ": left fork " + leftFork.id + ": busy")
-            Txn.retry(tx)
+        if (atomic { tx =>
+          if (leftFork.owner.now.isEmpty) {
+//            log("Philosopher " + id + ": left fork " + leftFork.id + ": free")
+            if (rightFork.owner.now.isEmpty) {
+//              log("Philosopher " + id + ": right fork " + rightFork.id + ": free")
+              tryingToEat << true
+              true
+            } else {
+//              log("Philosopher " + id + ": right fork " + rightFork.id + ": busy")
+              false
+            }
           } else {
-            println("Philosopher " + id + ": left fork " + leftFork.id + ": free")
+//            log("Philosopher " + id + ": left fork " + leftFork.id + ": busy")
+            false
           }
-
-          if (rightFork.owner.now.isDefined) {
-            println("Philosopher " + id + ": right fork " + rightFork.id + ": busy")
-            Txn.retry(tx)
-          } else {
-            println("Philosopher " + id + ": right fork " + rightFork.id + ": free")
-          }
-
-          tryingToEat << true
+        }) {
+          Thread.sleep(1000)
+          // release forks
+          tryingToEat << false
         }
-
-        Thread.sleep(1000)
-        // release forks
-        tryingToEat << false
       }
     }
   }
 
   // size of the table == number of forks == number of philosophers
   val n = if (args.length < 1) {
-    println("Using default table size 3. Supply an integer as first argument to customize.");
+    log("Using default table size 3. Supply an integer as first argument to customize.");
     3
   } else {
     Integer.parseInt(args(0))
@@ -95,4 +97,7 @@ object Philosophers extends App {
   System.in.read();
   // kill all philosophers
   philosopher.foreach(_.kill())
+  
+  Thread.sleep((n+1)*1000)
+  println("Terminating; active non-deamon Threads: "+scala.collection.JavaConversions.mapAsScalaMap(Thread.getAllStackTraces()).keys.filter(_.isDaemon()))
 }
