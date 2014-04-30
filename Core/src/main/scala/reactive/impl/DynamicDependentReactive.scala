@@ -36,7 +36,6 @@ trait DynamicDependentReactive extends Logging {
             dep.addDependant(transaction, this)
           }
           if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
-            println(s"replacing dependencies: $unsubscribe with $subscribe")
             anyDependenciesChanged() = true
           }
         }

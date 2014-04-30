@@ -29,5 +29,6 @@ javaOptions ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
+  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+  "org.scala-stm" %% "scala-stm" % "0.7"
 )
