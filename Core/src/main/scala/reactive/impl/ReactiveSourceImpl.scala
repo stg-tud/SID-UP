@@ -16,7 +16,7 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
     transaction.commit();
   }
   protected[reactive] def emit(transaction: Transaction,value: A/*,replyChannels: util.TransactionAction => Unit**/){
-    doPulse(transaction, false, makePulse(value))
+    doPulse(transaction, false, makePulse(transaction, value))
   }
-  protected def makePulse(value: A): Option[P]
+  protected def makePulse(transaction: Transaction, value: A): Option[P]
 }

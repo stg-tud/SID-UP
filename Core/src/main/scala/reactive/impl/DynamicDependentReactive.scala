@@ -12,10 +12,10 @@ trait DynamicDependentReactive extends Logging {
 
   protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
 
-  private var lastDependencies = Ref(dependencies(null))
+  private val lastDependencies = Ref(dependencies(null))
   atomic { tx => lastDependencies()(tx).foreach { _.addDependant(null, this) } }
-  private var anyDependenciesChanged: Ref[Boolean] = Ref(false)
-  private var anyPulse: Ref[Boolean] = Ref(false)
+  private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
+  private val anyPulse: Ref[Boolean] = Ref(false)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = atomic { implicit tx =>
     if (synchronized {

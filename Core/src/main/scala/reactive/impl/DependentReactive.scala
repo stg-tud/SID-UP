@@ -11,7 +11,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
   override def toString = name
 
-  private var _sourceDependencies = Ref(calculateSourceDependencies(null))
+  private val _sourceDependencies = Ref(calculateSourceDependencies(null))
   override def sourceDependencies(transaction: Transaction) = atomic { tx => _sourceDependencies()(tx) }
 
   protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean): Unit = atomic { tx =>

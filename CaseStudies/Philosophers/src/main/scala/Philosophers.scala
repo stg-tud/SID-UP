@@ -9,33 +9,27 @@ import scala.concurrent.stm.atomic
 import scala.concurrent.stm.Txn
 import reactive.Reactive
 import reactive.events.EventStream
+import java.io.BufferedInputStream
 
 object Philosophers extends App {
   def log(msg: String) = {
     println("[" + Thread.currentThread().getName() + " @ " + System.currentTimeMillis() + "] " + msg)
-  }
-  def transientAndSteadyPrintObserve[X](x: Signal[X], observer: X => String) = {
-    x.observe { value => log("[Steady] " + observer(value)) }
-    x.map { value => log("[Transient] " + observer(value)) }
-  }
-  def transientAndSteadyPrintObserve[X](x: EventStream[X], observer: X => String) = {
-    x.observe { value => log("[Steady] " + observer(value)) }
-    x.map { value => log("[Transient] "+observer(value)) }
   }
 
   class Fork(val id: Int) {
     val in = Var[Set[Signal[Option[Philosopher]]]](Set())
     private val requestStates = new TransposeSignal(in)
     private val requests = requestStates.map(_.flatten)
-    transientAndSteadyPrintObserve(requests.changes.filter(_.size > 1), "Multiple owners requested for " + this + ": " + _)
+    requests.changes.filter(_.size > 1).observe(reqs => log("Multiple owners requested for " + this + ": " + reqs))
     val owner = requests.map(_.headOption)
-    transientAndSteadyPrintObserve(owner, { owner: Option[Philosopher] =>
-      this + " now " + (owner match {
-        case Some(x) => "owned by " + x
-        case None => "free"
-      })
-    })
+    //    owner.observe { owner =>
+    //      log(this + " now " + (owner match {
+    //        case Some(x) => "owned by " + x
+    //        case None => "free"
+    //      }))
+    //    }
     override def toString(): String = "Fork " + id
+    def status = this + " requested by " + requests.now + " owned by " + owner.now
   }
 
   // a philosopher is eating whenever she owns both forks
@@ -57,9 +51,9 @@ object Philosophers extends App {
     // connect this philosopher's eating state with her forks
     val isEating = signal3(calculateEating)(this, leftFork.owner, rightFork.owner)
     // print a notification whenever this philosopher starts or stops eating
-    isEating.observe { value =>
-      log(this + " is " + (if (value) "now" else "no longer") + " eating");
-    }
+    //    isEating.observe { value =>
+    //      log(this + " is " + (if (value) "now" else "no longer") + " eating");
+    //    }
 
     // kill-switch
     private var killed = false
@@ -71,21 +65,19 @@ object Philosophers extends App {
       while (!killed) {
         if (atomic { tx =>
           if (leftFork.owner.now.isEmpty) {
-//            log(this + ": left " + leftFork + ": free")
             if (rightFork.owner.now.isEmpty) {
-//              log(this + ": right " + rightFork + ": free")
               tryingToEat << true
               true
             } else {
-//              log(this + ": right " + rightFork + ": busy")
               false
             }
           } else {
-//            log(this + ": left " + leftFork + ": busy")
             false
           }
         }) {
+
           Thread.sleep(100)
+
           // release forks
           tryingToEat << false
         }
@@ -94,6 +86,7 @@ object Philosophers extends App {
     }
 
     override def toString(): String = "Philosopher " + id
+    def status = this + " trying to eat: " + tryingToEat.now + ", requesting: " + request.now + ", eating: " + isEating.now
   }
 
   // size of the table == number of forks == number of philosophers
@@ -109,9 +102,22 @@ object Philosophers extends App {
   // create and run philosophers
   val philosopher = for (i <- 0 until n) yield new Philosopher(i, fork(i), fork((i + 1) % 3))
 
-  // wait for user input
-  System.in.read();
+  def dumpStatus() = {
+    println("Status Forks:")
+    fork.foreach { fork =>
+      println(" " + fork.status)
+    }
+    println("Status Philosphers:")
+    philosopher.foreach { phil =>
+      println(" " + phil.status)
+    }
+  }
+
+  val allEating = new TransposeSignal(philosopher.map(p => (p.isEating.map(_ -> p)))).map(_.filter(_._1).map(_._2))
+  allEating.changes.filter(!_.isEmpty).observe(eating => log("Now eating: " + eating))
+
   // kill all philosophers
+  System.in.read()
   philosopher.foreach(_.kill())
 
   println("Received Termination Signal, Terminating...")

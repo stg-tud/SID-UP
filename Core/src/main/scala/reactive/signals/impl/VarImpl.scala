@@ -4,18 +4,19 @@ package impl
 
 import reactive.impl.ReactiveSourceImpl
 import util.Util
-import util.TicketAccumulator
+import scala.concurrent.stm._
 
 class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
-  private var value = initialValue
-  def now = value
-  def value(t: Transaction) = value
-  protected def makePulse(newValue: A): Option[A] = {
-    if (value == newValue) {
-      None
-    } else {
-      value = newValue
-      Some(newValue)
+  private val value = Ref(initialValue)
+  def now = atomic { value()(_) }
+  def value(t: Transaction) = atomic { value()(_) }
+  protected def makePulse(transaction: Transaction, newValue: A): Option[A] = {
+    atomic { tx =>
+      if (value.swap(newValue)(tx) == newValue) {
+        None
+      } else {
+        Some(newValue)
+      }
     }
   }
 }
