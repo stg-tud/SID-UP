@@ -18,7 +18,7 @@ trait DynamicDependentReactive extends Logging {
   private val anyPulse: Ref[Boolean] = Ref(false)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = atomic { implicit tx =>
-    if (synchronized {
+    if (//synchronized {
       if (hasPulsed(transaction)) {
         throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
       } else {
@@ -50,7 +50,7 @@ trait DynamicDependentReactive extends Logging {
           false
         }
       }
-    }) {
+    /*}*/) {
       doReevaluation(transaction, anyDependenciesChanged(), anyPulse())
       anyDependenciesChanged() = false
       anyPulse() = false

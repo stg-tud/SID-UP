@@ -18,7 +18,7 @@ trait MultiDependentReactive extends Logging {
   private val anyPulse: Ref[Boolean] = Ref(false)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit =
-    synchronized {
+//    synchronized {
       atomic { implicit tx =>
         if (currentTransaction() != transaction) {
           if (pendingNotifications() != 0) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid }, previous transaction ${currentTransaction().uuid } not completed yet! ($pendingNotifications notifications pending)")
@@ -42,7 +42,7 @@ trait MultiDependentReactive extends Logging {
         else {
           logger.trace(s"$this received a notification for transaction ${transaction.uuid }, ${pendingNotifications()} pending")
         }
-      }
+//      }
     }
 
   override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {

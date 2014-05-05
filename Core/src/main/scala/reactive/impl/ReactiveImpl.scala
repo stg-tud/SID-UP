@@ -29,25 +29,25 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   private val dependants = Ref(Set[Reactive.Dependant]())
 
   override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {
-    synchronized {
+//    synchronized {
       logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid } }]")
       atomic{ tx =>
         dependants.transform(_ + dependant)(tx)
       }
-    }
+//    }
   }
 
   override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {
-    synchronized {
+//    synchronized {
       logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid } }]")
       atomic{ tx =>
         dependants.transform(_ - dependant)(tx)
       }
-    }
+//    }
   }
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) {
-    synchronized {
+//    synchronized {
       atomic { tx =>
         logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid } }]")
         this.pulse.set(PulsedState(pulse))(tx)
@@ -63,7 +63,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
           }(tx)
         }
       }
-    }
+//    }
   }
 
   protected def getObserverValue(transaction: Transaction, pulseValue: P): O
