@@ -43,6 +43,7 @@ object RoutableVar {
     //    override def apply()(implicit t: Transaction) = _output.apply()
     //    override def transientPulse(t: Transaction) = _output.transientPulse(t)
     override def changes: EventStream[A] = _output.changes
+    override def delta: EventStream[(A, A)] = _output.delta
     override def map[B](op: A => B): Signal[B] = _output.map(op)
     override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
