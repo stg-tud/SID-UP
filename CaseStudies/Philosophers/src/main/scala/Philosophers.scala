@@ -66,6 +66,8 @@ case class Philosopher(val id: Int) {
       if (forks.now.find(_.isOccupied.now).isDefined) {
         retry(tx)
       }
+      Txn.afterRollback(_ => println(this + " suffered fork acquisition failure!"))(tx)
+      
       // try to take forks
       tryingToEat << true
     }
@@ -121,7 +123,7 @@ object Philosophers extends App {
 
   // ---- table state observation ----
   val allEating = new TransposeSignal(philosopher.map(p => (p.isEating.map(_ -> p)))).map(_.filter(_._1).map(_._2))
-  allEating.changes.filter(!_.isEmpty).observe(eating => log("Now eating: " + eating))
+  allEating.changes./*filter(!_.isEmpty).*/observe(eating => log("Now eating: " + eating))
 
   // ===================== STARTUP =====================
   // start simulation
