@@ -16,10 +16,10 @@ class MergeTest extends FunSuite {
     e1 << "bla"
     e2 << 123
     e3 << 5
-    val transaction = new TransactionBuilder
-    transaction.set(e1, "x")
-    transaction.set(e2, 2)
-    transaction.commit()
+    TransactionBuilder()
+      .set(e1, "x")
+      .set(e2, 2)
+      .commit()
 
     assert((List("bla", 123, 5, "x") === mergeLog.now) || (List("bla", 123, 5, 2) === mergeLog.now))
   }

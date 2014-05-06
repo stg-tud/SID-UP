@@ -49,17 +49,17 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
     inner2 = Var(234)
     inner2Buffered = new MessageBuffer(inner2)
-    val transaction = new TransactionBuilder()
-    transaction.set(inner1, 0)
-    transaction.set(outer, inner2Buffered)
-    transaction.set(inner2, 5)
-    commitFuture = future {
+    val transaction = TransactionBuilder()
+      .set(inner1, 0)
+      .set(outer, inner2Buffered)
+      .set(inner2, 5)
+    commitFuture = Future {
       transaction.commit()
     }
     Thread.sleep(100)
   }
 
-  override def test(testName: String, testTags: Tag*)(testFun: => Unit) {
+  override def test(testName: String, testTags: Tag*)(testFun: => Unit) = {
     super.test(testName, testTags: _*) {
       testFun
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }

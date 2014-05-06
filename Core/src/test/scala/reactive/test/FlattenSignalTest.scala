@@ -96,7 +96,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(Set(inner3.uuid, outer.uuid)) { notification3.newSourceDependencies }
   }
 
-  test("double nested") {
+  ignore("double nested") {
     val inner = Var(1)
     val middle : Var[Signal[Int]] = Var(inner)
     val outer1 : Var[Signal[Signal[Int]]] = Var(middle)

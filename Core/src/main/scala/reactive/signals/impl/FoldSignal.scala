@@ -8,7 +8,7 @@ import reactive.impl.SingleDependentReactive
 //TODO: this whole signal looks very suspicious, the use of initial value when there is no transaction, as well as now is just begging to cause horrible errors
 class FoldSignal[A, B](private val initialValue: A, val dependency: EventStream[B], op: (A, B) => A) extends DependentSignalImpl[A] with SingleDependentReactive {
   protected override def reevaluateValue(transaction: Transaction) = {
-    if (transaction == null) {
+    if (transaction == null || transaction.sourceIDs.isEmpty) {
       initialValue
     }
     else {

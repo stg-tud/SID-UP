@@ -19,11 +19,9 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
 
   protected[reactive] def emit(transaction: Transaction, value: A): Unit = {
     val pulse = makePulse(value)
-    atomic { implicit tx =>
       addTransaction(transaction)
       setPulse(transaction, pulse)
-      transaction.pingDependants(dependants)
-    }
+      transaction.pingDependants(dependants.snapshot)
   }
 
   protected def makePulse(value: A): Pulse[P]

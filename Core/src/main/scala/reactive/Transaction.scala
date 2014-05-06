@@ -6,13 +6,14 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
 import scala.collection._
 import scala.annotation.tailrec
 import util.ParallelForeach
+import reactive.impl.{ReactiveImpl, DependentReactive}
 
 class Transaction(val sourceIDs: Set[UUID], val uuid: UUID = UUID.randomUUID()) extends StrictLogging {
   private val pulses: concurrent.Map[Reactive[_, _], Pulse[_]] = concurrent.TrieMap()
   private val needPing: concurrent.Map[Reactive.Dependant, Unit] = concurrent.TrieMap()
   private val awaitPulse: concurrent.Map[Reactive[_, _], Unit] = concurrent.TrieMap()
 
-  protected[reactive] def pulse[O, P](reactive: Reactive[O, P]): Pulse[P] = {
+  protected[reactive] def pulse[P](reactive: Reactive[_, P]): Pulse[P] = {
     pulses(reactive).asInstanceOf[Pulse[P]]
   }
 

@@ -3,6 +3,7 @@ package reactive.impl
 import reactive.{Pulse, Transaction, Reactive}
 import scala.concurrent.stm.{InTxn, TSet, atomic}
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import scala.collection.LinearSeq
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with ObservableImpl[O] with StrictLogging {
   private val currentTransactions: TSet[Transaction] = TSet[Transaction]()
@@ -19,7 +20,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
    * @param transaction each pulse is associated to a specific transaction
    * @return Some(pulse) if the reactive has a new pulse for the transaction, None if not
    */
-  override def pulse(transaction: Transaction): Pulse[P] = atomic { implicit tx =>
+  override def pulse(transaction: Transaction): Pulse[P] =  {
     if (isConnectedTo(transaction))
       transaction.pulse(this)
     else Pulse.noChange
@@ -40,9 +41,16 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with DependencyImpl with Observa
     transaction.setPulse(this, pulse)
   }
 
+  var commitHandlers = LinearSeq[Transaction => Unit]()
 
-  override protected[reactive] def commit(transaction: Transaction)(implicit tx: InTxn): Unit =
+  def onCommit(code: Transaction => Unit): Unit = {
+    commitHandlers :+= code
+  }
+
+  override protected[reactive] def commit(transaction: Transaction)(implicit tx: InTxn): Unit = {
+    commitHandlers.foreach(_.apply(transaction))
     pulse(transaction).value.foreach(v => notifyObservers(transaction, getObserverValue(transaction, v)))
+  }
 
   /**
    * name is used for logging purposes

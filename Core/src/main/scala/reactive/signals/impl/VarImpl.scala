@@ -13,7 +13,7 @@ class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[
   override protected def setValue(value: A)(implicit tx: InTxn): Unit = _value() = value
 
   override protected def makePulse(newValue: A): Pulse[A] = {
-    if (_value == newValue) {
+    if (_value.single.get == newValue) {
       Pulse.noChange
     }
     else {
