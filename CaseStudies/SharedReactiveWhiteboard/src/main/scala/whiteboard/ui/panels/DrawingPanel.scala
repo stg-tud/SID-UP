@@ -27,20 +27,17 @@ class DrawingPanel(
       event match {
         case Down(point) => Some(nextShapeFactory.now.nextShape(nextStrokeWidth.now, nextColor.now, List(point)))
         case Drag(from, to) => Some(currentShape.get.copy(currentShape.get.strokeWidth, currentShape.get.color, to :: currentShape.get.mousePath))
-        case _ => currentShape
+        case _ => None
       }
   }
 
-  val newShapes: EventStream[Shape] =
-    constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
+  val newShapes: EventStream[Shape] = constructingShape.delta.collect { case (Some(shape), None) => shape }
   val newShapesCommands: EventStream[Command] = newShapes.map[Command] { ShapeCommand } merge clearCommandStream
 
   val serverHostName = JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
   
-  val currentShapeSignal = constructingShape.changes merge mouseUps.map( _ => None) hold None
-
   val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
-  val shapes = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapesCommands), Some(new RemoteSignalSourceImpl(currentShapeSignal)))
+  val shapes = remoteWhiteboard.connectShapes(new RemoteEventSourceImpl(newShapesCommands), Some(new RemoteSignalSourceImpl(constructingShape)))
 
   val shapesRemote = new RemoteSignalSinkImpl(shapes)
   asComponent.shapes << shapesRemote

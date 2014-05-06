@@ -8,6 +8,7 @@ trait Signal[+A] extends Reactive[A, A] {
   protected[reactive] def value(transaction: Transaction): A
   def changes: EventStream[A]
   def map[B](op: A => B): Signal[B]
+  def delta: EventStream[(A, A)]
   def flatMap[B](op: A => Signal[B]): Signal[B]
   def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];
   def snapshot(when: EventStream[_]): Signal[A]

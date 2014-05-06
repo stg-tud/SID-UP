@@ -5,11 +5,13 @@ package impl
 import reactive.impl.ReactiveImpl
 import reactive.events.EventStream
 import reactive.events.impl.ChangesEventStream
+import reactive.events.impl.DeltaEventStream
 import reactive.events.impl.PulseEventStream
 
 trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 
   override lazy val changes: EventStream[A] = new ChangesEventStream(this)
+  override lazy val delta = new DeltaEventStream(this)
   override def map[B](op: A => B): Signal[B] = new MapSignal(this, op)
   override def flatMap[B](op: A => Signal[B]): Signal[B] = map(op).flatten
   override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]])
