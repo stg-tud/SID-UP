@@ -23,7 +23,7 @@ scalacOptions ++= List(
 // resolvers ++= Seq()
 
 libraryDependencies ++= Seq(
-  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.0",
+  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
   "org.scalatest" %% "scalatest" % "2.1.3" % "test",
   "org.scala-stm" %% "scala-stm" % "0.7"
