@@ -18,17 +18,17 @@ class SignalMonadicTest extends FunSuite {
       assertResult(3)(ssumxy.now)
       assertResult(3)(ssumyx.now)
 
-      sx << 10
+      sx setOpen 10
       assertResult(12)(ssumxy.now)
       assertResult(12)(ssumyx.now)
 
-      sy << 10
+      sy setOpen 10
 
       assertResult(20)(ssumxy.now)
       assertResult(20)(ssumyx.now)
 
-      sx << 6
-      sy << 7
+      sx setOpen 6
+      sy setOpen 7
 
       assertResult(13)(ssumxy.now)
       assertResult(13)(ssumyx.now)
@@ -42,10 +42,10 @@ class SignalMonadicTest extends FunSuite {
 
       val ssum = sx.flatMap { x => sy.map { y => x + y } }
 
-      ssum.observe { sum => assertResult(sum)(sx.now + sy.now) }
+      ssum.observe { sum => assertResult(sum)(sx.single.now + sy.single.now) }
 
-      sx << 5
-      sy << 5
+      sx setOpen 5
+      sy setOpen 5
     }
   }
 
@@ -58,17 +58,17 @@ class SignalMonadicTest extends FunSuite {
       assertResult(3)(ssumxy.now)
       assertResult(3)(ssumyx.now)
 
-      sx << 10
+      sx setOpen 10
       assertResult(12)(ssumxy.now)
       assertResult(12)(ssumyx.now)
 
-      sy << 10
+      sy setOpen 10
 
       assertResult(20)(ssumxy.now)
       assertResult(20)(ssumyx.now)
 
-      sx << 6
-      sy << 7
+      sx setOpen 6
+      sy setOpen 7
 
       assertResult(13)(ssumxy.now)
       assertResult(13)(ssumyx.now)
@@ -87,11 +87,11 @@ class SignalMonadicTest extends FunSuite {
 
       assertResult((3, -1))(ssumdiff.now)
 
-      sx << 10
+      sx setOpen 10
 
       assertResult((12, 8))(ssumdiff.now)
 
-      //sy << 10 //TODO: this will fail with a timeout, see transactions below
+      //sy setOpen 10 //TODO: this will fail with a timeout, see transactions below
     }
   }
 
@@ -108,12 +108,12 @@ class SignalMonadicTest extends FunSuite {
 
       ssumdiff.observe {
         case (sum, diff) =>
-          assertResult(sum)(ssum.now)
-          assertResult(diff)(sdiff.now)
+          assertResult(sum)(ssum.single.now)
+          assertResult(diff)(sdiff.single.now)
       }
 
-      sx << 9
-      //sy << 100 //TODO: this will fail with a timeout, see transactions below
+      sx setOpen 9
+      //sy setOpen 100 //TODO: this will fail with a timeout, see transactions below
     }
   }
 
@@ -128,10 +128,10 @@ class SignalMonadicTest extends FunSuite {
 
       assertResult((1, 2, 3, 4))(sall.now)
 
-      s1 << 5
-      s2 << 6
-      s3 << 7
-      s4 << 8
+      s1 setOpen 5
+      s2 setOpen 6
+      s3 setOpen 7
+      s4 setOpen 8
 
       assertResult((5, 6, 7, 8))(sall.now)
     }
@@ -172,7 +172,7 @@ class SignalMonadicTest extends FunSuite {
 
       assertResult(List((4, -2)))(allLog.now)
 
-      s << 5
+      s setOpen 5
 
       assertResult(List((4, -2), (8, 2)))(allLog.now)
     }
@@ -191,14 +191,14 @@ class SignalMonadicTest extends FunSuite {
       assertResult((1, 2))(combined1.now)
       assertResult((1, 2))(combined2.now)
 
-      rs2 << new Val(9)
+      rs2 setOpen new Val(9)
       assertResult((1, 9))(combined2.now)
 
       val s3 = Var(3)
-      rs1 << s3
+      rs1 setOpen s3
       assertResult((3, 2))(combined1.now)
 
-      s3 << 5
+      s3 setOpen 5
       assertResult((5, 2))(combined1.now)
     }
   }

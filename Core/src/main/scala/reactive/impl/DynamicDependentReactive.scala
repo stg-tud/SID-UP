@@ -10,7 +10,7 @@ trait DynamicDependentReactive extends Logging {
 
   protected def dependencies(tx: InTxn): Set[Reactive[_, _]]
 
-  private val lastDependencies = atomic { tx =>
+  private val lastDependencies = scala.concurrent.stm.atomic { tx =>
     val depts = dependencies(tx)
     depts.foreach { _.addDependant(tx, this) }
     Ref(depts)

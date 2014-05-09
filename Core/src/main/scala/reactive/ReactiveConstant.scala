@@ -16,7 +16,8 @@ trait ReactiveConstant[+O, +P] extends Reactive[O, P] {
 
 object ReactiveConstant {
   trait View[+O] extends Reactive.View[O] {
-    def observe(obs: O => Unit) = {}
-    def unobserve(obs: O => Unit) = {}
+    override val sourceDependencies = Set[UUID]()
+    override def observe(obs: O => Unit) = {}
+    override def unobserve(obs: O => Unit) = {}
   }
 }

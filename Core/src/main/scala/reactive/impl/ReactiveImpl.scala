@@ -9,6 +9,7 @@ import scala.util.Try
 import Reactive._
 import scala.concurrent.stm._
 import reactive.signals.Signal
+import java.util.UUID
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction.stmTx)).isEmpty
@@ -22,8 +23,8 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def toString = name
 
   private val pulse: Ref[PulsedState[P]] = Ref(Pending)
-  def pulse(tx: InTxn): PulsedState[P] = pulse()(tx)
-  def hasPulsed(tx: InTxn): Boolean = pulse(tx).pulsed
+  override def pulse(tx: InTxn): PulsedState[P] = pulse()(tx)
+  override def hasPulsed(tx: InTxn): Boolean = pulse(tx).pulsed
 
   private val dependants = Ref(Set[Reactive.Dependant]())
 
@@ -78,13 +79,14 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
 }
 
 object ReactiveImpl extends Logging {
-  class ViewImpl[O](impl: ReactiveImpl[O, _]) extends Reactive.View[O] {
-    def log: Signal[Seq[O]] = atomic { impl.log(_) }
-    def observe(obs: O => Unit) {
+  trait ViewImpl[O] extends Reactive.View[O] {
+    protected val impl: ReactiveImpl[O, _]
+    override def log: Signal[Seq[O]] = atomic { impl.log(_) }
+    override def observe(obs: O => Unit) {
       val size = impl.observers.single.transformAndGet { _ + obs }.size
       logger.trace(s"$this observers: ${size}")
     }
-    def unobserve(obs: O => Unit) {
+    override def unobserve(obs: O => Unit) {
       val size = impl.observers.single.transformAndGet { _ - obs }.size
       logger.trace(s"$this observers: ${size}")
     }

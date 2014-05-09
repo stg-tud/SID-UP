@@ -11,7 +11,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
   override def toString = name
 
-  private val _sourceDependencies = Ref(calculateSourceDependencies(null))
+  private val _sourceDependencies = Ref(scala.concurrent.stm.atomic { calculateSourceDependencies(_) })
   override def sourceDependencies(tx: InTxn) = _sourceDependencies()(tx)
 
   protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean): Unit = {
@@ -23,7 +23,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
     }
 
     val sourceDependenciesChanged = if (recalculateDependencies) {
-        val newDepdencies = calculateSourceDependencies(tx)
+      val newDepdencies = calculateSourceDependencies(tx)
       _sourceDependencies.swap(newDepdencies)(tx) != newDepdencies
     } else {
       false
@@ -34,5 +34,11 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
   protected def reevaluate(tx: InTxn): Option[P]
   protected def calculateSourceDependencies(tx: InTxn): Set[UUID]
+}
 
+object DependentReactive {
+  trait ViewImpl[P] extends Reactive.View[P] {
+    protected val impl: DependentReactive[_]
+    override protected[reactive] def sourceDependencies = impl._sourceDependencies.single.get
+  }
 }

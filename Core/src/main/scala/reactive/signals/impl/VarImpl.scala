@@ -6,9 +6,14 @@ import reactive.impl.ReactiveSourceImpl
 import util.Util
 import scala.concurrent.stm._
 
-class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
+class VarImpl[A](initialValue: A) extends {
   override protected val value = Ref(initialValue)
+} with SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
+  self =>
   protected def makePulse(tx: InTxn, newValue: A): Option[A] = {
     updateValue(tx, newValue)
   }
+  override object single extends {
+    override val impl = self
+  } with SignalImpl.ViewImpl[A] with ReactiveSourceImpl.ViewImpl[A] 
 }

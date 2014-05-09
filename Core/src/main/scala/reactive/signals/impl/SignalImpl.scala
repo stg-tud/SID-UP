@@ -30,13 +30,13 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = new PulseEventStream(this, when)
   override def log(implicit inTxn: InTxn) = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem))
 
-  override lazy val single = new SignalImpl.ViewImpl(this)
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }
 
 object SignalImpl {
-  class ViewImpl[A](impl: SignalImpl[A]) extends ReactiveImpl.ViewImpl[A](impl) with Signal.View[A] {
-    override val now = impl.value.single.get
+  trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] with Signal.View[A] {
+    override protected val impl: SignalImpl[A]
+    override def now = impl.value.single.get
     override lazy val changes: EventStream[A] = atomic { impl.changes(_) }
     override lazy val delta = atomic { impl.delta(_) }
     override def map[B](op: A => B): Signal[B] = atomic { impl.map(op)(_) }

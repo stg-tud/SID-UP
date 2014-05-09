@@ -8,7 +8,7 @@ trait SingleDependentReactive {
   self: DependentReactive[_]=>
 
   protected val dependency: Reactive.Dependency
-  dependency.addDependant(null, this)
+  scala.concurrent.stm.atomic { dependency.addDependant(_, this) }
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     doReevaluation(transaction, sourceDependenciesChanged, pulsed)

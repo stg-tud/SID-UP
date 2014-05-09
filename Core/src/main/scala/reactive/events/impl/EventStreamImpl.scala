@@ -16,12 +16,12 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
   override def log(implicit inTxn: InTxn) = fold(List[A]())((list, elem) => list :+ elem)
   override def filter(op: A => Boolean)(implicit inTxn: InTxn): EventStream[A] = new FilteredEventStream(this, op);
 
-  override lazy val single = new EventStreamImpl.ViewImpl[A](this)
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }
 
 object EventStreamImpl {
-  class ViewImpl[A](impl: EventStreamImpl[A]) extends ReactiveImpl.ViewImpl[A](impl) with EventStream.View[A] {
+  trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] with EventStream.View[A] {
+    override protected val impl: EventStreamImpl[A]
     override def hold[B >: A](initialValue: B): Signal[B] = atomic { impl.hold(initialValue)(_) }
     override def map[B](op: A => B): EventStream[B] = atomic { impl.map(op)(_) }
     override def collect[B](op: PartialFunction[A, B]): EventStream[B] = atomic { impl.collect(op)(_) }

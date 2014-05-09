@@ -2,7 +2,7 @@ import reactive.signals.Var
 import reactive.signals.Signal
 import reactive.signals.TransposeSignal
 import reactive.events.EventStream
-import reactive.Lift._
+import reactive.Lift.single._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.stm._
@@ -14,19 +14,17 @@ import java.util.concurrent.TimeoutException
 case class Fork(val id: Int) {
   // input
   val in = Var[Set[Signal[Option[Philosopher]]]](Set())
-  def addPhilosopher(phil: Philosopher) {
-    atomic { tx =>
-      in << in.now + phil.request
-    }
+  def addPhilosopher(phil: Philosopher)(implicit tx: InTxn) {
+    in.setOpen(in.now + phil.request)
   }
 
   // intermediate
   val requestStates = new TransposeSignal(in)
-  val requests = requestStates.map(_.flatten)
+  val requests = requestStates.single.map(_.flatten)
 
   // output
-  val owner = requests.map(_.headOption)
-  val isOccupied = owner.map(_.isDefined)
+  val owner = requests.single.map(_.headOption)
+  val isOccupied = owner.single.map(_.isDefined)
 }
 
 // ===================== PHILOSOPHER IMPLEMENTATION =====================
@@ -41,33 +39,31 @@ case class Philosopher(val id: Int) {
   val tryingToEat = Var(false)
 
   // intermediate
-  val request = tryingToEat.map(_ match {
+  val request = tryingToEat.single.map(_ match {
     case false => None
     case true => Some(this)
   })
 
   // connect input to forks
   val forks = Var(Set[Fork]())
-  def addFork(fork: Fork) = {
-    atomic { tx =>
-      fork.addPhilosopher(this)
-      forks << forks.now + fork
-    }
+  def addFork(fork: Fork)(implicit tx: InTxn) = {
+    fork.addPhilosopher(this)
+    forks.setOpen(forks.now + fork)
   }
 
   // connect output from forks
-  val owners = new TransposeSignal(forks.map(_.map(_.owner)))
+  val owners = new TransposeSignal(forks.single.map(_.map(_.owner)))
   val isEating = signal2(Philosopher.calculateEating)(this, owners)
 
   // behavior
   def eatOnce() = {
     atomic { tx =>
       // await free forks
-      if (forks.now.find(_.isOccupied.now).isDefined) {
+      if (forks.now(tx).find(_.isOccupied.now(tx)).isDefined) {
         retry(tx)
       }
       Txn.afterRollback(_ => println(this + " suffered fork acquisition failure!"))(tx)
-      
+
       // try to take forks
       tryingToEat << true
     }
@@ -97,8 +93,10 @@ object Philosophers extends App {
   val philosopher = for (i <- 0 until sizeOfTable) yield new Philosopher(i)
   // connect philosophers with forks
   philosopher.foreach { phil =>
-    phil.addFork(fork(phil.id))
-    phil.addFork(fork((phil.id + 1) % 3))
+    atomic { implicit tx =>
+      phil.addFork(fork(phil.id))
+      phil.addFork(fork((phil.id + 1) % 3))
+    }
   }
 
   // ===================== OBSERVATION SETUP =====================
@@ -122,8 +120,10 @@ object Philosophers extends App {
   //  }
 
   // ---- table state observation ----
-  val allEating = new TransposeSignal(philosopher.map(p => (p.isEating.map(_ -> p)))).map(_.filter(_._1).map(_._2))
-  allEating.changes./*filter(!_.isEmpty).*/observe(eating => log("Now eating: " + eating))
+  atomic { implicit tx =>
+    val allEating = new TransposeSignal(philosopher.map(p => (p.isEating.map(_ -> p)))).map(_.filter(_._1).map(_._2))
+    allEating.changes. /*filter(!_.isEmpty).*/ observe(eating => log("Now eating: " + eating))
+  }
 
   // ===================== STARTUP =====================
   // start simulation
@@ -133,7 +133,7 @@ object Philosophers extends App {
     phil ->
       Future {
         Thread.currentThread().setName("p" + phil.id)
-        println(phil + ": using " + phil.forks.now + " on thread" + Thread.currentThread().getName())
+        println(phil + ": using " + phil.forks.single.now + " on thread" + Thread.currentThread().getName())
         while (!killed) {
           phil.eatOnce()
         }

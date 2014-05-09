@@ -16,7 +16,9 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 
 object Reactive {
   trait View[+O] {
-    def log: Signal[Seq[O]]
+    protected[reactive] def sourceDependencies: Set[UUID]
+    
+	def log: Signal[Seq[O]]
     def observe(obs: O => Unit)
     def unobserve(obs: O => Unit)
   }

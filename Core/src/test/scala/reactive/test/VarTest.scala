@@ -7,7 +7,7 @@ import reactive.testtools.NotificationLog
 class VarTest extends FunSuite {
   test("var << x works") {
     val v = Var(1)
-    assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
+    assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { v.single.now }
 
     val log = new NotificationLog(v)
@@ -16,7 +16,7 @@ class VarTest extends FunSuite {
     v << 2;
 
     assertResult(2) { v.single.now }
-    assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
+    assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
     val event1 = log.dequeue
     assertResult(false) { event1.sourceDependenciesChanged }
@@ -27,7 +27,7 @@ class VarTest extends FunSuite {
     v << 3;
 
     assertResult(3) { v.single.now }
-    assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
+    assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
     val event2 = log.dequeue
     assertResult(false) { event2.sourceDependenciesChanged }
@@ -38,7 +38,7 @@ class VarTest extends FunSuite {
     v << 3;
 
     assertResult(3) { v.single.now }
-    assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
+    assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
     val event3 = log.dequeue
     assertResult(false) { event3.sourceDependenciesChanged }
