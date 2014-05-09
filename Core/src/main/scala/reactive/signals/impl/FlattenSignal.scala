@@ -3,8 +3,9 @@ package signals
 package impl
 
 import reactive.impl.DynamicDependentReactive
+import scala.concurrent.stm.InTxn
 
 class FlattenSignal[A](val outer: Signal[Signal[A]]) extends DependentSignalImpl[A] with DynamicDependentReactive {
-  override def dependencies(transaction: Transaction) = Set(outer, outer.value(transaction))
-  override def reevaluateValue(transaction: Transaction) = outer.value(transaction).value(transaction)
+  override def dependencies(tx: InTxn) = Set(outer, outer.now(tx))
+  override def reevaluateValue(tx: InTxn) = outer.now(tx).now(tx)
 }

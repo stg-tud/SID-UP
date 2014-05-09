@@ -3,6 +3,7 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
+import scala.concurrent.stm.InTxn
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -24,30 +25,32 @@ object RoutableVar {
     // a Var[Signal[A]] with delegates of all ReactiveSource[Signal[A]] input methods
     val _input = Var(initialValue);
     override def <<(value: Signal[A]) = _input.<<(value)
+    override def set(value: Signal[A]) = _input.set(value)
+    override def setOpen(value: Signal[A])(implicit inTxn: InTxn) = _input.setOpen(value)(inTxn)
     override protected[reactive] def emit(transaction: Transaction, value: Signal[A] /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
     override protected[reactive] val uuid: UUID = _input.uuid
 
     // the flattened Signal[A] with delegates of all Signal[A] output methods
-    val _output = _input.flatten
-    protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
-    protected[reactive] override def pulse(transaction: Transaction): Reactive.PulsedState[A] = _output.pulse(transaction)
-    protected[reactive] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
-    protected[reactive] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
+    val _output = _input.single.flatten
+    protected[reactive] override def pulse(tx: InTxn): Reactive.PulsedState[A] = _output.pulse(tx)
+    protected[reactive] override def hasPulsed(tx: InTxn): Boolean = _output.hasPulsed(tx)
+    protected[reactive] override def sourceDependencies(tx: InTxn): Set[UUID] = _output.sourceDependencies(tx)
     protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
-    protected[reactive] override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.addDependant(transaction, dependant)
-    protected[reactive] override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.removeDependant(transaction, dependant)
-    override def log: Signal[Seq[A]] = _output.log
-    override def observe(obs: A => Unit) = _output.observe(obs)
-    override def unobserve(obs: A => Unit) = _output.unobserve(obs)
-    override def now: A = _output.now
+    protected[reactive] override def addDependant(tx: InTxn, dependant: Reactive.Dependant) = _output.addDependant(tx, dependant)
+    protected[reactive] override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = _output.removeDependant(tx, dependant)
+    override def log(implicit inTxn: InTxn): Signal[Seq[A]] = _output.log
+    override def observe(obs: A => Unit)(implicit inTxn: InTxn) = _output.observe(obs)
+    override def unobserve(obs: A => Unit)(implicit inTxn: InTxn) = _output.unobserve(obs)
+    override def now(implicit inTxn: InTxn): A = _output.now(inTxn)
+    override def single = _output.single
     //    override def apply()(implicit t: Transaction) = _output.apply()
     //    override def transientPulse(t: Transaction) = _output.transientPulse(t)
-    override def changes: EventStream[A] = _output.changes
-    override def delta: EventStream[(A, A)] = _output.delta
-    override def map[B](op: A => B): Signal[B] = _output.map(op)
-    override def flatMap[B](op: A => Signal[B]): Signal[B] = _output.flatMap(op)
-    override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
-    override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
-    override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
+    override def changes(implicit inTxn: InTxn): EventStream[A] = _output.changes
+    override def delta(implicit inTxn: InTxn): EventStream[(A, A)] = _output.delta
+    override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = _output.map(op)
+    override def flatMap[B](op: A => Signal[B])(implicit inTxn: InTxn): Signal[B] = _output.flatMap(op)
+    override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = _output.flatten
+    override def snapshot(when: EventStream[_])(implicit inTxn: InTxn): Signal[A] = _output.snapshot(when)
+    override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = _output.pulse(when)
   }
 }

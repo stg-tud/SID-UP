@@ -6,6 +6,7 @@ import scala.collection.mutable
 import reactive.Transaction
 import reactive.impl.SingleDependentReactive
 import reactive.signals.impl.DependentSignalImpl
+import scala.concurrent.stm.InTxn
 
 
 class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A] with DependentSignalImpl[A] with SingleDependentReactive {
@@ -28,5 +29,5 @@ class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A]
     }
   }
 
-  override protected def reevaluateValue(transaction: Transaction): A = dependency.value(transaction)
+  override protected def reevaluateValue(tx: InTxn): A = dependency.now(tx)
 }

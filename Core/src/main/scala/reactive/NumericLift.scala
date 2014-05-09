@@ -1,22 +1,24 @@
 package reactive
 
-import reactive.signals.Val
-import reactive.signals.impl.FunctionalSignal
 import reactive.signals.Signal
-import Numeric.Implicits._
+import scala.concurrent.stm.InTxn
 
 object NumericLift {
-  class SignalStaysNumeric[N: Numeric] extends Numeric[Signal[N]] {
-    def plus(x: Signal[N], y: Signal[N]): Signal[N] = new FunctionalSignal({ t => x.value(t) + y.value(t) }, x, y)
-    def minus(x: Signal[N], y: Signal[N]): Signal[N] = new FunctionalSignal({ t => x.value(t) - y.value(t) }, x, y)
-    def times(x: Signal[N], y: Signal[N]): Signal[N] = new FunctionalSignal({ t => x.value(t) * y.value(t) }, x, y)
-    def negate(x: Signal[N]): Signal[N] = new FunctionalSignal({ t => -x.value(t) }, x)
-    def fromInt(x: Int): Signal[N] = new Val(implicitly[Numeric[N]].fromInt(x))
-    def toInt(x: Signal[N]): Int = x.now.toInt
-    def toLong(x: Signal[N]): Long = x.now.toLong
-    def toFloat(x: Signal[N]): Float = x.now.toFloat
-    def toDouble(x: Signal[N]): Double = x.now.toDouble
-    def compare(x: Signal[N], y: Signal[N]): Int = implicitly[Numeric[N]].compare(x.now, y.now)
+  object single {
+    implicit class NumericSignal[N](x: Signal[N])(implicit num: Numeric[N]) {
+      def +(y: Signal[N]) = Lift.single.signal2(num.plus)(x, y)
+      def -(y: Signal[N]) = Lift.single.signal2(num.minus)(x, y)
+      def *(y: Signal[N]) = Lift.single.signal2(num.times)(x, y)
+      def unary_- = x.single.map(num.negate)
+    }
   }
-  implicit def theMethodForNiceSyntaxOrSomethingLikeThat[N: Numeric]: Numeric[Signal[N]] = new SignalStaysNumeric[N]
+  object transactional {
+    implicit class NumericSignal[N](x: Signal[N])(implicit num: Numeric[N]) {
+      def +(y: Signal[N])(implicit inTxn: InTxn) = Lift.transactional.signal2(num.plus)(x, y, inTxn)
+      def -(y: Signal[N])(implicit inTxn: InTxn) = Lift.transactional.signal2(num.minus)(x, y, inTxn)
+      def *(y: Signal[N])(implicit inTxn: InTxn) = Lift.transactional.signal2(num.times)(x, y, inTxn)
+      def unary_- = x.single.map(num.negate)
+    }
+
+  }
 }

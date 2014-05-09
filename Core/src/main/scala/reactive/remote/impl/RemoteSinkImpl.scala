@@ -1,11 +1,11 @@
 package reactive.remote.impl
 
 import java.rmi.server.UnicastRemoteObject
-
 import reactive.events.impl.EventStreamImpl
 import reactive.Transaction
 import reactive.remote.{RemoteDependant, RemoteDependency}
 import reactive.impl.ReactiveImpl
+import scala.concurrent.stm.InTxn
 
 class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
   extends UnicastRemoteObject with RemoteDependant[P] {
@@ -17,7 +17,7 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
     dependency.unregisterRemoteDependant(null, this)
   }
   
-  protected[reactive] def sourceDependencies(transaction: reactive.Transaction): Set[java.util.UUID] = _sourceDependencies
+  override protected[reactive] def sourceDependencies(tx: InTxn): Set[java.util.UUID] = _sourceDependencies
 
   override def update(transaction: Transaction, pulse: Option[P], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
     val sdChanged = updatedSourceDependencies match {

@@ -2,6 +2,7 @@ package reactive
 package impl
 
 import java.util.UUID
+import scala.concurrent.stm.InTxn
 
 trait SingleDependentReactive {
   self: DependentReactive[_]=>
@@ -13,7 +14,7 @@ trait SingleDependentReactive {
     doReevaluation(transaction, sourceDependenciesChanged, pulsed)
   }
 
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependency.sourceDependencies(transaction)
+  protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
+    dependency.sourceDependencies(tx)
   }
 }

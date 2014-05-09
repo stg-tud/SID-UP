@@ -16,13 +16,13 @@ abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dep
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = ReactiveImpl.parallelForeach(dependants) {
     _.update(transaction,
-      pulse = if (pulsed) dependency.pulse(transaction).asOption else None,
-      updatedSourceDependencies = if (sourceDependenciesChanged) Some(dependency.sourceDependencies(transaction)) else None)
+      pulse = if (pulsed) dependency.pulse(transaction.stmTx).asOption else None,
+      updatedSourceDependencies = if (sourceDependenciesChanged) Some(dependency.sourceDependencies(transaction.stmTx)) else None)
   }
 
   override def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[P]): Set[UUID] = {
     dependants += dependant
-    dependency.sourceDependencies(transaction)
+    dependency.sourceDependencies(transaction.stmTx)
   }
   override def unregisterRemoteDependant(transaction: Transaction, dependant: RemoteDependant[P]) {
     dependants -= dependant

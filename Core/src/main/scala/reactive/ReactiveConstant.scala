@@ -1,14 +1,22 @@
 package reactive
 
 import java.util.UUID
+import scala.concurrent.stm.InTxn
 
 trait ReactiveConstant[+O, +P] extends Reactive[O, P] {
-  override def pulse(transaction: Transaction) = Reactive.Unchanged
-  override def hasPulsed(transaction: Transaction) = false
-  override def sourceDependencies(transaction: Transaction) = Set[UUID]()
+  override def pulse(tx: InTxn) = Reactive.Unchanged
+  override def hasPulsed(tx: InTxn) = false
+  override def sourceDependencies(tx: InTxn) = Set[UUID]()
   override def isConnectedTo(transaction: Transaction) = false
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {}
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {}
-  override def observe(obs: O => Unit) = {}
-  override def unobserve(obs: O => Unit) = {}
+  override def addDependant(tx: InTxn, dependant: Reactive.Dependant) {}
+  override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) {}
+  override def observe(obs: O => Unit)(implicit tx: InTxn) = {}
+  override def unobserve(obs: O => Unit)(implicit tx: InTxn) = {}
+}
+
+object ReactiveConstant {
+  trait View[+O] extends Reactive.View[O] {
+    def observe(obs: O => Unit) = {}
+    def unobserve(obs: O => Unit) = {}
+  }
 }

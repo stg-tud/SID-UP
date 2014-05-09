@@ -28,7 +28,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   def expectNotification() = {
     assertResult(1) { log.size }
     val notification1 = log.dequeue()
-    assertResult(5) { flattened.now }
+    assertResult(5) { flattened.single.now }
     assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
     assertResult(true) { notification1.valueChanged }
     assertResult(5) { notification1.newValue }
@@ -41,10 +41,10 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     inner1Buffered = new MessageBuffer(inner1)
     outer = Var(inner1Buffered)
     outerBuffered = new MessageBuffer(outer)
-    flattened = outerBuffered.flatten
+    flattened = outerBuffered.single.flatten
     log = new NotificationLog(flattened)
 
-    assertResult(123) { flattened.now }
+    assertResult(123) { flattened.single.now }
     assertResult(Set(inner1.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
 
     inner2 = Var(234)

@@ -11,15 +11,15 @@ object Environment extends App {
     val thread = new Thread(new Runnable() {
       def run {
         while (true) {
-          while (millis.asInstanceOf[Signal[Long]].now < System.currentTimeMillis()) {
-            millis << millis.asInstanceOf[Signal[Long]].now + 1;
+          while (millis.single.now < System.currentTimeMillis()) {
+            millis << millis.single.now + 1;
           }
           Thread.sleep(1);
         }
       }
     }, "millis");
     thread.setDaemon(true);
-    future { Thread.sleep(100); thread.start(); }
+    thread.start();
     millis;
   }
 }

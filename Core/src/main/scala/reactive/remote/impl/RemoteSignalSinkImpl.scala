@@ -3,15 +3,14 @@ package reactive.remote.impl
 import reactive.remote.RemoteSignalDependency
 import reactive.signals.impl.SignalImpl
 import reactive.Transaction
+import scala.concurrent.stm._
 
 class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends RemoteSinkImpl[A](dependency) with SignalImpl[A] {
 
-  var now = dependency.value(null)
-
-  protected[reactive] def value(transaction: reactive.Transaction): A = now
+  override protected val value = Ref(dependency.value(null))
 
   override def update(transaction: Transaction, pulse: Option[A], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
-    pulse.foreach(now = _)
+    pulse.foreach(value.set(_)(transaction.stmTx))
     super.update(transaction, pulse, updatedSourceDependencies)
   }
 }

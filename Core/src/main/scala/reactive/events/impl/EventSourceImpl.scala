@@ -3,7 +3,8 @@ package events
 package impl
 
 import reactive.impl.ReactiveSourceImpl
+import scala.concurrent.stm.InTxn
 
 class EventSourceImpl[A] extends EventStreamImpl[A] with ReactiveSourceImpl[A, A] with EventSource[A] {
-  protected def makePulse(transaction: Transaction, value: A): Option[A] = Some(value)
+  protected def makePulse(tx: InTxn, value: A): Option[A] = Some(value)
 }

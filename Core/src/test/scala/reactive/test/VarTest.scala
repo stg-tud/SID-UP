@@ -8,14 +8,14 @@ class VarTest extends FunSuite {
   test("var << x works") {
     val v = Var(1)
     assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
-    assertResult(1) { v.now }
+    assertResult(1) { v.single.now }
 
     val log = new NotificationLog(v)
     assertResult(true) { log.isEmpty }
 
     v << 2;
 
-    assertResult(2) { v.now }
+    assertResult(2) { v.single.now }
     assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
     assertResult(1) { log.size }
     val event1 = log.dequeue
@@ -26,7 +26,7 @@ class VarTest extends FunSuite {
 
     v << 3;
 
-    assertResult(3) { v.now }
+    assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
     assertResult(1) { log.size }
     val event2 = log.dequeue
@@ -37,7 +37,7 @@ class VarTest extends FunSuite {
 
     v << 3;
 
-    assertResult(3) { v.now }
+    assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.sourceDependencies(null) }
     assertResult(1) { log.size }
     val event3 = log.dequeue

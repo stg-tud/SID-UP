@@ -11,6 +11,6 @@ class NotificationLog[P](private val reactive: Signal[P]) extends mutable.Queue[
   reactive.addDependant(null, this)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    this += new Notification(transaction, reactive.sourceDependencies(transaction), sourceDependenciesChanged, reactive.value(transaction), pulsed)
+    this += new Notification(transaction, reactive.sourceDependencies(transaction.stmTx), sourceDependenciesChanged, reactive.now(transaction.stmTx), pulsed)
   }
 }

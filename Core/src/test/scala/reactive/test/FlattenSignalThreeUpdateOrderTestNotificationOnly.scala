@@ -30,7 +30,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
     flattened = new FlattenSignal(outerBuffered)
     log = new NotificationLog(flattened)
 
-    assertResult(123) { flattened.now }
+    assertResult(123) { flattened.single.now }
     assertResult(Set(inner1.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
 
     inner2 = Var(234)
@@ -62,7 +62,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
       }
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
       
-      assertResult(5) { flattened.now }
+      assertResult(5) { flattened.single.now }
       assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies(null) }
       assertResult(1) { log.size }
       val notification1 = log.dequeue()

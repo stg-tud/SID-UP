@@ -13,9 +13,9 @@ class TransposeTest extends FunSuite {
 
     val listSig = Var(Seq(s1, s2, s3))
     val transposed = new TransposeSignal[String](listSig)
-    val transposeLog = transposed.log
+    val transposeLog = transposed.single.log
 
-    assertResult(transposeLog.now) { Seq(Seq("s1", "s2", "s3")) }
+    assertResult(transposeLog.single.now) { Seq(Seq("s1", "s2", "s3")) }
 
     s1 << "s1updated"
 
@@ -24,7 +24,7 @@ class TransposeTest extends FunSuite {
         Seq("s1", "s2", "s3"),
         Seq("s1updated", "s2", "s3")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     s3 << "s3updated"
 
@@ -34,7 +34,7 @@ class TransposeTest extends FunSuite {
         Seq("s1updated", "s2", "s3"),
         Seq("s1updated", "s2", "s3updated")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     val transaction = new TransactionBuilder
     transaction.set(s2, "s2transaction").set(s3, "s3transaction").commit()
@@ -46,7 +46,7 @@ class TransposeTest extends FunSuite {
         Seq("s1updated", "s2", "s3updated"),
         Seq("s1updated", "s2transaction", "s3transaction")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     listSig << Seq(s2, s3)
 
@@ -58,7 +58,7 @@ class TransposeTest extends FunSuite {
         Seq("s1updated", "s2transaction", "s3transaction"),
         Seq("s2transaction", "s3transaction")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     s1 << "s1updatedAgain"
 
@@ -70,7 +70,7 @@ class TransposeTest extends FunSuite {
         Seq("s1updated", "s2transaction", "s3transaction"),
         Seq("s2transaction", "s3transaction")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     s2 << "s2updatedAgain"
 
@@ -83,7 +83,7 @@ class TransposeTest extends FunSuite {
         Seq("s2transaction", "s3transaction"),
         Seq("s2updatedAgain", "s3transaction")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
   }
 
@@ -92,9 +92,9 @@ class TransposeTest extends FunSuite {
 
     val listSig = Var(Seq(e1, e2, e3))
     val transposed = new TransposeEventStream[String](listSig)
-    val transposeLog = transposed.log
+    val transposeLog = transposed.single.log
 
-    assertResult { Seq() }(transposeLog.now)
+    assertResult { Seq() }(transposeLog.single.now)
 
     e1 << "e1fired"
 
@@ -102,7 +102,7 @@ class TransposeTest extends FunSuite {
       Seq(
         Seq("e1fired")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     e3 << "e3fired"
 
@@ -111,7 +111,7 @@ class TransposeTest extends FunSuite {
         Seq("e1fired"),
         Seq("e3fired")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     val transaction = new TransactionBuilder
     transaction.set(e2, "e2fired").set(e3, "e3fired").commit()
@@ -122,7 +122,7 @@ class TransposeTest extends FunSuite {
         Seq("e3fired"),
         Seq("e2fired", "e3fired")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
 
     listSig << Seq(e2, e3)
@@ -133,7 +133,7 @@ class TransposeTest extends FunSuite {
         Seq("e3fired"),
         Seq("e2fired", "e3fired")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     e1 << "e1firedAgain"
 
@@ -143,7 +143,7 @@ class TransposeTest extends FunSuite {
         Seq("e3fired"),
         Seq("e2fired", "e3fired")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
     e2 << "e2firedAgain"
 
@@ -154,7 +154,7 @@ class TransposeTest extends FunSuite {
         Seq("e2fired", "e3fired"),
         Seq("e2firedAgain")
       )
-    }(transposeLog.now)
+    }(transposeLog.single.now)
 
   }
 }

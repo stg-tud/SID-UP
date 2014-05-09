@@ -3,61 +3,63 @@ package impl
 
 import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
-import scala.concurrent.stm.Ref
-import scala.concurrent.stm.atomic
-import scala.concurrent.stm.Txn
+import scala.concurrent.stm._
 
 trait DynamicDependentReactive extends Logging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
-  protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
+  protected def dependencies(tx: InTxn): Set[Reactive[_, _]]
 
-  private val lastDependencies = Ref(dependencies(null))
-  atomic { tx => lastDependencies()(tx).foreach { _.addDependant(null, this) } }
+  private val lastDependencies = atomic { tx =>
+    val depts = dependencies(tx)
+    depts.foreach { _.addDependant(tx, this) }
+    Ref(depts)
+  }
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = atomic { implicit tx =>
-    if (//synchronized {
-      if (hasPulsed(transaction)) {
-        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
+  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
+    val tx = transaction.stmTx
+    if ( //synchronized {
+    if (hasPulsed(tx)) {
+      //        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
+      false
+    } else {
+      anyPulse.transform(_ || pulsed)(tx)
+      anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(tx)
+      val newDependencies = if (pulsed) {
+        val newDependencies = dependencies(tx)
+        val oldDependencies = lastDependencies.swap(newDependencies)(tx)
+        val unsubscribe = oldDependencies.diff(newDependencies)
+        val subscribe = newDependencies.diff(oldDependencies)
+        unsubscribe.foreach { dep =>
+          dep.removeDependant(tx, this)
+        }
+        subscribe.foreach { dep =>
+          dep.addDependant(tx, this)
+        }
+        if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
+          anyDependenciesChanged.set(true)(tx)
+        }
+        newDependencies
       } else {
-        anyPulse.transform(_ || pulsed)
-        anyDependenciesChanged.transform(_ || sourceDependenciesChanged)
-        if (pulsed) {
-          val newDependencies = dependencies(transaction)
-          val unsubscribe = lastDependencies().diff(newDependencies)
-          val subscribe = newDependencies.diff(lastDependencies())
-          lastDependencies() = newDependencies
-          unsubscribe.foreach { dep =>
-            dep.removeDependant(transaction, this)
-          }
-          subscribe.foreach { dep =>
-            dep.addDependant(transaction, this)
-          }
-          if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
-            anyDependenciesChanged() = true
-          }
-        }
-
-        val waitingFor = lastDependencies().filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
-
-        //if (!lastDependencies().exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
-        if (waitingFor.isEmpty) {
-          true
-        } else {
-          logger.trace(s"$name still waits for updates from $waitingFor)")
-          false
-        }
+        lastDependencies()(tx)
       }
-    /*}*/) {
-      doReevaluation(transaction, anyDependenciesChanged(), anyPulse())
-      anyDependenciesChanged() = false
-      anyPulse() = false
+
+      //if (newDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
+      val waitingFor = newDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(tx))
+      if (waitingFor.isEmpty) {
+        true
+      } else {
+        logger.trace(s"$name still waits for updates from $waitingFor)")
+        false
+      }
+    } /*}*/ ) {
+      doReevaluation(transaction, anyDependenciesChanged.swap(false)(tx), anyPulse.swap(false)(tx))
     }
   }
 
-  protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies(transaction).flatMap(_.sourceDependencies(transaction))
+  protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
+    dependencies(tx).flatMap(_.sourceDependencies(tx))
   }
 }

@@ -1,7 +1,7 @@
 package reactive.test
 
 import reactive.signals.Var
-import reactive.Lift._
+import reactive.Lift.single._
 import reactive.LiftableWrappers._
 import org.scalatest.FunSuite
 
@@ -17,13 +17,13 @@ class LateSignalCreationTest extends FunSuite {
     var3 << 5;
 
     val lateSignal = add(var3, signal)
-    val log = lateSignal.log
+    val log = lateSignal.single.log
 
     var1 << 2;
     var2 << 2;
     var3 << 2;
 
-    assertResult(List(12, 11, 9, 6)) { log.now }
+    assertResult(List(12, 11, 9, 6)) { log.single.now }
     println("cookie!");
   }
 }

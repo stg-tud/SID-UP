@@ -5,6 +5,7 @@ package impl
 import java.util.UUID
 import reactive.impl.MultiDependentReactive
 import reactive.signals.Signal
+import scala.concurrent.stm.InTxn
 
 /** triggers an event with the value of `signal` every time `events` fires
 	*
@@ -16,9 +17,9 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
   override val dependencies = Set[Reactive.Dependency](events, signal)
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
 
-  override protected def reevaluate(transaction: Transaction): Option[A] = {
-    events.pulse(transaction).asOption.map { eventVal =>
-      signal.pulse(transaction).asOption.getOrElse(signal.value(transaction))
+  override protected def reevaluate(tx: InTxn): Option[A] = {
+    events.pulse(tx).asOption.map { eventVal =>
+      signal.pulse(tx).asOption.getOrElse(signal.now(tx))
     }
   }
 
@@ -31,5 +32,5 @@ class PulseEventStream[A](private val signal: Signal[A], private val events: Eve
   }
 
   // report that this only pulses on changes of the event stream
-  override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = events.sourceDependencies(transaction)
+  override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = events.sourceDependencies(tx)
 }

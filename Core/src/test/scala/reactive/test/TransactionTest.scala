@@ -1,7 +1,7 @@
 package reactive.test
 import reactive.signals.Var
 import reactive.TransactionBuilder
-import reactive.Lift._
+import reactive.Lift.single._
 import reactive.LiftableWrappers._
 import org.scalatest.FunSuite
 
@@ -11,26 +11,26 @@ class TransactionTest extends FunSuite {
     val var2 = Var(5);
 
     val sum = add(var1, var2)
-    val sumLog = sum.log
+    val sumLog = sum.single.log
 
     var1 << 4;
-    assertResult(List(6, 9)) { sumLog.now }
+    assertResult(List(6, 9)) { sumLog.single.now }
     var2 << 4;
-    assertResult(List(6, 9, 8)) { sumLog.now }
+    assertResult(List(6, 9, 8)) { sumLog.single.now }
 
     val transaction = new TransactionBuilder();
 
     transaction.set(var1, 5);
     transaction.set(var2, 5);
     transaction.commit();
-    assertResult(List(6, 9, 8, 10)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10)) { sumLog.single.now }
 
     transaction.set(var1, 2);
     transaction.set(var2, -2);
     transaction.commit();
-    assertResult(List(6, 9, 8, 10, 0)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10, 0)) { sumLog.single.now }
 
     var2 << 4;
-    assertResult(List(6, 9, 8, 10, 0, 6)) { sumLog.now }
+    assertResult(List(6, 9, 8, 10, 0, 6)) { sumLog.single.now }
   }
 }
