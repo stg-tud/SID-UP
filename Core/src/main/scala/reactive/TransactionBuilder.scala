@@ -21,8 +21,7 @@ class TransactionBuilder extends Logging {
     boxes = boxes.empty
   }
 
-  def commit() = atomic { commitOpen()(_) }
-  def commitOpen()(implicit inTxn: InTxn) {
+  def commit() = atomic { implicit inTxn =>
     val boxSet = boxes.keySet
     val sourceIds = boxSet.map(_.uuid);
     val transaction = Transaction(sourceIds, inTxn);

@@ -21,14 +21,16 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   }
 
   override def now(implicit inTxn: InTxn) = value()
-  override def changes(implicit inTxn: InTxn): EventStream[A] = new ChangesEventStream(this)
-  override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = new MapSignal(this, op)
-  override def delta(implicit inTxn: InTxn): EventStream[(A, A)] = new DeltaEventStream(this)
+  override def changes(implicit inTxn: InTxn): EventStream[A] = new ChangesEventStream(this, inTxn)
+  override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = new MapSignal(this, op, inTxn)
+  override def tmap[B](op: (A, InTxn) => B)(implicit inTxn: InTxn): Signal[B] = new TMapSignal(this, op, inTxn)
+  override def delta(implicit inTxn: InTxn): EventStream[(A, A)] = new DeltaEventStream(this, inTxn)
   override def flatMap[B](op: A => Signal[B])(implicit inTxn: InTxn): Signal[B] = map(op).flatten
-  override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]])
+  override def tflatMap[B](op: (A, InTxn) => Signal[B])(implicit inTxn: InTxn): Signal[B] = tmap(op).flatten
+  override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]], inTxn)
   override def snapshot(when: EventStream[_])(implicit inTxn: InTxn): Signal[A] = pulse(when).hold(now)
-  override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = new PulseEventStream(this, when)
-  override def log(implicit inTxn: InTxn) = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem))
+  override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = new PulseEventStream(this, when, inTxn)
+  override def log(implicit inTxn: InTxn) = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem), inTxn)
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }

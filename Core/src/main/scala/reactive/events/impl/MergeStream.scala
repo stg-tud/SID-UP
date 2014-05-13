@@ -5,9 +5,9 @@ package impl
 import reactive.impl.MultiDependentReactive
 import scala.concurrent.stm.InTxn
 
-class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends {
+class MergeStream[A](private val streams: Iterable[EventStream[A]], tx: InTxn) extends {
   override val dependencies = streams.toSet : Set[Reactive.Dependency]
-} with DependentEventStreamImpl[A] with MultiDependentReactive {
+} with MultiDependentReactive(tx) with DependentEventStreamImpl[A] {
 
   protected def reevaluate(tx: InTxn): Option[A] = {
     streams.find {

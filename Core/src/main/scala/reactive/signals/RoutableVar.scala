@@ -26,7 +26,6 @@ object RoutableVar {
     val _input = Var(initialValue);
     override def <<(value: Signal[A]) = _input.<<(value)
     override def set(value: Signal[A]) = _input.set(value)
-    override def setOpen(value: Signal[A])(implicit inTxn: InTxn) = _input.setOpen(value)(inTxn)
     override protected[reactive] def emit(transaction: Transaction, value: Signal[A] /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
     override protected[reactive] val uuid: UUID = _input.uuid
 
@@ -48,7 +47,9 @@ object RoutableVar {
     override def changes(implicit inTxn: InTxn): EventStream[A] = _output.changes
     override def delta(implicit inTxn: InTxn): EventStream[(A, A)] = _output.delta
     override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = _output.map(op)
+    override def tmap[B](op: (A, InTxn) => B)(implicit inTxn: InTxn): Signal[B] = _output.tmap(op)
     override def flatMap[B](op: A => Signal[B])(implicit inTxn: InTxn): Signal[B] = _output.flatMap(op)
+    override def tflatMap[B](op: (A, InTxn) => Signal[B])(implicit inTxn: InTxn): Signal[B] = _output.tflatMap(op)
     override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_])(implicit inTxn: InTxn): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = _output.pulse(when)

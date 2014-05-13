@@ -20,10 +20,6 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
     transaction.set(this, value);
     transaction.commit();
   }
-  def setOpen(value: A)(implicit tx: InTxn) {
-    transaction.set(this, value);
-    transaction.commitOpen()(tx);
-  }
   protected[reactive] def emit(transaction: Transaction,value: A/*,replyChannels: util.TransactionAction => Unit**/){
     doPulse(transaction, false, makePulse(transaction.stmTx, value))
   }

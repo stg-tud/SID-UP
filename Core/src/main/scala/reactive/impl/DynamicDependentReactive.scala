@@ -5,16 +5,17 @@ import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.stm._
 
-trait DynamicDependentReactive extends Logging {
+abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
   protected def dependencies(tx: InTxn): Set[Reactive[_, _]]
 
-  private val lastDependencies = scala.concurrent.stm.atomic { tx =>
+  private val lastDependencies = {
     val depts = dependencies(tx)
     depts.foreach { _.addDependant(tx, this) }
     Ref(depts)
   }
+  
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
 

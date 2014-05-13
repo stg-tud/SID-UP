@@ -5,11 +5,11 @@ import java.util.UUID
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.stm._
 
-trait MultiDependentReactive extends Logging {
+abstract class MultiDependentReactive(tx: InTxn) extends Logging {
   self: DependentReactive[_] =>
 
   protected val dependencies: Set[Reactive.Dependency]
-  scala.concurrent.stm.atomic { tx => dependencies.foreach { _.addDependant(tx, this) } }
+  dependencies.foreach { _.addDependant(tx, this) }
 
   private val pendingNotifications: Ref[Int] = Ref(0)
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)

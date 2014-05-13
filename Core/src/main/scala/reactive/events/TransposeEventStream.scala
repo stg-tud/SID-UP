@@ -9,7 +9,7 @@ import scala.concurrent.stm.InTxn
 /**
  * Takes a sequence of events and turns it into an event firing every time one of the original events changes
  */
-class TransposeEventStream[A](events: Signal[Iterable[EventStream[A]]]) extends DependentEventStreamImpl[Iterable[A]] with DynamicDependentReactive {
+class TransposeEventStream[A](events: Signal[Iterable[EventStream[A]]], tx: InTxn) extends DynamicDependentReactive(tx) with DependentEventStreamImpl[Iterable[A]] {
   override protected def reevaluate(tx: InTxn): Option[Iterable[A]] = {
     // get the flat list of pulses, if none changed, we also propagate no change
     val pulses = events.now(tx).map(_.pulse(tx).asOption).flatten

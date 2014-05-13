@@ -12,7 +12,7 @@ class TransposeTest extends FunSuite {
     val s3 = Var("s3")
 
     val listSig = Var(Seq(s1, s2, s3))
-    val transposed = new TransposeSignal[String](listSig)
+    val transposed = scala.concurrent.stm.atomic { new TransposeSignal[String](listSig, _) }
     val transposeLog = transposed.single.log
 
     assertResult(transposeLog.single.now) { Seq(Seq("s1", "s2", "s3")) }
@@ -91,7 +91,7 @@ class TransposeTest extends FunSuite {
     val e1, e2, e3 = EventSource[String]
 
     val listSig = Var(Seq(e1, e2, e3))
-    val transposed = new TransposeEventStream[String](listSig)
+    val transposed = scala.concurrent.stm.atomic { new TransposeEventStream[String](listSig, _) }
     val transposeLog = transposed.single.log
 
     assertResult { Seq() }(transposeLog.single.now)

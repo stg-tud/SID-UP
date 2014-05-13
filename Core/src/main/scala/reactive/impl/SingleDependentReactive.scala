@@ -4,11 +4,11 @@ package impl
 import java.util.UUID
 import scala.concurrent.stm.InTxn
 
-trait SingleDependentReactive {
+abstract class SingleDependentReactive(tx: InTxn) {
   self: DependentReactive[_]=>
 
   protected val dependency: Reactive.Dependency
-  scala.concurrent.stm.atomic { dependency.addDependant(_, this) }
+  dependency.addDependant(tx, this)
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     doReevaluation(transaction, sourceDependenciesChanged, pulsed)

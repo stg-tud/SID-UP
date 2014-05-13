@@ -13,7 +13,9 @@ case class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
   override def log(implicit inTxn: InTxn): Signal[List[A]] = single.log
   override def changes(implicit inTxn: InTxn): EventStream[A] = single.changes
   override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = single.map(op)
+  override def tmap[B](op: (A, InTxn) => B)(implicit inTxn: InTxn): Signal[B] = new Val(op(value, inTxn))
   override def flatMap[B](op: A => Signal[B])(implicit inTxn: InTxn): Signal[B] = single.flatMap(op)
+  override def tflatMap[B](op: (A, InTxn) => Signal[B])(implicit inTxn: InTxn): Signal[B] = op(value, inTxn)
   override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = single.flatten
   override def snapshot(when: EventStream[_])(implicit inTxn: InTxn): Signal[A] = single.snapshot(when)
   override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = when.map { _ => value }(inTxn)

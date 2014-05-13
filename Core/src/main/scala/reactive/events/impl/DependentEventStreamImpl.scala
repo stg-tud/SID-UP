@@ -4,7 +4,7 @@ package impl
 
 import reactive.impl.DependentReactive
 
-abstract class DependentEventStreamImpl[A] extends EventStreamImpl[A] with DependentReactive[A] {
+trait DependentEventStreamImpl[A] extends EventStreamImpl[A] with DependentReactive[A] {
   self =>
   override object single extends {
     override protected val impl = self
