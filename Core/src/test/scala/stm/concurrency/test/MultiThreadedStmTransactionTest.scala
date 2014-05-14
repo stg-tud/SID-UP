@@ -75,3 +75,17 @@ object MultiThreadedStmTransactionTest extends App {
 
   System.err.println("Count should be " + expected + ": " + count.single.get)
 }
+
+object UnsynchronizedTransformTest {
+  val v1 = Ref(5)
+  def go() = {
+    println(v1.single.get)
+    atomic { tx =>
+      val f1 = Future { v1.transform(v => v + 1)(tx) }
+      val f2 = Future { v1.transform(v => v + 1)(tx) }
+      Await.ready(f1, Duration(5, SECONDS))
+      Await.ready(f2, Duration(5, SECONDS))
+    }
+    println(v1.single.get)
+  }
+}
