@@ -15,7 +15,7 @@ abstract class MultiDependentReactive(tx: InTxn) extends Logging {
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     //    synchronized {
     val stillPending = pendingNotifications.transformAndGet { previous =>
       if (previous == 0) {

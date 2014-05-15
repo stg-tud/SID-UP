@@ -50,7 +50,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
       this.pulse.set(Pending)(inTxnBeforeCommit)
     })(transaction.stmTx)
     val pulsed = pulse.isDefined
-    dependants()(transaction.stmTx).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
+    dependants()(transaction.stmTx).foreach { _.ping(transaction, sourceDependenciesChanged, pulsed) }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
       val obsToNotify = observers()(transaction.stmTx)

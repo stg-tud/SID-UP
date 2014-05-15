@@ -42,7 +42,7 @@ object Lift {
 
     implicit def signalSink1[A](fun: A => Unit): (Signal[A], InTxn) => Unit = (a, inTxn) => { fun(a.now(inTxn)); a.observe(fun)(inTxn) }
     implicit def signalSink2[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], Signal[A2], InTxn) => Unit = (a1, a2, inTxn) => signalSink1(fun.tupled)(new FunctionalSignal({ t => (a1.now(t), a2.now(t)) }, Iterable(a1, a2), inTxn), inTxn)
-    implicit def signalSink3[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], Signal[A3], InTxn) => Unit = (a1, a2, a3, inTxn) => signalSink1(fun.tupled)(new FunctionalSignal({ implicit t => (a1.now(t), a2.now(t), a3.now(t)) }, Iterable(a1, a2, a3), inTxn), inTxn)
+    implicit def signalSink3[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], Signal[A3], InTxn) => Unit = (a1, a2, a3, inTxn) => signalSink1(fun.tupled)(new FunctionalSignal({ t => (a1.now(t), a2.now(t), a3.now(t)) }, Iterable(a1, a2, a3), inTxn), inTxn)
 
     implicit def eventStream1[A, B](fun: A => B): (EventStream[A], InTxn) => EventStream[B] = (a, inTxn) => a.map(fun)(inTxn)
     implicit def eventStreamSink1[A](fun: A => Unit): (EventStream[A], InTxn) => Unit = (a, inTxn) => a.observe(fun)(inTxn)

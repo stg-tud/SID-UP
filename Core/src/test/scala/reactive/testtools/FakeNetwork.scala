@@ -12,7 +12,7 @@
 //  override def notify(replyChannel : TicketAccumulator.Receiver, notification: Signal.Notification[A]) {
 //    future {
 //      Thread.sleep(500)
-//      publish(new Signal.Notification(notification.transaction, notification.sourceDependenciesUpdate.applyTo(_sourceDependencies), notification.pulse.applyTo(value)), replyChannel)
+//      publish(new Signal.Notification(notification.transaction, notification.sourceDependenciesUpdate.pingTo(_sourceDependencies), notification.pulse.pingTo(value)), replyChannel)
 //    }
 //  }
 //}
