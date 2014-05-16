@@ -16,8 +16,7 @@ object Whiteboard {
   val drawingPanel = new DrawingPanel(
     shapeSelectionPanel.nextShapeFactory,
     strokeInputPanel.nextStrokeWidth,
-    strokeInputPanel.nextColor,
-    shapeSelectionPanel.clearCommands
+    strokeInputPanel.nextColor
   )
 
   val serverHostName =

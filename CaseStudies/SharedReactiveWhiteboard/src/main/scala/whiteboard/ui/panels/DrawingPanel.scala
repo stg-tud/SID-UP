@@ -12,8 +12,7 @@ import whiteboard.Command
 class DrawingPanel(
   val nextShapeFactory: Signal[ShapeFactory],
   val nextStrokeWidth: Signal[Int],
-  val nextColor: Signal[Color],
-  val clearCommandStream: EventStream[Command]
+  val nextColor: Signal[Color]
 ) extends ReactiveComponent(new ShapePanel) {
   asComponent.setPreferredSize(new Dimension(200, 200))
 
