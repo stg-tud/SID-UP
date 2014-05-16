@@ -28,7 +28,5 @@ class DrawingPanel(
 
   val newShapes: EventStream[Shape] = constructingShape.delta.collect { case (Some(shape), None) => shape }
 
-  val currentShape = constructingShape.changes merge mouseUps.map( _ => None) hold None
-
   val shapes = asComponent.shapes
  }

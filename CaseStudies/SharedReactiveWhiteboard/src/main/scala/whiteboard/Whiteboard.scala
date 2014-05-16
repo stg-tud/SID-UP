@@ -29,7 +29,7 @@ object Whiteboard {
 
   val shapesRemote = new RemoteSignalSinkImpl(remoteWhiteboard.connectShapes(
     new RemoteEventSourceImpl(newShapesCommands),
-    Some(new RemoteSignalSourceImpl(drawingPanel.currentShape)))
+    Some(new RemoteSignalSourceImpl(drawingPanel.constructingShape)))
   )
   drawingPanel.shapes << shapesRemote
 
