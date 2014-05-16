@@ -22,12 +22,11 @@ class DrawingPanel(
       event match {
         case Down(point) => Some(nextShapeFactory.now.nextShape(nextStrokeWidth.now, nextColor.now, List(point)))
         case Drag(from, to) => Some(currentShape.get.copy(currentShape.get.strokeWidth, currentShape.get.color, to :: currentShape.get.mousePath))
-        case _ => currentShape
+        case _ => None
       }
   }
 
-  val newShapes: EventStream[Shape] =
-    constructingShape.pulse(mouseUps).filter { option => option.isDefined }.map { option => option.get }
+  val newShapes: EventStream[Shape] = constructingShape.delta.collect { case (Some(shape), None) => shape }
 
   val currentShape = constructingShape.changes merge mouseUps.map( _ => None) hold None
 
