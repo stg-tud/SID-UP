@@ -26,11 +26,11 @@ abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
       //        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
       false
     } else {
-      anyPulse.transform(_ || pulsed)(tx)
-      anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(tx)
+      tx.synchronized(anyPulse.transform(_ || pulsed)(tx))
+      tx.synchronized(anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(tx))
       val newDependencies = if (pulsed) {
         val newDependencies = dependencies(tx)
-        val oldDependencies = lastDependencies.swap(newDependencies)(tx)
+        val oldDependencies = tx.synchronized(lastDependencies.swap(newDependencies)(tx))
         val unsubscribe = oldDependencies.diff(newDependencies)
         val subscribe = newDependencies.diff(oldDependencies)
         unsubscribe.foreach { dep =>
@@ -40,11 +40,11 @@ abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
           dep.addDependant(tx, this)
         }
         if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
-          anyDependenciesChanged.set(true)(tx)
+          tx.synchronized(anyDependenciesChanged.set(true)(tx))
         }
         newDependencies
       } else {
-        lastDependencies()(tx)
+        tx.synchronized(lastDependencies()(tx))
       }
 
       //if (newDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
@@ -56,7 +56,9 @@ abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
         false
       }
     } /*}*/ ) {
-      doReevaluation(transaction, anyDependenciesChanged.swap(false)(tx), anyPulse.swap(false)(tx))
+      val dependenciesChangedFlag = tx.synchronized(anyDependenciesChanged.swap(false)(tx))
+      val pulsedFlag = tx.synchronized(anyPulse.swap(false)(tx))
+      doReevaluation(transaction, dependenciesChangedFlag, pulsedFlag)
     }
   }
 

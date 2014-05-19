@@ -31,29 +31,29 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def addDependant(tx: InTxn, dependant: Reactive.Dependant) {
     //    synchronized {
     //      logger.trace(s"$dependant <~ $this [${Option(transaction)}")
-    dependants.transform(_ + dependant)(tx)
+    tx.synchronized(dependants.transform(_ + dependant)(tx))
     //    }
   }
 
   override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) {
     //    synchronized {
     //      logger.trace(s"$dependant <!~ $this [${Option(transaction)}")
-    dependants.transform(_ - dependant)(tx)
+    tx.synchronized(dependants.transform(_ - dependant)(tx))
     //    }
   }
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) {
     //    synchronized {
     logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction)}")
-    this.pulse.set(PulsedState(pulse))(transaction.stmTx)
+    transaction.stmTx.synchronized(this.pulse.set(PulsedState(pulse))(transaction.stmTx))
     Txn.beforeCommit(inTxnBeforeCommit => {
-      this.pulse.set(Pending)(inTxnBeforeCommit)
+      transaction.stmTx.synchronized(this.pulse.set(Pending)(inTxnBeforeCommit))
     })(transaction.stmTx)
     val pulsed = pulse.isDefined
-    dependants()(transaction.stmTx).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
+    transaction.stmTx.synchronized(dependants()(transaction.stmTx)).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
-      val obsToNotify = observers()(transaction.stmTx)
+      val obsToNotify = transaction.stmTx.synchronized(observers()(transaction.stmTx))
       Txn.afterCommit { _ =>
         ReactiveImpl.parallelForeach(obsToNotify) { _(value) }
       }(transaction.stmTx)
@@ -68,12 +68,12 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   private val observers = Ref(Set[O => Unit]())
 
   def observe(obs: O => Unit)(implicit inTxn: InTxn) {
-    val size = observers.transformAndGet { _ + obs }(inTxn).size
+    val size = inTxn.synchronized(observers.transformAndGet { _ + obs }(inTxn)).size
     logger.trace(s"$this observers: ${size}")
   }
 
   def unobserve(obs: O => Unit)(implicit inTxn: InTxn) {
-    val size = observers.transformAndGet { _ - obs }(inTxn).size
+    val size = inTxn.synchronized(observers.transformAndGet { _ - obs }(inTxn)).size
     logger.trace(s"$this observers: ${size}")
   }
 }
@@ -82,12 +82,12 @@ object ReactiveImpl extends Logging {
   trait ViewImpl[O] extends Reactive.View[O] {
     protected val impl: ReactiveImpl[O, _]
     override def log: Signal[Seq[O]] = atomic { impl.log(_) }
-    override def observe(obs: O => Unit) {
-      val size = impl.observers.single.transformAndGet { _ + obs }.size
+    override def observe(obs: O => Unit): Unit = atomic { tx =>
+      val size = tx.synchronized(impl.observers.transformAndGet { _ + obs }(tx)).size
       logger.trace(s"$this observers: ${size}")
     }
-    override def unobserve(obs: O => Unit) {
-      val size = impl.observers.single.transformAndGet { _ - obs }.size
+    override def unobserve(obs: O => Unit): Unit = atomic { tx =>
+    val size = tx.synchronized(impl.observers.transformAndGet { _ - obs }(tx)).size
       logger.trace(s"$this observers: ${size}")
     }
   }

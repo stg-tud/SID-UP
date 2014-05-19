@@ -13,14 +13,14 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   impl =>
   protected val value: Ref[A]
   protected def updateValue(tx: InTxn, newValue: A): Option[A] = {
-    if (value.swap(newValue)(tx) == newValue) {
+    if (tx.synchronized(value.swap(newValue)(tx)) == newValue) {
       None
     } else {
       Some(newValue)
     }
   }
 
-  override def now(implicit inTxn: InTxn) = value()
+  override def now(implicit inTxn: InTxn) = inTxn.synchronized(value())
   override def changes(implicit inTxn: InTxn): EventStream[A] = new ChangesEventStream(this, inTxn)
   override def map[B](op: A => B)(implicit inTxn: InTxn): Signal[B] = new MapSignal(this, op, inTxn)
   override def tmap[B](op: (A, InTxn) => B)(implicit inTxn: InTxn): Signal[B] = new TMapSignal(this, op, inTxn)
@@ -38,7 +38,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 object SignalImpl {
   trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] with Signal.View[A] {
     override protected val impl: SignalImpl[A]
-    override def now = impl.value.single.get
+    override def now = atomic { tx => tx.synchronized(impl.value.get(tx)) }
     override lazy val changes: EventStream[A] = atomic { impl.changes(_) }
     override lazy val delta = atomic { impl.delta(_) }
     override def map[B](op: A => B): Signal[B] = atomic { impl.map(op)(_) }

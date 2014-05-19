@@ -11,7 +11,7 @@ class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends Rem
   override protected val value = Ref(dependency.value(null))
 
   override def update(transaction: Transaction, pulse: Option[A], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
-    pulse.foreach(value.set(_)(transaction.stmTx))
+    pulse.foreach(p => transaction.stmTx.synchronized(value.set(p)(transaction.stmTx)))
     super.update(transaction, pulse, updatedSourceDependencies)
   }
   

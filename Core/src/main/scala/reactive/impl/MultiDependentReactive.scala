@@ -17,19 +17,23 @@ abstract class MultiDependentReactive(tx: InTxn) extends Logging {
 
   override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     //    synchronized {
-    val stillPending = pendingNotifications.transformAndGet { previous =>
-      if (previous == 0) {
-        dependencies.count(_.isConnectedTo(transaction)) - 1
-      } else {
-        previous - 1
-      }
-    }(transaction.stmTx)
-    anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(transaction.stmTx)
-    anyPulse.transform(_ || pulsed)(transaction.stmTx)
+    val stillPending = tx.synchronized {
+      pendingNotifications.transformAndGet { previous =>
+        if (previous == 0) {
+          dependencies.count(_.isConnectedTo(transaction)) - 1
+        } else {
+          previous - 1
+        }
+      }(transaction.stmTx)
+    }
+    tx.synchronized(anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(transaction.stmTx))
+    tx.synchronized(anyPulse.transform(_ || pulsed)(transaction.stmTx))
 
     if (stillPending == 0) {
       logger.trace(s"$this received last remaining notification for transaction ${transaction}, starting reevaluation")
-      doReevaluation(transaction, anyDependenciesChanged.swap(false)(transaction.stmTx), anyPulse.swap(false)(transaction.stmTx))
+      val dependenciesChangedFlag = tx.synchronized(anyDependenciesChanged.swap(false)(transaction.stmTx))
+      val pulsedFlag = tx.synchronized(anyPulse.swap(false)(transaction.stmTx))
+      doReevaluation(transaction, dependenciesChangedFlag, pulsedFlag)
     } else if (stillPending < 0) {
       throw new IllegalStateException(s"$this received more notifications than expected for transaction ${transaction}")
     } else {
@@ -39,6 +43,6 @@ abstract class MultiDependentReactive(tx: InTxn) extends Logging {
   }
 
   override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(tx));
+    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(tx))
   }
 }
