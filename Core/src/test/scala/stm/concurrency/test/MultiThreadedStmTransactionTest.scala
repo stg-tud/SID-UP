@@ -78,6 +78,7 @@ object MultiThreadedStmTransactionTest extends App {
 
 object UnsynchronizedTransformTest {
   val v1 = Ref(5)
+  implicit val pool = ExecutionContext.fromExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
   def go() = {
     println(v1.single.get)
     atomic { tx =>

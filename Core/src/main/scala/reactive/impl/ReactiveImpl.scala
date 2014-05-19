@@ -10,6 +10,8 @@ import Reactive._
 import scala.concurrent.stm._
 import reactive.signals.Signal
 import java.util.UUID
+import java.lang.reflect.InvocationTargetException
+import scala.util.control.ControlThrowable
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction.stmTx)).isEmpty
@@ -50,7 +52,9 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
       transaction.stmTx.synchronized(this.pulse.set(Pending)(inTxnBeforeCommit))
     })(transaction.stmTx)
     val pulsed = pulse.isDefined
-    transaction.stmTx.synchronized(dependants()(transaction.stmTx)).foreach { _.apply(transaction, sourceDependenciesChanged, pulsed) }
+    ReactiveImpl.parallelForeach(transaction.stmTx.synchronized(dependants()(transaction.stmTx))){ dep =>
+      dep.apply(transaction, sourceDependenciesChanged, pulsed)
+    }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
       val obsToNotify = transaction.stmTx.synchronized(observers()(transaction.stmTx))
@@ -112,7 +116,14 @@ object ReactiveImpl extends Logging {
       val head = iterator.next()
 
       val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
-        (element -> future { op(element) }) :: futures
+        (element -> future {
+          try {
+            op(element)
+          }
+          catch {
+            case rollback: Error with ControlThrowable => throw new InvocationTargetException(rollback)
+          }
+        }) :: futures
       }
       val headResult = Try { op(head) }
       val results = headResult :: futures.map {
@@ -126,6 +137,7 @@ object ReactiveImpl extends Logging {
       // TODO this should probably be converted into an exception thrown forward to
       // the original caller and be accumulated through all fork/joins along the path?
       results.foreach {
+        case Failure(e: InvocationTargetException) => throw e.getTargetException()
         case Failure(e) => e.printStackTrace()
         case _ =>
       }
