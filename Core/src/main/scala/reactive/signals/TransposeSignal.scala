@@ -12,3 +12,4 @@ class TransposeSignal[A](signals: Iterable[Signal[A]]) extends {
 } with DependentSignalImpl[Iterable[A]] with MultiDependentReactive {
   override def reevaluateValue(transaction: Transaction) = signals.map(_.value(transaction))
 }
+

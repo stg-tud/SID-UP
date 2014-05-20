@@ -17,3 +17,4 @@ class TransposeEventStream[A](events: Signal[Iterable[EventStream[A]]]) extends 
 
   override protected def dependencies(transaction: Transaction): Set[Reactive[_, _]] = events.value(transaction).toSet + events
 }
+
