@@ -1,7 +1,6 @@
 package whiteboard
 
 import java.rmi.server.UnicastRemoteObject
-import reactive.remote.RemoteReactives
 import whiteboard.figures.Shape
 import java.rmi.Naming
 import reactive.events.{ EventStream, TransposeEventStream }
@@ -10,10 +9,13 @@ import reactive.remote.impl.{ RemoteSignalSinkImpl, RemoteEventSinkImpl, RemoteS
 import reactive.remote.RemoteDependency
 import reactive.remote.RemoteSignalDependency
 import reactive.Lift._
+import reactive.mutex.{TransactionLock, TransactionLockImpl}
+import java.util.UUID
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
     def connectShapes(shapeStream: RemoteDependency[Command], currentShape: Option[RemoteSignalDependency[Option[Shape]]] = None): RemoteSignalDependency[Iterable[Shape]]
+    def lock(): TransactionLock
   }
 
   val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
@@ -28,22 +30,33 @@ object WhiteboardServer extends App {
   val currentShapes = new TransposeSignal[Option[Shape]](allClientsCurrentShape).map{_.flatten}
 
   def ++[T] : (Iterable[T], Iterable[T]) => Iterable[T] = {(first, second) => first ++ second}
-  val shapes = ++[Shape](currentShapes, persistentShapes) 
-  
+  val shapes = ++[Shape](currentShapes, persistentShapes)
+
   val shapesRemote = new RemoteSignalSourceImpl(shapes)
 
   object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
     override def connectShapes(shapeStream: RemoteDependency[Command], currentShape: Option[RemoteSignalDependency[Option[Shape]]] = None) = {
       println("new client connecting: " + shapeStream)
+      val uuid = UUID.randomUUID()
+
+      transactionLock.acquire(uuid)
       val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
       allClientShapeCommands << allClientShapeCommands.now :+ newClientShapeStream
-      currentShape.foreach { currentShapeSignal => 
+      currentShape.foreach { currentShapeSignal =>
       	val newClientCurrentShapeSignal = new RemoteSignalSinkImpl(currentShapeSignal)
         allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeSignal
       }
+      transactionLock.release(uuid)
+
       shapesRemote
     }
+
+    override def lock(): TransactionLock = {
+      transactionLock
+    }
   }
+
+  val transactionLock = new TransactionLockImpl()
 
   try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
   catch { case _: Exception => println("registry already initialised") }

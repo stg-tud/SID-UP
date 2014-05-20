@@ -8,6 +8,7 @@ import java.rmi.Naming
 import whiteboard.WhiteboardServer.RemoteWhiteboard
 import reactive.events.EventStream
 import reactive.remote.impl.{RemoteSignalSourceImpl, RemoteEventSourceImpl, RemoteSignalSinkImpl}
+import reactive.mutex.{LockSignal, LockEventStream, TransactionLock}
 
 
 object Whiteboard {
@@ -22,13 +23,17 @@ object Whiteboard {
   val serverHostName =
     JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
   val remoteWhiteboard = Naming.lookup("//"+serverHostName+"/remoteWhiteboard").asInstanceOf[RemoteWhiteboard]
+  val remoteLock = remoteWhiteboard.lock()
 
   val newShapesCommands: EventStream[Command] =
     drawingPanel.newShapes.map[Command] { ShapeCommand } merge shapeSelectionPanel.clearCommands
 
+  val lockedShapeCommands = new LockEventStream(newShapesCommands, remoteLock)
+  val lockedCurrentShape = new LockSignal(drawingPanel.constructingShape, remoteLock)
+
   val shapesRemote = new RemoteSignalSinkImpl(remoteWhiteboard.connectShapes(
-    new RemoteEventSourceImpl(newShapesCommands),
-    Some(new RemoteSignalSourceImpl(drawingPanel.constructingShape)))
+    new RemoteEventSourceImpl(lockedShapeCommands),
+    Some(new RemoteSignalSourceImpl(lockedCurrentShape)))
   )
   drawingPanel.shapes << shapesRemote
 
