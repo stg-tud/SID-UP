@@ -15,7 +15,7 @@ trait DynamicDependentReactive extends Logging {
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     if (synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
@@ -35,6 +35,7 @@ trait DynamicDependentReactive extends Logging {
         lastDependencies = newDependencies
         anyDependenciesChanged |= sourceDependenciesChanged
         anyPulse |= pulsed
+
         unsubscribe.foreach { dep =>
           anyDependenciesChanged = true
           anyPulse = true

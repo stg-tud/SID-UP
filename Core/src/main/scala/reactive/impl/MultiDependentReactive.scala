@@ -15,7 +15,8 @@ trait MultiDependentReactive extends Logging {
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     synchronized {
       if (currentTransaction != transaction) {
         if (pendingNotifications != 0) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, previous transaction ${currentTransaction.uuid} not completed yet! ($pendingNotifications notifications pending)")
