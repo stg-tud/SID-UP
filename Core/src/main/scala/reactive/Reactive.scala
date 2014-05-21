@@ -52,7 +52,7 @@ object Reactive {
   }
 
   trait Dependant {
-    protected[reactive] def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
+    protected[reactive] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
   }
   trait Dependency {
     protected[reactive] def sourceDependencies(inTxn: InTxn): Set[UUID]

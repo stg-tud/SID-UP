@@ -19,7 +19,7 @@ abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     val tx = transaction.stmTx
     if ( //synchronized {
     if (hasPulsed(tx)) {

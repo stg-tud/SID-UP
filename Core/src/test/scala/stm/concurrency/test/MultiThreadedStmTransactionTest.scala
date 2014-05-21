@@ -23,6 +23,8 @@ object MultiThreadedStmTransactionTest extends App {
 
   val pool = ExecutionContext.fromExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
 
+//  val lock = new Object
+
   val count = Ref(initial)
   (for (h <- 1 to numberConcurrentTransactions) yield {
 
@@ -64,7 +66,7 @@ object MultiThreadedStmTransactionTest extends App {
           val results = inTxnThreads.map(tpl => tpl._1 -> tpl._2.value.get)
           val unpackedResults = results.collect { case (threadId, Failure(exception)) => threadId -> Failure(exception.asInstanceOf[InvocationTargetException].getTargetException()); case other => other }
           System.err.println("results for " + h + ": " + unpackedResults)
-          unpackedResults.collect { case (threadId, Failure(exception)) => throw exception }
+//          unpackedResults.collect { case (threadId, Failure(exception)) => throw exception }
         }
       } catch {
         case e: Exception => e.printStackTrace(System.err)
@@ -74,19 +76,4 @@ object MultiThreadedStmTransactionTest extends App {
   }).foreach(Await.ready(_, timeoutDuration * numberConcurrentTransactions))
 
   System.err.println("Count should be " + expected + ": " + count.single.get)
-}
-
-object UnsynchronizedTransformTest {
-  val v1 = Ref(5)
-  implicit val pool = ExecutionContext.fromExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
-  def go() = {
-    println(v1.single.get)
-    atomic { tx =>
-      val f1 = Future { v1.transform(v => v + 1)(tx) }
-      val f2 = Future { v1.transform(v => v + 1)(tx) }
-      Await.ready(f1, Duration(5, SECONDS))
-      Await.ready(f2, Duration(5, SECONDS))
-    }
-    println(v1.single.get)
-  }
 }

@@ -52,8 +52,9 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
       transaction.stmTx.synchronized(this.pulse.set(Pending)(inTxnBeforeCommit))
     })(transaction.stmTx)
     val pulsed = pulse.isDefined
+
     ReactiveImpl.parallelForeach(transaction.stmTx.synchronized(dependants()(transaction.stmTx))){ dep =>
-      dep.apply(transaction, sourceDependenciesChanged, pulsed)
+      dep.ping(transaction, sourceDependenciesChanged, pulsed)
     }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
