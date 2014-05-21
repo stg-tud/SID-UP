@@ -11,11 +11,12 @@ import reactive.remote.RemoteSignalDependency
 import reactive.Lift._
 import reactive.mutex.{TransactionLock, TransactionLockImpl}
 import java.util.UUID
+import javax.swing.JOptionPane
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
     def connectShapes(shapeStream: RemoteDependency[Command], currentShape: Option[RemoteSignalDependency[Option[Shape]]] = None): RemoteSignalDependency[Iterable[Shape]]
-    def lock(): TransactionLock
+    def lock(): Option[TransactionLock]
   }
 
   val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
@@ -39,24 +40,32 @@ object WhiteboardServer extends App {
       println("new client connecting: " + shapeStream)
       val uuid = UUID.randomUUID()
 
-      transactionLock.acquire(uuid)
+      if (transactionLock.isDefined)
+        transactionLock.get.acquire(uuid)
       val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
       allClientShapeCommands << allClientShapeCommands.now :+ newClientShapeStream
       currentShape.foreach { currentShapeSignal =>
       	val newClientCurrentShapeSignal = new RemoteSignalSinkImpl(currentShapeSignal)
         allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeSignal
       }
-      transactionLock.release(uuid)
+      if (transactionLock.isDefined)
+        transactionLock.get.release(uuid)
 
       shapesRemote
     }
 
-    override def lock(): TransactionLock = {
+    override def lock(): Option[TransactionLock] = {
       transactionLock
     }
   }
 
-  val transactionLock = new TransactionLockImpl()
+  val useLocking =
+    JOptionPane.showConfirmDialog(null, "Do you want to use locking?", "Lock", JOptionPane.YES_NO_OPTION)
+
+  val transactionLock = useLocking match {
+    case JOptionPane.YES_OPTION => Some(new TransactionLockImpl())
+    case JOptionPane.NO_OPTION => None
+  }
 
   try { java.rmi.registry.LocateRegistry.createRegistry(1099) }
   catch { case _: Exception => println("registry already initialised") }

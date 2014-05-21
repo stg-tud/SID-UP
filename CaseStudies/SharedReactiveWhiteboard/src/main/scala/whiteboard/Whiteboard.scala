@@ -28,12 +28,18 @@ object Whiteboard {
   val newShapesCommands: EventStream[Command] =
     drawingPanel.newShapes.map[Command] { ShapeCommand } merge shapeSelectionPanel.clearCommands
 
-  val lockedShapeCommands = new LockEventStream(newShapesCommands, remoteLock)
-  val lockedCurrentShape = new LockSignal(drawingPanel.constructingShape, remoteLock)
+  val remoteShapeCommands = remoteLock match {
+    case Some(lock) => new LockEventStream(newShapesCommands, lock)
+    case None => newShapesCommands
+  }
+  val remoteCurrentShape = remoteLock match {
+    case Some(lock) => new LockSignal(drawingPanel.constructingShape, lock)
+    case None => drawingPanel.constructingShape
+  }
 
   val shapesRemote = new RemoteSignalSinkImpl(remoteWhiteboard.connectShapes(
-    new RemoteEventSourceImpl(lockedShapeCommands),
-    Some(new RemoteSignalSourceImpl(lockedCurrentShape)))
+    new RemoteEventSourceImpl(remoteShapeCommands),
+    Some(new RemoteSignalSourceImpl(remoteCurrentShape)))
   )
   drawingPanel.shapes << shapesRemote
 
