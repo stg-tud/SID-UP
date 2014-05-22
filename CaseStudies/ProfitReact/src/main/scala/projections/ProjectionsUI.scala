@@ -7,7 +7,7 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.WindowConstants
-import reactive.Lift._
+import reactive.Lift.single._
 import reactive.LiftableWrappers._
 import reactive.signals._
 import ui.ReactiveButton
@@ -73,9 +73,8 @@ object ProjectionsUI {
     val (orders, glitch) = makeUI(
       sales = sales,
       purchases = purchases,
-      management = management
-    )
-    orders.observe { order =>
+      management = management)
+    orders.single.observe { order =>
       future { c.setOrders(order) }
     }
     m.disableTransaction << glitch
@@ -96,9 +95,8 @@ object ProjectionsUI {
     val (orders, glitch) = makeUI(
       sales = s.total,
       purchases = p.total,
-      management = m.difference
-    )
-    orders.observe { order =>
+      management = m.difference)
+    orders.single.observe { order =>
       future { setOrder << order }
     }
   }
@@ -111,17 +109,19 @@ object ProjectionsUI {
     val orderSpinner = new ReactiveSpinner(10)
     val clientButton = new ReactiveButton("New Order")
 
-    val orderStream = orderSpinner.value.pulse(clientButton.commits).map { Order(_) }
-    val orders = orderStream.log
+    val orderStream = orderSpinner.value.single.pulse(clientButton.commits).single.map { Order(_) }
+    val orders = orderStream.single.log
 
     val model = new DefaultListModel[String]()
-    val managPanic = management.map { _ < 0 }.changes.filter(x => x).observe { _ =>
-      model.addElement("Mail sent on " + new Date())
+    val managPanic = scala.concurrent.stm.atomic { implicit tx =>
+      management.map { _ < 0 }.changes.filter(x => x).observe { _ =>
+        model.addElement("Mail sent on " + new Date())
+      }
     }
 
     val managementStatus = new JList(model)
 
-    val managementDifference = new ReactiveLabel(management.map { d => f"Profit: $d%4d   " })
+    val managementDifference = new ReactiveLabel(management.single.map { d => f"Profit: $d%4d   " })
 
     //    managementDifference.foreground << managPanic.map {
     //      case false => Color.GREEN.darker
@@ -133,27 +133,22 @@ object ProjectionsUI {
     makeWindow("Management", 0, -200)(
       new JLabel("Management Status ") -> BorderLayout.NORTH,
       managementDifference.asComponent -> BorderLayout.CENTER,
-      new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH
-    )
+      new JScrollPane(managementStatus, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) -> BorderLayout.SOUTH)
 
     makeWindow("Client", 0, +100)(
       new ReactiveLabel(
-        orders.map { "Current orders: " + _.map { _.value } }
-      ).asComponent -> BorderLayout.NORTH,
+        orders.single.map { "Current orders: " + _.map { _.value } }).asComponent -> BorderLayout.NORTH,
       clientButton.asComponent -> BorderLayout.EAST,
       orderSpinner.asComponent -> BorderLayout.WEST,
-      checkBox.asComponent -> BorderLayout.SOUTH
-    )
+      checkBox.asComponent -> BorderLayout.SOUTH)
 
     makeWindow("Purchases", -100, 0)(
       new JLabel("Purchases Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(purchases.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH
-    )
+      new ReactiveLabel(purchases.single.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
 
     makeWindow("Sales", +100, 0)(
       new JLabel("Sales Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(sales.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH
-    )
+      new ReactiveLabel(sales.single.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
 
     (orders, checkBox.value)
   }

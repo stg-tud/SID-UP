@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent
 import reactive.signals.Var
 import java.awt.event.MouseAdapter
 import reactive.signals.RoutableVar
-import reactive.Lift.valueToSignal
+import reactive.Lift.single.valueToSignal
 import reactive.events.EventStream
 import reactive.events.EventSource
 
@@ -92,11 +92,11 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     source
   }
 
-  lazy val wrappedMouseDowns = mouseDowns.map(ReactiveComponent.Down(_))
-  lazy val wrappedMouseUps = mouseUps.map(ReactiveComponent.Up(_))
-  lazy val wrappedMouseDrags = mouseDrags.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
+  lazy val wrappedMouseDowns = mouseDowns.single.map(ReactiveComponent.Down(_))
+  lazy val wrappedMouseUps = mouseUps.single.map(ReactiveComponent.Up(_))
+  lazy val wrappedMouseDrags = mouseDrags.single.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
 
-  lazy val mouseEvents = wrappedMouseDowns merge (wrappedMouseUps, wrappedMouseDrags)
+  lazy val mouseEvents = wrappedMouseDowns.single.merge (wrappedMouseUps, wrappedMouseDrags)
 }
 
 object ReactiveComponent {
@@ -107,11 +107,13 @@ object ReactiveComponent {
 
   private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
     def activate() {
-      reactive.observe(op);
-      op(reactive.now);
+      scala.concurrent.stm.atomic{ implicit tx =>
+        reactive.observe(op);
+        op(reactive.now);
+      }
     }
     def deactivate() {
-      reactive.unobserve(op);
+      reactive.single.unobserve(op);
     }
   }
 }

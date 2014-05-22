@@ -27,7 +27,7 @@ trait InitReactives extends TestCommon {
   val p = new Purchases(Var(perOrderCost))
   val m = new Management()
 
-  RemoteReactives.lookupSignal[Int](projections.management).observe { v => done(v) }
+  RemoteReactives.lookupSignal[Int](projections.management).single.observe { v => done(v) }
 
   println("done")
 

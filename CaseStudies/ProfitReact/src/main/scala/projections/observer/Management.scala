@@ -1,7 +1,7 @@
 package projections.observer
 
 import reactive.signals.RoutableVar
-import reactive.Lift._
+import reactive.Lift.single._
 import projections.Participant
 
 class Management extends Observable[Int](projections.management) {
@@ -32,7 +32,7 @@ class Management extends Observable[Int](projections.management) {
   var hasReceived: Option[Participant] = None
 
   def update(sender: Participant, direct: Boolean) = {
-    if (disableTransaction.now || direct) recalculate()
+    if (disableTransaction.single.now || direct) recalculate()
     else synchronized { hasReceived match {
       case Some(`sender`) =>
         throw new Exception("received from same source twice")
