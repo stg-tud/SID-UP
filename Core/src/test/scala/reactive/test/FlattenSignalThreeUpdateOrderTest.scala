@@ -38,9 +38,9 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   before {
     inner1 = Var(123)
-    inner1Buffered = scala.concurrent.stm.atomic { new MessageBuffer(inner1, _) }
+    inner1Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner1", inner1, _) }
     outer = Var(inner1Buffered)
-    outerBuffered = scala.concurrent.stm.atomic { new MessageBuffer(outer, _) }
+    outerBuffered = scala.concurrent.stm.atomic { new MessageBuffer("outer", outer, _) }
     flattened = outerBuffered.single.flatten
     log = new NotificationLog(flattened)
 
@@ -48,7 +48,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     assertResult(Set(inner1.uuid, outer.uuid)) { flattened.single.sourceDependencies }
 
     inner2 = Var(234)
-    inner2Buffered = scala.concurrent.stm.atomic { new MessageBuffer(inner2, _) }
+    inner2Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner2", inner2, _) }
     val transaction = new TransactionBuilder()
     transaction.set(inner1, 0)
     transaction.set(outer, inner2Buffered)

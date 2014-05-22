@@ -8,24 +8,48 @@ import reactive.impl.SingleDependentReactive
 import reactive.signals.impl.DependentSignalImpl
 import scala.concurrent.stm.InTxn
 
-
-class MessageBuffer[A](override val dependency: Signal[A], tx: InTxn) extends SingleDependentReactive(tx) with DependentSignalImpl[A] {
-
-  val messages = mutable.MutableList[(Transaction, Boolean, Boolean)]()
+class MessageBuffer[A](val id: String, override val dependency: Signal[A], tx: InTxn) extends SingleDependentReactive(tx) with DependentSignalImpl[A] {
+  def log(msg: String) { println("[" + id + " @ " + Thread.currentThread().getName() + "] " + msg) }
+  private object parking;
+  private var parkingState = 0
+  log("Awaiting message")
 
   override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
-    messages.synchronized {
-      messages += ((transaction, sourceDependenciesChanged, pulsed))
+    parking.synchronized {
+      log("Received message")
+      if (parkingState != 0) throw new IllegalStateException
+      parkingState = 1
+      parking.notifyAll
+      while (parkingState == 1) {
+        parking.wait
+      }
+      log("Delivering message")
+    }
+    doReevaluation(transaction, sourceDependenciesChanged, pulsed)
+    parking.synchronized {
+      log("Delivered message")
+      while (parkingState != 2) {
+        parking.wait
+      }
+      parkingState = 0
+      parking.notifyAll
+      log("Awaiting message")
     }
   }
 
   def releaseQueue() {
-    messages.synchronized {
-      val release = messages.toList
-      messages.clear()
-      release
-    }.foreach { case (transaction, sourceDependenciesChanged, pulsed) =>
-      doReevaluation(transaction, sourceDependenciesChanged, pulsed)
+    parking.synchronized {
+      log("Send command")
+      while (parkingState != 1) {
+        parking.wait
+      }
+      parkingState = 2
+      parking.notifyAll
+      log("Awaiting delivery confirmation")
+      while (parkingState == 2) {
+        parking.wait
+      }
+      log("Delivery confirmed.")
     }
   }
 
