@@ -2,7 +2,7 @@ package whiteboard.ui.panels
 
 import javax.swing.JPanel
 import java.awt.{ Graphics2D, Color, Graphics }
-import reactive.Lift._
+import reactive.Lift.single._
 import reactive.signals.{ RoutableVar, Signal }
 import whiteboard.figures.Shape
 

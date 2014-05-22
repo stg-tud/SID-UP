@@ -15,7 +15,7 @@ import reactive.signals.Signal
 import reactive.events.EventSource
 import reactive.events.EventStream
 import reactive.signals.RoutableVar
-import reactive.Lift.valueToSignal
+import reactive.Lift.single.valueToSignal
 
 class ReactiveSpinner(initialValue: Int) extends {
   private val model = new SpinnerNumberModel(initialValue, Int.MinValue, Int.MaxValue, 1);

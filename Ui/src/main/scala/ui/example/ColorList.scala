@@ -2,7 +2,7 @@ package ui.example
 
 import javax.swing.JFrame
 import java.awt.BorderLayout
-import reactive.Lift._
+import reactive.Lift.single._
 import reactive.LiftableWrappers._
 import ui.ReactiveLabel
 import ui.ReactiveList
@@ -31,8 +31,8 @@ object ColorList extends App {
 
   // functionality
   val list = new ReactiveList[Color](Colors);
-  val displayText = list.selectionOption.map(_.map(_.toString).getOrElse("none"));
-  val displayColor = list.selectionOption.map(_.map(_.actualColor).getOrElse(java.awt.Color.BLACK))
+  val displayText = list.selectionOption.single.map(_.map(_.toString).getOrElse("none"));
+  val displayColor = list.selectionOption.single.map(_.map(_.actualColor).getOrElse(java.awt.Color.BLACK))
   val label = new ReactiveLabel(displayText);
   label.foreground << displayColor;
 
