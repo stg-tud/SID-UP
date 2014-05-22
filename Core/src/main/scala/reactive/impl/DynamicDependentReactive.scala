@@ -15,47 +15,50 @@ abstract class DynamicDependentReactive(tx: InTxn) extends Logging {
     depts.foreach { _.addDependant(tx, this) }
     Ref(depts)
   }
-  
+
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
+  private val hasPulsedLocal: Ref[Boolean] = Ref(false)
 
   override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     val tx = transaction.stmTx
-    if ( //synchronized {
-    if (hasPulsed(tx)) {
-      //        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
-      false
-    } else {
-      tx.synchronized(anyPulse.transform(_ || pulsed)(tx))
-      tx.synchronized(anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(tx))
-      val newDependencies = if (pulsed) {
-        val newDependencies = dependencies(tx)
-        val oldDependencies = tx.synchronized(lastDependencies.swap(newDependencies)(tx))
-        val unsubscribe = oldDependencies.diff(newDependencies)
-        val subscribe = newDependencies.diff(oldDependencies)
-        unsubscribe.foreach { dep =>
-          dep.removeDependant(tx, this)
-        }
-        subscribe.foreach { dep =>
-          dep.addDependant(tx, this)
-        }
-        if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
-          tx.synchronized(anyDependenciesChanged.set(true)(tx))
-        }
-        newDependencies
-      } else {
-        tx.synchronized(lastDependencies()(tx))
-      }
-
-      //if (newDependencies.exists { dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction) }) {
-      val waitingFor = newDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(tx))
-      if (waitingFor.isEmpty) {
-        true
-      } else {
-        logger.trace(s"$name still waits for updates from $waitingFor)")
+    val pulseNow = tx.synchronized {
+      if (hasPulsedLocal()(tx)) {
+        logger.trace(s"$name received orphaned notification after having pulsed; ignoring notification")
         false
+      } else {
+        anyPulse.transform(_ || pulsed)(tx)
+        anyDependenciesChanged.transform(_ || sourceDependenciesChanged)(tx)
+
+        if (pulsed) {
+          val newDependencies = dependencies(tx)
+          val oldDependencies = lastDependencies.swap(newDependencies)(tx)
+          val unsubscribe = oldDependencies.diff(newDependencies)
+          val subscribe = newDependencies.diff(oldDependencies)
+          unsubscribe.foreach { dep =>
+            dep.removeDependant(tx, this)
+          }
+          subscribe.foreach { dep =>
+            dep.addDependant(tx, this)
+          }
+          if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
+            anyDependenciesChanged.set(true)(tx)
+          }
+        }
+        
+        val waitingFor = lastDependencies()(tx).filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(tx))
+        if (waitingFor.isEmpty) {
+          Txn.beforeCommit(hasPulsedLocal.set(false)(_))(tx)
+          hasPulsedLocal.set(true)(tx)
+          true
+        } else {
+          logger.trace(s"$name still waits for updates from $waitingFor)")
+          false
+        }
       }
-    } /*}*/ ) {
+    }
+
+    if (pulseNow) {
       val dependenciesChangedFlag = tx.synchronized(anyDependenciesChanged.swap(false)(tx))
       val pulsedFlag = tx.synchronized(anyPulse.swap(false)(tx))
       doReevaluation(transaction, dependenciesChangedFlag, pulsedFlag)
