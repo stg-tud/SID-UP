@@ -42,22 +42,18 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
     commitFuture = future {
       transaction.commit()
     }
-    Thread.sleep(100)
   }
 
   List("old", "new", "outer").permutations.foreach { permutation =>
     test(permutation.mkString(", ")) {
       permutation.foreach { name =>
-        val relevant = name match {
+        name match {
           case "old" =>
             inner1Buffered.releaseQueue()
-            false
           case "new" =>
             inner2Buffered.releaseQueue()
-            true
           case "outer" =>
             outerBuffered.releaseQueue()
-            true
         }
       }
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }

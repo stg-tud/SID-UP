@@ -4,6 +4,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.stm._
+import reactive.impl.ReactiveImpl
 
 class TransactionBuilder extends Logging {
   private var boxes = Map[ReactiveSource[_], Any]()
@@ -26,7 +27,7 @@ class TransactionBuilder extends Logging {
     val sourceIds = boxSet.map(_.uuid);
     val transaction = Transaction(sourceIds, inTxn);
     logger.trace(s"start $transaction")
-    boxSet.foreach(setBoxFromMap( /*accu, */ transaction, _))
+    ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap( /*accu, */ transaction, _))
     logger.trace(s"finish $transaction")
   }
 

@@ -56,7 +56,6 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     commitFuture = future {
       transaction.commit()
     }
-    Thread.sleep(100)
   }
 
   override def test(testName: String, testTags: Tag*)(testFun: => Unit) {
@@ -85,6 +84,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
           timeUntilNotification -= 1
         }
         if (timeUntilNotification == 0) {
+          Thread.sleep(100)
           timeUntilNotification = -1
           expectNotification()
         } else {
