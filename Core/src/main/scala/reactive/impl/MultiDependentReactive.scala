@@ -15,31 +15,35 @@ trait MultiDependentReactive extends Logging {
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
 
-  override def apply(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
     synchronized {
       if (currentTransaction != transaction) {
-        if (pendingNotifications != 0) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, previous transaction ${currentTransaction.uuid} not completed yet! ($pendingNotifications notifications pending)")
+        if (pendingNotifications != 0) throw new IllegalStateException(s"Cannot process transaction ${ transaction.uuid }, previous transaction ${ currentTransaction.uuid } not completed yet! ($pendingNotifications notifications pending)")
         currentTransaction = transaction
         pendingNotifications = dependencies.count(_.isConnectedTo(transaction)) - 1
         anyDependenciesChanged = sourceDependenciesChanged
-        anyPulse = pulsed;
-      } else {
-        pendingNotifications -= 1;
+        anyPulse = pulsed
+      }
+      else {
+        pendingNotifications -= 1
         anyDependenciesChanged |= sourceDependenciesChanged
-        anyPulse |= pulsed;
+        anyPulse |= pulsed
       }
       if (pendingNotifications == 0) {
-        logger.trace(s"$this received last remaining notification for transaction ${transaction.uuid}, starting reevaluation")
+        logger.trace(s"$this received last remaining notification for transaction ${ transaction.uuid }, starting reevaluation")
         doReevaluation(transaction, anyDependenciesChanged, anyPulse)
-      } else if (pendingNotifications < 0) {
-        throw new IllegalStateException(s"$this received more notifications than expected for transaction ${transaction.uuid}")
-      } else {
-        logger.trace(s"$this received a notification for transaction ${transaction.uuid}, $pendingNotifications pending")
+      }
+      else if (pendingNotifications < 0) {
+        throw new IllegalStateException(s"$this received more notifications than expected for transaction ${ transaction.uuid }")
+      }
+      else {
+        logger.trace(s"$this received a notification for transaction ${ transaction.uuid }, $pendingNotifications pending")
       }
     }
   }
 
   override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction));
+    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction))
   }
 }
