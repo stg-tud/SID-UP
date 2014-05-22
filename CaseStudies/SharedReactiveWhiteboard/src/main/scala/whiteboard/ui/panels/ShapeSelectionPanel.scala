@@ -2,7 +2,7 @@ package whiteboard.ui.panels
 
 import javax.swing.{BoxLayout, JPanel}
 import ui.ReactiveButton
-import reactive.Lift._
+import reactive.Lift.single._
 import whiteboard.figures.factories._
 import whiteboard.{Command, ClearCommand}
 
@@ -23,14 +23,14 @@ class ShapeSelectionPanel extends JPanel() {
   add(triangleButton.asComponent)
   add(freeDrawButton.asComponent)
 
-  val setLineFactory = lineButton.commits.map { _ => new LineFactory }
-  val setRectangleFactory = rectangleButton.commits.map { _ => new RectangleFactory }
-  val setOvalFactory = ovalButton.commits.map { _ => new OvalFactory }
-  val setTriangleFactory = triangleButton.commits.map { _ => new TriangleFactory }
-  val setFreedrawFactory = freeDrawButton.commits.map { _ => new FreedrawFactory }
+  val setLineFactory = lineButton.commits.single.map { _ => new LineFactory }
+  val setRectangleFactory = rectangleButton.commits.single.map { _ => new RectangleFactory }
+  val setOvalFactory = ovalButton.commits.single.map { _ => new OvalFactory }
+  val setTriangleFactory = triangleButton.commits.single.map { _ => new TriangleFactory }
+  val setFreedrawFactory = freeDrawButton.commits.single.map { _ => new FreedrawFactory }
 
-  val setShapeFactory = setLineFactory merge(setRectangleFactory, setOvalFactory, setTriangleFactory, setFreedrawFactory)
-  val nextShapeFactory = setShapeFactory.hold(new LineFactory)
+  val setShapeFactory = setLineFactory.single.merge(setRectangleFactory, setOvalFactory, setTriangleFactory, setFreedrawFactory)
+  val nextShapeFactory = setShapeFactory.single.hold(new LineFactory)
 
-  val clearCommands = clearButton.commits.map[Command] { _ => ClearCommand }
+  val clearCommands = clearButton.commits.single.map[Command] { _ => ClearCommand }
 }
