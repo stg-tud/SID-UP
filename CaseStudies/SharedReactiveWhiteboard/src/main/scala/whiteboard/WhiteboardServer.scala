@@ -45,7 +45,7 @@ object WhiteboardServer extends App {
       val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
       allClientShapeCommands << allClientShapeCommands.now :+ newClientShapeStream
       currentShape.foreach { currentShapeSignal =>
-      	val newClientCurrentShapeSignal = new RemoteSignalSinkImpl(currentShapeSignal)
+        val newClientCurrentShapeSignal = new RemoteSignalSinkImpl(currentShapeSignal)
         allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeSignal
       }
       if (transactionLock.isDefined)
