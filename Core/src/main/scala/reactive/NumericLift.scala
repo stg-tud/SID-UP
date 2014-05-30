@@ -19,6 +19,5 @@ object NumericLift {
       def *(y: Signal[N])(implicit inTxn: InTxn) = Lift.transactional.signal2(num.times)(x, y, inTxn)
       def unary_- = x.single.map(num.negate)
     }
-
   }
 }

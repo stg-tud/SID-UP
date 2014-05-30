@@ -2,7 +2,7 @@ name := "sidup-ui"
 
 version := "0.0.0"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 scalacOptions ++= List(
 	"-deprecation",

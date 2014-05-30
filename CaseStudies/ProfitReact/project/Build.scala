@@ -7,9 +7,11 @@ object CaseStudy extends Build {
     id = "sidup-casestudy-profitreact",
     base = file(".")
   )
-  .dependsOn(core, ui)
+  //.dependsOn(core)
+  .dependsOn(ui)
 
-  lazy val core = ProjectRef(base = file("../../Core"), id = "sidup-core")
+  //lazy val core = ProjectRef(base = file("../../Core"), id = "sidup-core")
+
   lazy val ui = ProjectRef(base = file("../../Ui"), id = "sidup-ui")
 
 }
