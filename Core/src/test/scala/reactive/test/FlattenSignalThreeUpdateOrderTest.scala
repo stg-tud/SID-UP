@@ -21,6 +21,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   var flattened: Signal[Int] = _
   var log: NotificationLog[Int] = _
   var commitFuture: Future[Unit] = _
+
   def expectSilent() = {
     assertResult(0) { log.size }
   }
@@ -38,7 +39,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   before {
     inner1 = Var(123)
-    inner1Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner1", inner1, _) }
+    inner1Buffered = scala.concurrent.stm.atomic { new MessageBuffer("old", inner1, _) }
     outer = Var(inner1Buffered)
     outerBuffered = scala.concurrent.stm.atomic { new MessageBuffer("outer", outer, _) }
     flattened = outerBuffered.single.flatten
@@ -48,7 +49,7 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     assertResult(Set(inner1.uuid, outer.uuid)) { flattened.single.sourceDependencies }
 
     inner2 = Var(234)
-    inner2Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner2", inner2, _) }
+    inner2Buffered = scala.concurrent.stm.atomic { new MessageBuffer("new", inner2, _) }
     val transaction = new TransactionBuilder()
     transaction.set(inner1, 0)
     transaction.set(outer, inner2Buffered)
@@ -67,30 +68,18 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   List("old", "new", "outer").permutations.foreach { permutation =>
     test(permutation.mkString(", ")) {
-      var timeUntilNotification = 2
       permutation.foreach { name =>
-        val relevant = name match {
+        name match {
           case "old" =>
             inner1Buffered.releaseQueue()
-            false
           case "new" =>
             inner2Buffered.releaseQueue()
-            true
           case "outer" =>
             outerBuffered.releaseQueue()
-            true
-        }
-        if (relevant) {
-          timeUntilNotification -= 1
-        }
-        if (timeUntilNotification == 0) {
-          Thread.sleep(100)
-          timeUntilNotification = -1
-          expectNotification()
-        } else {
-          expectSilent()
         }
       }
+      Await.ready(commitFuture, duration.Duration.Inf)
+      expectNotification()
     }
   }
 }
