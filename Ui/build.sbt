@@ -1,18 +1,13 @@
 name := "sidup-ui"
 
-version := "0.0.0"
+organization := Common.organization
 
-scalaVersion := "2.10.4"
+version := Common.version
 
-scalacOptions ++= List(
-  "-deprecation",
-  "-encoding", "UTF-8",
-  "-unchecked",
-  "-feature",
-  "-target:jvm-1.6",
-  "-Xlint"
-)
+scalaVersion := Common.scalaVersion
 
-// resolvers ++= Seq()
+scalacOptions ++= Common.scalacOptions
 
-libraryDependencies ++= Seq()
+javaOptions ++= Common.javaOptions
+
+libraryDependencies ++= Common.libraryDependencies
