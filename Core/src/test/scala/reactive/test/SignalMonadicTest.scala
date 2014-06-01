@@ -18,17 +18,17 @@ class SignalMonadicTest extends FunSuite {
     assertResult(3)(ssumxy.single.now)
     assertResult(3)(ssumyx.single.now)
 
-    sx << (10)
+    sx << 10
     assertResult(12)(ssumxy.single.now)
     assertResult(12)(ssumyx.single.now)
 
-    sy << (10)
+    sy << 10
 
     assertResult(20)(ssumxy.single.now)
     assertResult(20)(ssumyx.single.now)
 
-    sx << (6)
-    sy << (7)
+    sx << 6
+    sy << 7
 
     assertResult(13)(ssumxy.single.now)
     assertResult(13)(ssumyx.single.now)
