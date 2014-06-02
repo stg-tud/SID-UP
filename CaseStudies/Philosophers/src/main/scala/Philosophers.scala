@@ -11,7 +11,7 @@ import scala.concurrent.Await
 import java.util.concurrent.TimeoutException
 
 // ===================== FORK IMPLEMENTATION =====================
-case class Fork(val id: Int) {
+case class Fork(id: Int) {
   // input
   val in = Var[Set[Signal[Option[Philosopher]]]](Set())
   def addPhilosopher(phil: Philosopher)(implicit tx: InTxn) {
@@ -34,15 +34,15 @@ object Philosopher {
     (philosopher, forks) => forks.find(_ != Some(philosopher)).isEmpty
 }
 
-case class Philosopher(val id: Int) {
+case class Philosopher(id: Int) {
   // input
   val tryingToEat = Var(false)
 
   // intermediate
-  val request = tryingToEat.single.map(_ match {
+  val request = tryingToEat.single.map {
     case false => None
     case true => Some(this)
-  })
+  }
 
   // connect input to forks
   val forks = Var(Set[Fork]())
@@ -59,7 +59,7 @@ case class Philosopher(val id: Int) {
   def eatOnce() = {
     atomic { tx =>
       // await free forks
-      if (forks.now(tx).find(_.isOccupied.now(tx)).isDefined) {
+      if (forks.now(tx).exists(_.isOccupied.now(tx))) {
         retry(tx)
       }
       Txn.afterRollback(_ => println(this + " suffered fork acquisition failure!"))(tx)
@@ -121,7 +121,8 @@ object Philosophers extends App {
 
   // ---- table state observation ----
   atomic { implicit tx =>
-    val allEating = new TransposeSignal(philosopher.map(p => (p.isEating.map(_ -> p)))).map(_.filter(_._1).map(_._2))
+    val eatingStates = philosopher.map(p => p.isEating.map(_ -> p))
+    val allEating = new TransposeSignal(eatingStates, tx).map(_.collect { case (true, phil) => phil })
     allEating.changes. /*filter(!_.isEmpty).*/ observe(eating => log("Now eating: " + eating))
   }
 
@@ -133,7 +134,7 @@ object Philosophers extends App {
     phil ->
       Future {
         Thread.currentThread().setName("p" + phil.id)
-        println(phil + ": using " + phil.forks.single.now + " on thread" + Thread.currentThread().getName())
+        println(phil + ": using " + phil.forks.single.now + " on thread" + Thread.currentThread().getName)
         while (!killed) {
           phil.eatOnce()
         }
