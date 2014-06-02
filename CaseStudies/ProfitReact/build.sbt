@@ -1,36 +1,18 @@
 name := "sidup-casestudy-profitreact"
 
-version := "0.0.0"
+organization := Common.organization
 
-scalaVersion := "2.10.4"
+version := Common.version
 
-scalacOptions ++= List(
-  "-deprecation",
-  "-encoding", "UTF-8",
-  "-unchecked",
-  "-feature",
-  "-target:jvm-1.6",
-  "-Xlint"
-)
+scalaVersion := Common.scalaVersion
 
-javaOptions ++= Seq(
-  "-server",
-  "-verbose:gc",
-  "-Xms512M",
-  "-Xmx512M",
-  //"-XX:NewRatio=1",
-  //"-XX:CompileThreshold=100",
-  "-XX:+PrintCompilation",
-  "-XX:+PrintGCDetails",
-  "-XX:+UseParallelGC"
-)
+scalacOptions ++= Common.scalacOptions
 
-// resolvers ++= Seq()
+javaOptions ++= Common.javaOptions
+
+libraryDependencies ++= Common.libraryDependencies
 
 libraryDependencies ++= Seq(
-  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
-  "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
   "com.github.axel22" %% "scalameter" % "0.4-M2",
   "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
