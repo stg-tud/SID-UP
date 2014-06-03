@@ -48,7 +48,7 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
     val tx = transaction.stmTx
     tx.synchronized {
       if (hasPulsedLocal()(tx)) {
-        logger.error(s"$this received orphaned notification after having pulsed; ignoring notification")
+        logger.trace(s"$this received orphaned notification after having pulsed; ignoring notification")
         false
       }
       else {
