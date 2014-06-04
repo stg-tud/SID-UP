@@ -39,9 +39,6 @@ trait DependentReactive[P] extends Reactive.Dependant {
 object DependentReactive {
   trait ViewImpl[P] extends Reactive.View[P] {
     protected val impl: DependentReactive[_]
-    override protected[reactive] def sourceDependencies = scala.concurrent.stm.atomic { tx =>
-      tx.synchronized(impl._sourceDependencies.get(tx))
-    }
+    override protected[reactive] def sourceDependencies = impl._sourceDependencies.single.get
   }
-
 }

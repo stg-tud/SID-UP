@@ -22,20 +22,20 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
 
   override def toString = name
 
-  private val pulse: Ref[PulsedState[P]] = Ref(Pending)
+  private val pulse: TxnLocal[PulsedState[P]] = TxnLocal(Pending)
 
-  override def pulse(tx: InTxn): PulsedState[P] = pulse()(tx)
+  override protected[reactive] def pulse(tx: InTxn): PulsedState[P] = pulse()(tx)
 
-  override def hasPulsed(tx: InTxn): Boolean = pulse(tx).pulsed
+  override protected[reactive] def hasPulsed(tx: InTxn): Boolean = pulse(tx).pulsed
 
   private val dependants = Ref(Set[Reactive.Dependant]())
 
-  override def addDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
+  override protected[reactive] def addDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
     logger.trace(s"$dependant <~ $this [${ tx }]")
     dependants.transform(_ + dependant)(tx)
   }
 
-  override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
+  override protected[reactive] def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
     logger.trace(s"$dependant <!~ $this [${ tx }]")
     dependants.transform(_ - dependant)(tx)
   }
@@ -46,9 +46,6 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
     def setPulse() = tx.synchronized {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${ Option(transaction) }")
       this.pulse.set(PulsedState(pulse))(tx)
-      Txn.beforeCommit { inTxnBeforeCommit =>
-        tx.synchronized(this.pulse.set(Pending)(inTxnBeforeCommit))
-      }(tx)
     }
     setPulse()
 

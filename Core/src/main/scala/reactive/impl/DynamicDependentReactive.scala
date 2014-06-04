@@ -18,7 +18,7 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
 
   private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
   private val anyPulse: Ref[Boolean] = Ref(false)
-  private val hasPulsedLocal: Ref[Boolean] = Ref(false)
+  private val hasPulsedLocal: TxnLocal[Boolean] = TxnLocal(false)
 
   /**
    * recalculates the current dependencies,
@@ -60,7 +60,6 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
 
         val waitingFor = lastDependencies()(tx).filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(tx))
         if (waitingFor.isEmpty) {
-          Txn.beforeCommit(hasPulsedLocal.set(false)(_))(tx)
           hasPulsedLocal.set(true)(tx)
           true
         }
