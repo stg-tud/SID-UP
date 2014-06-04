@@ -10,6 +10,7 @@ import reactive.TransactionBuilder
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.scalatest.Tag
+import scala.concurrent.stm.Txn
 
 class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   var inner1: Var[Int] = _
@@ -29,8 +30,8 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
   def expectNotification() = {
     assertResult(1) { log.size }
     val notification1 = log.dequeue()
-    assertResult(5) { flattened.single.now }
-    assertResult(Set(inner2.uuid, outer.uuid)) { flattened.single.sourceDependencies }
+    assertResult(5) { if (commitFuture.isCompleted) flattened.single.now else flattened.now(notification1.transaction.stmTx) }
+    assertResult(Set(inner2.uuid, outer.uuid)) { if (commitFuture.isCompleted) flattened.single.sourceDependencies else flattened.sourceDependencies(notification1.transaction.stmTx) }
     assertResult(true) { notification1.valueChanged }
     assertResult(5) { notification1.newValue }
     assertResult(true) { notification1.sourceDependenciesChanged }
@@ -68,18 +69,31 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
 
   List("old", "new", "outer").permutations.foreach { permutation =>
     test(permutation.mkString(", ")) {
+      var timeUntilNotification = 2
       permutation.foreach { name =>
-        name match {
+        val relevant = name match {
           case "old" =>
             inner1Buffered.releaseQueue()
+            false
           case "new" =>
             inner2Buffered.releaseQueue()
+            true
           case "outer" =>
             outerBuffered.releaseQueue()
+            true
+        }
+        if (relevant) {
+          timeUntilNotification -= 1
+        }
+        if (timeUntilNotification == 0) {
+          Thread.sleep(100)
+          timeUntilNotification = -1
+          expectNotification()
+        } else {
+          expectSilent()
         }
       }
-      Await.ready(commitFuture, duration.Duration.Inf)
-      expectNotification()
     }
   }
+
 }
