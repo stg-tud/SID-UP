@@ -31,12 +31,12 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   private val dependants = Ref(Set[Reactive.Dependant]())
 
   override protected[reactive] def addDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
-    logger.trace(s"$dependant <~ $this [${ tx }]")
+    logger.trace(s"$dependant <~ $this [${tx}]")
     dependants.transform(_ + dependant)(tx)
   }
 
   override protected[reactive] def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
-    logger.trace(s"$dependant <!~ $this [${ tx }]")
+    logger.trace(s"$dependant <!~ $this [${tx}]")
     dependants.transform(_ - dependant)(tx)
   }
 
@@ -44,7 +44,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
     val tx = transaction.stmTx
 
     def setPulse() = tx.synchronized {
-      logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${ Option(transaction) }")
+      logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction)}")
       this.pulse.set(PulsedState(pulse))(tx)
     }
     setPulse()
@@ -113,25 +113,27 @@ object ReactiveImpl extends Logging {
     }
   }
 
+  def runWrappingRollbackErrors[A](op: => A) = {
+    try {
+      op
+    } catch {
+      case rollback: Error with ControlThrowable => throw new InvocationTargetException(rollback)
+    }
+  }
+
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
       Nil
-    }
-    else {
+    } else {
       val iterator = elements.iterator
       val head = iterator.next()
 
       val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
         (element -> future {
-          try {
-            op(element)
-          }
-          catch {
-            case rollback: Error with ControlThrowable => throw new InvocationTargetException(rollback)
-          }
+          runWrappingRollbackErrors { op(element) }
         }) :: futures
       }
-      val headResult = Try { op(head) }
+      val headResult = Try { runWrappingRollbackErrors { op(head) } }
       val results = headResult :: futures.map {
         case (element, future) =>
           logger.trace(s"$this join $element")
@@ -144,7 +146,7 @@ object ReactiveImpl extends Logging {
       // the original caller and be accumulated through all fork/joins along the path?
       results.foreach {
         case Failure(e: InvocationTargetException) => throw e.getTargetException
-        case Failure(e) => e.printStackTrace()
+        //        case Failure(e) => e.printStackTrace()
         case _ =>
       }
       results

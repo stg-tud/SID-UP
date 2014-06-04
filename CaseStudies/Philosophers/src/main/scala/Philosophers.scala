@@ -15,11 +15,11 @@ case class Fork(id: Int) {
   // input
   val in = Var[Set[Signal[Option[Philosopher]]]](Set())
   def addPhilosopher(phil: Philosopher)(implicit tx: InTxn) {
-    in.setOpen(in.now + phil.request)
+    in << in.now + phil.request
   }
 
   // intermediate
-  val requestStates = new TransposeSignal(in)
+  val requestStates = atomic { new TransposeSignal(in, _) }
   val requests = requestStates.single.map(_.flatten)
 
   // output
@@ -48,11 +48,11 @@ case class Philosopher(id: Int) {
   val forks = Var(Set[Fork]())
   def addFork(fork: Fork)(implicit tx: InTxn) = {
     fork.addPhilosopher(this)
-    forks.setOpen(forks.now + fork)
+    forks << forks.now + fork
   }
 
   // connect output from forks
-  val owners = new TransposeSignal(forks.single.map(_.map(_.owner)))
+  val owners = atomic { new TransposeSignal(forks.single.map(_.map(_.owner)), _) }
   val isEating = signal2(Philosopher.calculateEating)(this, owners)
 
   // behavior
