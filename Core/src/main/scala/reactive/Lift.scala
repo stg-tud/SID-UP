@@ -5,6 +5,7 @@ import reactive.signals.impl.FunctionalSignal
 import reactive.events.EventStream
 import reactive.signals.Signal
 import scala.concurrent.stm._
+import scala.language.implicitConversions
 
 object Lift {
   object single {
