@@ -11,11 +11,11 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   override val name = s"ReactiveSource($uuid)"
   override def sourceDependencies(tx: InTxn) = uuidSet 
   override def isConnectedTo(transaction: Transaction) = transaction.sources.contains(uuid)
-  private lazy val transaction = new TransactionBuilder()
   def <<(value: A) {
     set(value)
   }
   def set(value: A){
+    val transaction = new TransactionBuilder
     transaction.set(this, value)
     transaction.commit()
   }
