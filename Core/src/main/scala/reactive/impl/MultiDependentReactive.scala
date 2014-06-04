@@ -11,14 +11,13 @@ abstract class MultiDependentReactive(constructionTransaction: InTxn) extends Lo
   protected val dependencies: Set[Reactive.Dependency]
   dependencies.foreach { _.addDependant(constructionTransaction, this) }
 
-  private val pendingNotifications: Ref[Int] = Ref(-1)
-  private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
-  private val anyPulse: Ref[Boolean] = Ref(false)
+  private val pendingNotifications: TxnLocal[Int] = TxnLocal(-1)
+  private val anyDependenciesChanged: TxnLocal[Boolean] = TxnLocal(false)
+  private val anyPulse: TxnLocal[Boolean] = TxnLocal(false)
 
   private def updateAndGetStillPending(transaction: Transaction) = {
     pendingNotifications.transformAndGet { previous =>
       if (previous == -1) {
-        Txn.beforeCommit(pendingNotifications.set(-1)(_))(transaction.stmTx)
         dependencies.count(_.isConnectedTo(transaction)) - 1
       }
       else {
@@ -30,15 +29,13 @@ abstract class MultiDependentReactive(constructionTransaction: InTxn) extends Lo
   private def checkIfDependenciesPulsed(transaction: Transaction) = {
     val stillPending = updateAndGetStillPending(transaction)
     if (stillPending == 0) {
-      logger.trace(s"$this received last remaining notification for transaction ${ transaction }, starting reevaluation")
+      logger.trace(s"$this received last remaining notification for transaction ${transaction}, starting reevaluation")
       true
-    }
-    else if (stillPending < 0) {
+    } else if (stillPending < 0) {
       logger.error(s"$this received orphaned notification after having pulsed; ignoring notification")
       false
-    }
-    else {
-      logger.trace(s"$this received a notification for transaction ${ transaction }, ${ stillPending } pending")
+    } else {
+      logger.trace(s"$this received a notification for transaction ${transaction}, ${stillPending} pending")
       false
     }
   }
@@ -52,7 +49,7 @@ abstract class MultiDependentReactive(constructionTransaction: InTxn) extends Lo
     }
     if (pulseNow) {
       val (dependenciesChangedFlag, pulsedFlag) = tx.synchronized {
-        (anyDependenciesChanged.swap(false)(tx), anyPulse.swap(false)(tx))
+        (anyDependenciesChanged.get(tx), anyPulse.get(tx))
       }
       doReevaluation(transaction, dependenciesChangedFlag, pulsedFlag)
     }

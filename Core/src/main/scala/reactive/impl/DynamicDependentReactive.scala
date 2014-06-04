@@ -16,8 +16,8 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
     Ref(depts)
   }
 
-  private val anyDependenciesChanged: Ref[Boolean] = Ref(false)
-  private val anyPulse: Ref[Boolean] = Ref(false)
+  private val anyDependenciesChanged: TxnLocal[Boolean] = TxnLocal(false)
+  private val anyPulse: TxnLocal[Boolean] = TxnLocal(false)
   private val hasPulsedLocal: TxnLocal[Boolean] = TxnLocal(false)
 
   /**
@@ -76,7 +76,7 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
     val pulseNow = checkIfDependenciesPulsed(transaction, sourceDependenciesChanged, pulsed)
     if (pulseNow) {
       val (dependenciesChangedFlag, pulsedFlag) = tx.synchronized {
-        (anyDependenciesChanged.swap(false)(tx), anyPulse.swap(false)(tx))
+        (anyDependenciesChanged.get(tx), anyPulse.get(tx))
       }
       doReevaluation(transaction, dependenciesChangedFlag, pulsedFlag)
     }
