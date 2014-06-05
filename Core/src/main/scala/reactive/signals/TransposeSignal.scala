@@ -12,3 +12,4 @@ class TransposeSignal[A](signals: Signal[Iterable[Signal[A]]]) extends Dependent
 
   override protected def dependencies(transaction: Transaction): Set[Reactive[_, _]] = signals.value(transaction).toSet + signals
 }
+
