@@ -6,11 +6,14 @@ import java.rmi.server.UnicastRemoteObject
 @remote trait TransactionLock {
   def acquire(uuid: UUID)
   def release(uuid: UUID)
+  def owner: Option[UUID]
 }
 
 class TransactionLockImpl extends UnicastRemoteObject with TransactionLock {
   private var counter = 0
   private var tid: Option[UUID] = None
+  
+  override def owner = tid
 
   private def isAcquiredBy(uuid: UUID) = {
     tid match {
