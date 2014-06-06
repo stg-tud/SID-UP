@@ -2,9 +2,6 @@ package elmish
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import elmishUtil.TicketAccumulator
-import elmishUtil.TransactionAction
-import elmishUtil.COMMIT
 import com.typesafe.scalalogging.slf4j.Logging
 
 class TransactionBuilder extends Logging {

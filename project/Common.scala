@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 
 object Common {
-  def scalaVersion = "2.10.4"
+  def scalaVersion = "2.10.3"
   def version = "0.0.0"
   def organization = "de.tuda.stg"
   def scalacOptions = Seq(
@@ -19,9 +19,7 @@ object Common {
   def libraryDependencies = Seq(
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
     "org.slf4j" % "slf4j-simple" % "1.7.5",
-    "org.scalatest" %% "scalatest" % "2.1.7" % "test",
-    "org.scala-lang" %% "scala-actors-migration" % "1.0.0"
-
+    "org.scalatest" %% "scalatest" % "2.1.7" % "test"
   )
   def javaOptions = Seq(
   "-server"

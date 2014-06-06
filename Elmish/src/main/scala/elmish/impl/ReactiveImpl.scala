@@ -3,10 +3,9 @@ package impl
 
 import scala.collection.mutable
 import com.typesafe.scalalogging.slf4j.Logging
-import scala.actors.threadpool.ExecutorService
-import scala.actors.threadpool.Executors
 import scala.util.Failure
 import scala.util.Try
+import java.util.concurrent.Executors
 
 trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
   private[elmish] val name = {
@@ -70,17 +69,8 @@ trait ReactiveImpl[O, V, P] extends Reactive[O, V, P] with Logging {
 
 object ReactiveImpl extends Logging {
   import scala.concurrent._
-//  private val pool = Executors.newCachedThreadPool()
-//  private implicit val myExecutionContext = new ExecutionContext {
-//    def execute(runnable: Runnable) {
-//      pool.submit(runnable)
-//    }
-//    def reportFailure(t: Throwable) = {
-//      t.printStackTrace()
-//    }
-//  }
+  private implicit val myExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
 
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {

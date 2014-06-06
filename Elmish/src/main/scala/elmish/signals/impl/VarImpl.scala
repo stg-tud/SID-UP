@@ -3,8 +3,6 @@ package signals
 package impl
 
 import elmish.impl.ReactiveSourceImpl
-import elmishUtil.Util
-import elmishUtil.TicketAccumulator
 
 class VarImpl[A](initialValue: A) extends SignalImpl[A] with ReactiveSourceImpl[A, A] with Var[A] {
   private var value = initialValue

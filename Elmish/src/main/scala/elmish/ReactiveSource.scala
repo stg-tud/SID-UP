@@ -1,7 +1,6 @@
 package elmish
 
 import java.util.UUID
-import elmishUtil.TicketAccumulator
 
 trait ReactiveSource[A] {
   def <<(value: A)
