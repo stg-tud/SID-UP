@@ -1,35 +1,15 @@
-name := "SimulateWork"
+name := "sidup-simulatework"
 
-version := "0.0.0"
+organization := Common.organization
 
-scalaVersion := "2.10.3"
+version := Common.version
 
-scalacOptions ++= List(
-  "-deprecation",
-  "-encoding", "UTF-8",
-  "-unchecked",
-  "-feature",
-  "-target:jvm-1.6",
-  "-Xlint"
-)
+scalaVersion := Common.scalaVersion
 
-javaOptions ++= Seq(
-  "-server",
-  //"-verbose:gc",
-  "-Xms512M",
-  "-Xmx512M",
-  "-Xss2M",
-  //"-XX:NewRatio=1",
-  //"-XX:CompileThreshold=100",
-  //"-XX:+PrintCompilation",
-  //"-XX:+PrintGCDetails",
-  //"-XX:+UseParallelGC",
-  ""
-)
+scalacOptions ++= Common.scalacOptions
 
-// resolvers ++= Seq()
+javaOptions ++= Common.javaOptions
 
-libraryDependencies ++= Seq()
+libraryDependencies ++= Common.libraryDependencies
 
-initialCommands in console := """
-"""
+initialCommands in console := Common.initialCommands

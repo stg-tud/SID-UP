@@ -1,22 +1,13 @@
-name := "ReactivePlaygroundUi"
+name := "sidup-ui"
 
-version := "0.0.0"
+organization := Common.organization
 
-scalaVersion := "2.10.3"
+version := Common.version
 
-scalacOptions ++= List(
-	"-deprecation",
-	"-encoding", "UTF-8",
-	"-unchecked",
-	"-feature",
-	"-target:jvm-1.6",
-	"-Xlint"
-)
+scalaVersion := Common.scalaVersion
 
-// resolvers ++= Seq()
+scalacOptions ++= Common.scalacOptions
 
-libraryDependencies ++= Seq(
-	"org.scala-lang" %% "scala-actors-migration" % "1.0.0",
-	"org.slf4j" % "slf4j-simple" % "1.7.5",
-	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
-)
+javaOptions ++= Common.javaOptions
+
+libraryDependencies ++= Common.libraryDependencies

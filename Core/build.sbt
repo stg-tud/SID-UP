@@ -1,35 +1,15 @@
-organization := "playground"
+name := "sidup-core"
 
-name := "ReactivePlaygroundCore"
+organization := Common.organization
 
-version := "0.0.0"
+version := Common.version
 
-scalaVersion := "2.10.3"
+scalaVersion := Common.scalaVersion
 
-scalacOptions ++= List(
-	"-deprecation",
-	"-encoding", "UTF-8",
-	"-unchecked",
-	"-feature",
-	"-target:jvm-1.6",
-	"-language:implicitConversions",
-	"-language:reflectiveCalls",
-	"-Xlint"
-)
+scalacOptions ++= Common.scalacOptions
 
-// resolvers ++= Seq()
+javaOptions ++= Common.javaOptions
 
-libraryDependencies ++= Seq(
-	"com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
-	"com.typesafe.akka" %% "akka-actor" % "2.2.1",
-	"com.typesafe.akka" %% "akka-remote" % "2.2.1",
-	"org.scala-lang" %% "scala-actors-migration" % "1.0.0",
-	"org.slf4j" % "slf4j-simple" % "1.7.5"
-)
+libraryDependencies ++= Common.libraryDependencies
 
-initialCommands in console := """
-import reactive._
-import reactive.signals._
-import reactive.events._
-import reactive.remote._
-"""
+initialCommands in console := Common.initialCommands

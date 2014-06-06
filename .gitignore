@@ -1,0 +1,17 @@
+*.log
+*.md
+*.pdf
+*.sublime-project
+*.sublime-workspace
+*.tags
+*.txt
+.cache
+.classpath
+.idea/
+.idea_modules/
+.iml
+.project
+.settings/
+bin/
+target/
+tmp/
