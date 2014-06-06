@@ -1,3 +1,12 @@
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
+
+packageArchetype.java_application
+
+exportJars := true
+
+mainClass in (Compile) := Some("projections.ProjectionsUI")
+
 name := "ReactivePlaygroundCaseStudies"
 
 version := "0.0.0"
