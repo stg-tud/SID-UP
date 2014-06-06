@@ -1,6 +1,8 @@
 name := "sidup-casestudy-profitreact"
 
-mainClass in (Compile) := Some("projections.ProjectionsUI")
+mainClass in (Compile) := Some("projections.benchmark.SimpleBenchmark")
+
+seq(com.typesafe.sbt.SbtNativePackager.packageArchetype.java_application: _*)
 
 organization := Common.organization
 
