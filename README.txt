@@ -28,11 +28,7 @@ To run the provided examples and benchmarks the following software is required:
 	
 	> wget http://repo.scala-sbt.org/scalasbt/sbt-native-packages/org/scala-sbt/sbt/0.13.1/sbt.deb
 	> sudo dpkg -i sbt.deb
-	> apt-get -f install
-
-* [Optional] GnuPlot: If you want to execute the gnuplot scripts for the 
-	benchmark results (which you do not need as an html view is generated 
-	anyways), you will also need gnuplot. 
+	> sudo apt-get -f install
 
 First make sure that you can launch sbt
 
@@ -47,22 +43,16 @@ Unzip the artifact file and navigate to the directory. For instance:
 	> ls
 	Benchmark/ CaseStudies/ Core/ …
 	
-Now build the project:
-
-	> sbt compile
-	
-this will download missing dependencies and compile the code.
-some warnings related to scala-rx and scala-react are expected.
-
-Finally, prepare benchmark execution:
+Now build and package project:
 
 	> sbt stage
 
-This will create shell scripts to run the benchmarks without involving 
-SBT. Otherwise, sbt would be held in the memory of the same JVM 
-executing the benchmarks and thus might skew the results. 
+This will download missing dependencies and compile the code.
+Some warnings related to scala-rx and scala-react are expected.
+This will also create shell scripts to run the benchmarks without
+involving SBT. Otherwise, sbt would be held in the memory of the
+same JVM executing the benchmarks and thus might skew the results. 
 
-	
 ######################### Executing Examples and Benchmarks #########################
 
 Run SID-UP's Core module unit tests:
@@ -132,7 +122,7 @@ from the slowly updating spending department. The source code for each
 department using RMI observers instead of reactives can be found in the 
 folder:
 
-	./CaseStudies/src/main/scala/projections/reactives
+	./CaseStudies/src/main/scala/projections/observer
 	
 The UI that is constructed on either of the two variants can be found
 in the file:
@@ -183,7 +173,9 @@ communication delay dependent on this project. They can be found in the
 folders:
 
 	./scala-react
+	(originally checked out from https://github.com/UniversityofWarwick/scala-react/tree/0391f0d1aa721df71b4422aaa55d1739a447b6e0)
 	./scala-rx
+	(originally checked out from https://github.com/lihaoyi/scala.rx/tree/e4f4070cac7d8771316d6afbc5103925c406bd4a)
 
 SID-UP and ELM do not require coordinator delay since their propagation
 runs without coordinator involvement. They can be found in the folders:
@@ -192,12 +184,13 @@ runs without coordinator involvement. They can be found in the folders:
 	./Elmish
 	
 Additionally, delay from node-to-node communication applies to 
-everyframework. This is however not injected into the frameworks, but 
+every framework. This is however not injected into the frameworks, but 
 instead simulated through delaying the computation attached to each node 
 that needs to perform network communication. Thus, these delays are 
-defined in the benchmark code itself, in the files in folder: 
+defined in the benchmark code itself, in the files defining the topology
+modules in folder: 
 
-	./Benchmark/src/main/scala/benchmark/networks
+	./Benchmark/src/main/scala/benchmark/networks/*.scala
 
 The workload for this benchmark is defined in lines 30 through 39 
 (repetitions, iterations, 'size' as in number of nodes in the topology 
@@ -214,16 +207,14 @@ these parameters by executing the command:
 # making graphs
 
 Running any of the benchmarks will save results to a 'tmp' folder in the 
-current working directory. You can find a visualization of the data in 
-'tmp/report/index.html' (requires javascript, no internet connection). 
-The raw data we use for further processing is in 'tmp/*.dsv' 
+current working directory. You can find a visualization of the data by
+opening the following file locally in a browser with JavaScript:
 
-There are two gnuplot scripts which can be used to generate static 
-visualizations. Both expect the benchmarks respective 'tmp' output 
-directory to be present in the current working directory: 
+	./tmp/report/index.html
 
-	./CaseStudies/plotbenchresults.gnuplot
-	./Benchmark/plotAll.gnuplot
+The raw data we use for further processing is in the folder:
+	
+	./tmp/*.dsv
 
 ######################### Writing own programs #########################
 
@@ -236,5 +227,4 @@ Add all of these jar files to the build path of a new scala project and
 you can start writing programs using SID-UP. The UI-jar is optional, it 
 only provides a few convenience wrappers for integrating SID-UP with a 
 Swing-UI. For example usages, refer to the Unit Tests or the ColorList 
-example from above. 
-
+example from above.
