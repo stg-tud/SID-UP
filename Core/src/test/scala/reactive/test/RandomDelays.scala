@@ -3,7 +3,7 @@ package reactive.test
 import org.scalatest.FunSuite
 import java.text.SimpleDateFormat
 import java.util.Date
-import scala.actors.threadpool.AtomicInteger
+import java.util.concurrent.atomic.AtomicInteger
 import reactive.signals.Signal
 import reactive.Lift._
 import reactive.signals.Var

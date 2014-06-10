@@ -4,7 +4,6 @@ import reactive.signals.impl.SignalImpl
 import reactive.signals.Signal
 import scala.collection.mutable
 import scala.util.Random
-import util.TicketAccumulator
 import reactive.Transaction
 import reactive.Reactive
 import reactive.impl.SingleDependentReactive
