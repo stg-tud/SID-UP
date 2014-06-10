@@ -5,7 +5,7 @@ To run the provided examples and benchmarks the following software is required:
 * JDK7 (java development kit)
 	* Oracle (Windows): http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 	* OpenJDK (Linux): http://openjdk.java.net/install/
-	* (a JDK6/8 or JRE6/7/8 may also work, but this is untested)
+	* (a JDK8 or JRE7/8 may also work, but this is untested. JDK6 or JRE6 will _not_ work!)
 
 * SBT (simple build tool)
 	* http://www.scala-sbt.org/download.html
@@ -62,8 +62,6 @@ sub projects:
 	* the main SID-UP library
 * Elmish
 	* a version of the SID-UP library that tries to emulate Elms (http://elm-lang.org/) propagation algorithm
-* log2dot
-	* this was used to visualize reactive networks from logfiles (currently unsupported)
 * project
 	* this is not a sub project, but contains build definitions
 * scala-react
@@ -72,8 +70,6 @@ sub projects:
 	* a clone of scala-rx (https://github.com/lihaoyi/scala.rx) (this clone is somewhat out of date by now)
 * SimulateWork
 	* some common features to simulate network latency for the reactive frameworks
-* Tests
-	* tests for the core SID-UP library
 * Ui
 	* reactive swing wrappers for SID-UP
 
