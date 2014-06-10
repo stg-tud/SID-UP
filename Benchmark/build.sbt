@@ -1,5 +1,7 @@
 name := "benchmarks"
 
+com.typesafe.sbt.SbtNativePackager.packageArchetype.java_application
+
 organization := Common.organization
 
 version := Common.version
