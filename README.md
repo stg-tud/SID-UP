@@ -30,7 +30,9 @@ To run the provided examples and benchmarks the following software is required:
 	> sudo dpkg -i sbt.deb
 	> apt-get -f install
 
-* [Optional] GnuPlot: If you want to execute the gnuplot scripts for the benchmark results (which you do not need as an html view is generated anyways), you will also need gnuplot.
+* [Optional] GnuPlot: If you want to execute the gnuplot scripts for the 
+	benchmark results (which you do not need as an html view is generated 
+	anyways), you will also need gnuplot. 
 
 First make sure that you can launch sbt
 
