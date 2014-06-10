@@ -15,7 +15,7 @@ libraryDependencies ++= Common.libraryDependencies
 initialCommands in console := Common.initialCommands
 
 lazy val root = project.in(file(".")).aggregate(
-	core, ui, log2dot, profit, benchmark, simulateWork, elmish, scalarx, scalareact)
+	core, ui, profit, benchmark, simulateWork, elmish, scalarx, scalareact)
 
 lazy val core = project in file("Core")
 
