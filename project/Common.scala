@@ -3,7 +3,7 @@ import Keys._
 
 object Common {
   def scalaVersion = "2.10.3"
-  def version = "0.0.0"
+  def version = "1.0.0"
   def organization = "de.tuda.stg"
   def scalacOptions = Seq(
     "-deprecation",
