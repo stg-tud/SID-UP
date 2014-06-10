@@ -159,7 +159,11 @@ The Benchmark code can be found in the file:
 	./CaseStudies/src/main/scala/projections/benchmark/Benchmark.scala
 
 Lines 37 and 40 can be modified to adjust the workload. With the default
-workload, execution takes upwards of one hour.
+workload, execution takes upwards of one hour. Please make sure to
+recompile and -package the code after modifying these parameters by
+executing the command:
+
+	> sbt stage
 
 # reactive framework comparison with artificial network delays
 	
@@ -201,6 +205,11 @@ modules 'chain' and 'fan', and the artificial delay times in nano-second
 scale busy-waiting and milli-second scale idle-waiting) in this file: 
 
 	./Benchmark/src/main/scala/benchmark/Benchmark.scala
+
+Please make sure to recompile and -package the code after modifying
+these parameters by executing the command:
+
+	> sbt stage
 
 # making graphs
 
