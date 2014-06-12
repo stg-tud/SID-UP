@@ -1,17 +1,5 @@
 name := "sidup-casestudy-profitreact"
 
-organization := Common.organization
-
-version := Common.version
-
-scalaVersion := Common.scalaVersion
-
-scalacOptions ++= Common.scalacOptions
-
-javaOptions ++= Common.javaOptions
-
-libraryDependencies ++= Common.libraryDependencies
-
 libraryDependencies ++= Seq(
   "com.github.axel22" %% "scalameter" % "0.4-M2",
   "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
