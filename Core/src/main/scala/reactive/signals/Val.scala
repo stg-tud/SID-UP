@@ -3,7 +3,7 @@ package signals
 
 import reactive.events.EventStream
 import reactive.events.NothingEventStream
-import scala.concurrent.stm.InTxn
+import scala.concurrent.stm._
 
 case class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
   impl =>
@@ -26,6 +26,7 @@ case class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
     override lazy val log: Signal[List[A]] = new Val(List(value))
     override val changes: EventStream[A] = NothingEventStream
     override def map[B](op: A => B): Signal[B] = new Val(op(value))
+    override def tmap[B](op: (A, InTxn) => B): Signal[B] = new Val(atomic { op(value, _) })
     override def flatMap[B](op: A => Signal[B]): Signal[B] = op(value)
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = evidence(value)
     override def snapshot(when: EventStream[_]): Signal[A] = impl

@@ -42,6 +42,7 @@ object SignalImpl {
     override lazy val changes: EventStream[A] = atomic { impl.changes(_) }
     override lazy val delta = atomic { impl.delta(_) }
     override def map[B](op: A => B): Signal[B] = atomic { impl.map(op)(_) }
+    override def tmap[B](op: (A, InTxn) => B): Signal[B] = atomic { impl.tmap(op)(_) }
     override def flatMap[B](op: A => Signal[B]): Signal[B] = atomic { impl.flatMap(op)(_) }
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = atomic { impl.flatten(evidence, _) }
     override def snapshot(when: EventStream[_]): Signal[A] = atomic { impl.snapshot(when)(_) }

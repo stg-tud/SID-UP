@@ -23,6 +23,7 @@ object Signal {
     def now: A
     def changes: EventStream[A]
     def map[B](op: A => B): Signal[B]
+    def tmap[B](op: (A, InTxn) => B): Signal[B]
     def delta: EventStream[(A, A)]
     def flatMap[B](op: A => Signal[B]): Signal[B]
     def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];

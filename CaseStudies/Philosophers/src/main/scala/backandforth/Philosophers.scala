@@ -1,7 +1,8 @@
+package backandforth
+
 import reactive.signals.Var
 import reactive.signals.Signal
 import reactive.signals.TransposeSignal
-import reactive.events.EventStream
 import reactive.Lift.single._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits._
@@ -9,6 +10,7 @@ import scala.concurrent.stm._
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import java.util.concurrent.TimeoutException
+import scala.language.postfixOps
 
 // ===================== FORK IMPLEMENTATION =====================
 case class Fork(id: Int) {
