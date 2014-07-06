@@ -148,7 +148,7 @@ object ReactiveImpl extends Logging {
         case Failure(e: InvocationTargetException) => throw e.getTargetException
         //        case Failure(e) => e.printStackTrace()
         case Failure(e) => throw e
-        case _ => 
+        case _ =>
       }
       results
     }

@@ -17,7 +17,7 @@ lazy val philosophers = project.in(file("CaseStudies/Philosophers")).dependsOn(c
 
 scalaVersion in ThisBuild := "2.10.4"
 
-version in ThisBuild := "0.0.1"
+version in ThisBuild := "0.0.1-STM"
 
 organization in ThisBuild := "de.tuda.stg"
 
@@ -31,7 +31,7 @@ scalacOptions in ThisBuild ++= (
     //"-language:reflectiveCalls" ::
     "-Xlint" ::
     "-Xfuture" ::
-    "-Xlog-implicits" ::
+    //"-Xlog-implicits" ::
     Nil)
 
 libraryDependencies in ThisBuild ++= (
