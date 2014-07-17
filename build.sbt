@@ -17,7 +17,7 @@ lazy val philosophers = project.in(file("CaseStudies/Philosophers")).dependsOn(c
 
 scalaVersion in ThisBuild := "2.10.4"
 
-version in ThisBuild := "0.1.0-STM"
+version in ThisBuild := "0.1.1-STM"
 
 organization in ThisBuild := "de.tuda.stg"
 
@@ -36,7 +36,7 @@ scalacOptions in ThisBuild ++= (
 
 libraryDependencies in ThisBuild ++= (
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1" ::
-    "org.slf4j" % "slf4j-simple" % "1.7.5" ::
+    "org.slf4j" % "slf4j-simple" % "1.7.5" % "provided" ::
     "org.scalatest" %% "scalatest" % "2.1.7" % "test" ::
     "org.scala-stm" %% "scala-stm" % "0.7" ::
     Nil)
