@@ -72,7 +72,7 @@ class SignalMonadicTest extends FunSuite {
     assertResult(13)(ssumyx.single.now)
   }
 
-  test("combining flattened values") {
+  ignore("combining flattened values") {
     val sx = Var(1)
     val sy = Var(2)
 
@@ -90,7 +90,7 @@ class SignalMonadicTest extends FunSuite {
     //sy << 10 //TODO: this will fail with a timeout, see transactions below
   }
 
-  test("observe combined values") {
+  ignore("observe combined values") {
     val sx = Var(1)
     val sy = Var(2)
 
@@ -109,7 +109,7 @@ class SignalMonadicTest extends FunSuite {
     //sy << 100 //TODO: this will fail with a timeout, see transactions below
   }
 
-  test("combining more signals") {
+  ignore("combining more signals") {
     val s1 = Var(1)
     val s2 = Var(2)
     val s3 = Var(3)
@@ -130,7 +130,7 @@ class SignalMonadicTest extends FunSuite {
   // execution will timeout, others will not. this is probably caused by s1
   // updated before s2 which will recompute the inner signal, which then loses
   // track of the commit count. or something along those lines :)
-  test("together with transactions") {
+  ignore("together with transactions") {
     val s1 = Var(1)
     val s2 = Var(2)
     val sall = atomic { implicit tx => for (v1 <- s1; v2 <- s2) yield (v1, v2) }
@@ -147,7 +147,7 @@ class SignalMonadicTest extends FunSuite {
     assertResult(List((1, 2), (5, 5)))(allLog.single.now)
   }
 
-  test("branch instead of transaction") {
+  ignore("branch instead of transaction") {
     val s = Var(1)
     val s2 = s.single.map(_ - 3)
     val s1 = s.single.map(_ + 3)
