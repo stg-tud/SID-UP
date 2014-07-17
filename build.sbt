@@ -17,7 +17,7 @@ lazy val philosophers = project.in(file("CaseStudies/Philosophers")).dependsOn(c
 
 scalaVersion in ThisBuild := "2.10.4"
 
-version in ThisBuild := "0.0.1-STM"
+version in ThisBuild := "0.1.0-STM"
 
 organization in ThisBuild := "de.tuda.stg"
 
