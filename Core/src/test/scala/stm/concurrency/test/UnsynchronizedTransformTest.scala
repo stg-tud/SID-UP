@@ -12,7 +12,7 @@ import java.util.concurrent.SynchronousQueue
 object UnsynchronizedTransformTest extends App {
   val pool = ExecutionContext.fromExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
   val v1 = Ref(5)
-  def wrapInInvocationTargetException[A](op: => A) {
+  def wrapInInvocationTargetException[A](op: => A): Unit = {
     try {
       op
     } catch {

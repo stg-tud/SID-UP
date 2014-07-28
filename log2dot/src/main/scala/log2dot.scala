@@ -54,7 +54,7 @@ object log2dot {
     \)\].*
     """).r
 
-  def writeToFile(p: String)(s: String) {
+  def writeToFile(p: String)(s: String): Unit = {
     val pw = new java.io.PrintWriter(new java.io.File(p))
     try {
       pw.write(s)
@@ -108,7 +108,7 @@ object log2dot {
     pulses.groupBy(_.transaction).mapValues{_.zipWithIndex.map{case (p, i) => p.source -> s"$i: ${p.value}"}.toMap}
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
     val infile = args(0) + ".log"
     val tmpfile = "tmp.dot"

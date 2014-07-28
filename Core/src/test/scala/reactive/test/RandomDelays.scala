@@ -10,19 +10,19 @@ import reactive.signals.Var
 
 class RandomDelays extends FunSuite {
   val format = new SimpleDateFormat("[mm:ss.SSS] ")
-  def timeStampPrint(text: String) {
+  def timeStampPrint(text: String): Unit = {
     println(format.format(new Date) + text)
   }
 
   val id = new AtomicInteger(0)
-  def log(name: String) {
+  def log(name: String): Unit = {
     val uid = id.incrementAndGet();
     val duration = 250 + (math.random * 500).toInt
     timeStampPrint("Starting evaluation of Signal %s [%02d]: %d ms".format(name, uid, duration));
     Thread.sleep(duration);
     timeStampPrint("Finished evaluation of Signal %s [%02d]".format(name, uid, duration));
   }
-  def track(signal: Signal[AnyVal]) {
+  def track(signal: Signal[AnyVal]): Unit = {
     // semi-implicit lifting of sink function (semi-implicit because scala
     // can't figure it out if you don't store every step in a variable)
     val log = { value: AnyVal => timeStampPrint("Value Changed: " + signal + " = " + value); }

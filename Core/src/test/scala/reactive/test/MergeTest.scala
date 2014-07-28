@@ -9,7 +9,7 @@ class MergeTest extends FunSuite {
     val e1 = EventSource[Object]
     val e2 = EventSource[Int]
     val e3 = EventSource[Long]
-    val merge = e1.single.merge(e2, e3)
+    val merge = e1.single.merge[Any](e2, e3)
 
     val mergeLog = merge.single.log
 

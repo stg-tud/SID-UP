@@ -2,10 +2,10 @@ package reactive
 package impl
 
 import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.stm._
+import com.typesafe.scalalogging.LazyLogging
 
-abstract class MultiDependentReactive(constructionTransaction: InTxn) extends Logging {
+abstract class MultiDependentReactive(constructionTransaction: InTxn) extends LazyLogging {
   self: DependentReactive[_] =>
 
   protected val dependencies: Set[Reactive.Dependency]

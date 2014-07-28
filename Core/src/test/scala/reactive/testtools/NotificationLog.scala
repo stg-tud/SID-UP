@@ -10,7 +10,7 @@ case class Notification[P](transaction: Transaction, newSourceDependencies: Set[
 class NotificationLog[P](private val reactive: Signal[P]) extends mutable.Queue[Notification[P]] with Reactive.Dependant {
   scala.concurrent.stm.atomic { reactive.addDependant(_, this) }
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     this += new Notification(transaction, reactive.sourceDependencies(transaction.stmTx), sourceDependenciesChanged, reactive.now(transaction.stmTx), pulsed)
   }
 }

@@ -10,8 +10,8 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 
   def single: Reactive.View[O]
   def log(implicit inTxn: InTxn): Signal[Seq[O]]
-  def observe(obs: O => Unit)(implicit inTxn: InTxn)
-  def unobserve(obs: O => Unit)(implicit inTxn: InTxn)
+  def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit
+  def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit
 }
 
 object Reactive {
@@ -19,8 +19,8 @@ object Reactive {
     protected[reactive] def sourceDependencies: Set[UUID]
     
 	def log: Signal[Seq[O]]
-    def observe(obs: O => Unit)
-    def unobserve(obs: O => Unit)
+    def observe(obs: O => Unit): Unit
+    def unobserve(obs: O => Unit): Unit
   }
   
   object PulsedState {

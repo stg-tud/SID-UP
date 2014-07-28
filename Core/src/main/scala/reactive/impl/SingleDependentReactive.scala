@@ -10,7 +10,7 @@ abstract class SingleDependentReactive(tx: InTxn) {
   protected val dependency: Reactive.Dependency
   dependency.addDependant(tx, this)
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     doReevaluation(transaction, sourceDependenciesChanged, pulsed)
   }
 

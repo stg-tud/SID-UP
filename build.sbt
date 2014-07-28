@@ -15,7 +15,7 @@ lazy val whiteboard = project.in(file("CaseStudies/SharedReactiveWhiteboard")).d
 
 lazy val philosophers = project.in(file("CaseStudies/Philosophers")).dependsOn(core)
 
-scalaVersion in ThisBuild := "2.10.4"
+scalaVersion in ThisBuild := "2.11.2"
 
 version in ThisBuild := "0.1.1-STM"
 
@@ -35,7 +35,7 @@ scalacOptions in ThisBuild ++= (
     Nil)
 
 libraryDependencies in ThisBuild ++= (
-    "com.typesafe" %% "scalalogging-slf4j" % "1.0.1" ::
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0" ::
     "org.slf4j" % "slf4j-simple" % "1.7.5" % "provided" ::
     "org.scalatest" %% "scalatest" % "2.1.7" % "test" ::
     "org.scala-stm" %% "scala-stm" % "0.7" ::

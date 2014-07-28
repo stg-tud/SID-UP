@@ -6,7 +6,6 @@ import reactive.events.EventSource
 import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
-import com.typesafe.scalalogging.slf4j._
 import projections._
 
 object SimpleBenchmark extends PerformanceTest {
@@ -18,7 +17,7 @@ object SimpleBenchmark extends PerformanceTest {
 
   val executor = LocalExecutor( // SeparateJvmsExecutor || LocalExecutor
     new Executor.Warmer.Default,
-    Aggregator.complete(Aggregator.average),
+    Aggregator.average,
     measurer)
 
   val reporter: Reporter = Reporter.Composite(

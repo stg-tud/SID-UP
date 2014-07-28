@@ -39,7 +39,7 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
     transaction.set(inner1, 0)
     transaction.set(outer, inner2Buffered)
     transaction.set(inner2, 5)
-    commitFuture = future {
+    commitFuture = Future {
       transaction.commit()
     }
   }

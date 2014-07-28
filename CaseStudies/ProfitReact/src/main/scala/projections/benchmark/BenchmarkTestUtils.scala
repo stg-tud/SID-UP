@@ -1,6 +1,5 @@
 package projections.benchmark
 
-import com.typesafe.scalalogging.slf4j._
 import java.util.concurrent.Semaphore
 import org.scalameter.api._
 import projections._
@@ -10,9 +9,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.Semaphore
-import com.typesafe.scalalogging.slf4j._
 import projections._
 import reactive.remote.RemoteReactives
+import com.typesafe.scalalogging.LazyLogging
 
 trait InitReactives extends TestCommon {
   import projections.reactives._
@@ -65,7 +64,7 @@ trait InitRMI extends TestCommon {
   }
 }
 
-trait TestCommon extends Logging {
+trait TestCommon extends LazyLogging {
   val sem = new Semaphore(0)
 
   def name: String
@@ -92,6 +91,6 @@ trait TestCommon extends Logging {
     sem.release()
   }
 
-  def test(v: Seq[Order])
+  def test(v: Seq[Order]): Unit
   def deinit(): Unit = ()
 }

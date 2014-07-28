@@ -8,8 +8,8 @@ trait ReactiveConstant[+O, +P] extends Reactive[O, P] {
   override def hasPulsed(tx: InTxn) = false
   override def sourceDependencies(tx: InTxn) = Set[UUID]()
   override def isConnectedTo(transaction: Transaction) = false
-  override def addDependant(tx: InTxn, dependant: Reactive.Dependant) {}
-  override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) {}
+  override def addDependant(tx: InTxn, dependant: Reactive.Dependant) = {}
+  override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = {}
   override def observe(obs: O => Unit)(implicit tx: InTxn) = {}
   override def unobserve(obs: O => Unit)(implicit tx: InTxn) = {}
 }

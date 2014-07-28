@@ -10,7 +10,7 @@ import java.util.concurrent.Semaphore
 
 class MessageBuffer[A](val id: String, override val dependency: Signal[A], tx: InTxn) extends SingleDependentReactive(tx) with DependentSignalImpl[A] {
 
-  def log(msg: String) { /*println(s"[$id @ ${Thread.currentThread().getName()}] $msg")*/ }
+  def log(msg: String): Unit = { /*println(s"[$id @ ${Thread.currentThread().getName()}] $msg")*/ }
 
   private val delivery = new Semaphore(0)
   private val deliveryConfirmation = new Semaphore(0)
@@ -24,7 +24,7 @@ class MessageBuffer[A](val id: String, override val dependency: Signal[A], tx: I
     deliveryConfirmation.release()
   }
 
-  def releaseQueue() = {
+  def releaseQueue(): Unit = {
     log("Release queue")
     delivery.release()
     log("Awaiting confirmation")

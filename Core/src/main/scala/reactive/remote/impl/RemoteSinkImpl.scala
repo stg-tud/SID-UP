@@ -13,7 +13,7 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
 
   var _sourceDependencies = dependency.registerRemoteDependant(null, this)
 
-  def disconnect() {
+  def disconnect(): Unit = {
     dependency.unregisterRemoteDependant(null, this)
   }
 

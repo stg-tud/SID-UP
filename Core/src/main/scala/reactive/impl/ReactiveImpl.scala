@@ -1,7 +1,6 @@
 package reactive
 package impl
 
-import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
@@ -10,8 +9,9 @@ import scala.concurrent.stm._
 import reactive.signals.Signal
 import java.lang.reflect.InvocationTargetException
 import scala.util.control.ControlThrowable
+import com.typesafe.scalalogging.LazyLogging
 
-trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction.stmTx)).isEmpty
 
   private[reactive] val name = {
@@ -71,18 +71,18 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
 
   private val observers = Ref(Set[O => Unit]())
 
-  def observe(obs: O => Unit)(implicit inTxn: InTxn) {
+  def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
     val size = inTxn.synchronized(observers.transformAndGet { _ + obs }(inTxn)).size
     logger.trace(s"$this observers: $size")
   }
 
-  def unobserve(obs: O => Unit)(implicit inTxn: InTxn) {
+  def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
     val size = inTxn.synchronized(observers.transformAndGet { _ - obs }(inTxn)).size
     logger.trace(s"$this observers: $size")
   }
 }
 
-object ReactiveImpl extends Logging {
+object ReactiveImpl extends LazyLogging {
 
   trait ViewImpl[O] extends Reactive.View[O] {
     protected val impl: ReactiveImpl[O, _]
@@ -104,11 +104,11 @@ object ReactiveImpl extends Logging {
 
   private val pool = Executors.newCachedThreadPool()
   private implicit val myExecutionContext = new ExecutionContext {
-    def execute(runnable: Runnable) {
+    def execute(runnable: Runnable): Unit = {
       pool.submit(runnable)
     }
 
-    def reportFailure(t: Throwable) = {
+    def reportFailure(t: Throwable): Unit = {
       t.printStackTrace()
     }
   }
@@ -129,7 +129,7 @@ object ReactiveImpl extends Logging {
       val head = iterator.next()
 
       val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
-        (element -> future {
+        (element -> Future {
           runWrappingRollbackErrors { op(element) }
         }) :: futures
       }

@@ -19,7 +19,7 @@ trait TimedEventSource[A] extends EventStream[A] {
 }
 
 object TimedEventSource {
-  lazy val timer = new java.util.Timer()
+  lazy val timer = new java.util.Timer(true)
   def apply[A](): TimedEventSource[A] = new EventSourceImpl[A] with TimedEventSource[A] {
     outer =>
     def schedule(event: A, timestampInMilliseconds: Long) = timer.schedule(new TimerTask {

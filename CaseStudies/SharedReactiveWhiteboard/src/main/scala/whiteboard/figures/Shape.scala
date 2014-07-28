@@ -21,6 +21,6 @@ abstract class Shape(
     }
   }
 
-  def doDraw(g: Graphics2D)
+  def doDraw(g: Graphics2D): Unit
   def copy(strokeWidth: Int, color: Color, mousePath: List[Point]): Shape
 }

@@ -55,12 +55,12 @@ class FlattenSignalThreeUpdateOrderTest extends FunSuite with BeforeAndAfter {
     transaction.set(inner1, 0)
     transaction.set(outer, inner2Buffered)
     transaction.set(inner2, 5)
-    commitFuture = future {
+    commitFuture = Future {
       transaction.commit()
     }
   }
 
-  override def test(testName: String, testTags: Tag*)(testFun: => Unit) {
+  override def test(testName: String, testTags: Tag*)(testFun: => Unit): Unit = {
     super.test(testName, testTags: _*) {
       testFun
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }

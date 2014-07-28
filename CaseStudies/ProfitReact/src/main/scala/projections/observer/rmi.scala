@@ -17,7 +17,7 @@ import java.rmi.server.UnicastRemoteObject
 class Observable[I](participant: Participant) extends UnicastRemoteObject with RemoteObservable[I] {
   var observers = List[RemoteObserver[I]]()
   def addObserver(o: RemoteObserver[I]) = observers ::= o
-  def publish(v: I): Unit = observers.foreach(obs => future { obs.receive(v) })
+  def publish(v: I): Unit = observers.foreach(obs => Future { obs.receive(v) })
   java.rmi.Naming.rebind(participant.name, this)
 }
 
