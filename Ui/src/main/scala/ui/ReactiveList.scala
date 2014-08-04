@@ -30,7 +30,7 @@ class ReactiveList[T](initialElements: Signal[List[T]]) extends {
   override def setValue(value: Option[T]) = {
     value match {
       case None => asComponent.clearSelection()
-      case Some(value) => asComponent.setSelectedValue(value, true);
+      case Some(extracted) => asComponent.setSelectedValue(extracted, true);
     }
   }
 }

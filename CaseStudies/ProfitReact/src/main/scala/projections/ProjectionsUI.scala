@@ -96,7 +96,7 @@ object ProjectionsUI {
     val orders = orderStream.single.log
 
     val model = new DefaultListModel[String]()
-    val managPanic = scala.concurrent.stm.atomic { implicit tx =>
+    val managementPanic = scala.concurrent.stm.atomic { implicit tx =>
       management.map { _ < 0 }.changes.filter(x => x).observe { _ =>
         model.addElement("Mail sent on " + new Date())
       }
@@ -106,7 +106,7 @@ object ProjectionsUI {
 
     val managementDifference = new ReactiveLabel(management.single.map { d => f"Profit: $d%4d   " })
 
-    //    managementDifference.foreground << managPanic.map {
+    //    managementDifference.foreground << managementPanic.map {
     //      case false => Color.GREEN.darker
     //      case true => Color.RED
     //    }
@@ -136,7 +136,7 @@ object ProjectionsUI {
     (orders, checkBox.value)
   }
 
-  def makeWindow(name: String, posx: Int, posy: Int)(components: Tuple2[JComponent, String]*) = {
+  def makeWindow(name: String, posx: Int, posy: Int)(components: (JComponent, String)*) = {
     val window = new JFrame(name)
     window.setLayout(new BorderLayout())
     for ((com, dir) <- components) {

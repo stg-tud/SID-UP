@@ -34,14 +34,14 @@ object log2dot {
     nodeString + """
     \s*\S+        # transaction
     """).r
-  val extractTransaction = ("""(?x)
+  val extractTransaction = """(?x)
     # TRACE start Transaction(id=2e7b9e1e-206e-47ab-a473-6ebcf92064ff,sources=TreeSet(1eeb5d45-babb-4581-b938-990c906d2151))
     \w+\s+              # loglevel
     (start|finish)      # type
     \s*Transaction\(id=
     ([^,]+)             # id
     .*                  #the rest
-    """).r
+                           """.r
   val extractPulse = ("""(?x)
     # TRACE MapSignal(654474800) => Pulse(Some(calculating), false) [Some(d6b1f772-9a9b-4f17-b7cd-1201f2cd3157)]
     \w+\s+              # loglevel""" +
@@ -64,7 +64,7 @@ object log2dot {
   }
 
   def extract(line: String): Seq[Event] = line match {
-    case extractEdge(name1, id1, delete, name2, id2) => {
+    case extractEdge(name1, id1, delete, name2, id2) =>
       val sink = Node(id1, name1)
       val source = Node(id2, name2)
       val edge = Edge(source, sink)
@@ -72,12 +72,10 @@ object log2dot {
         Seq(sink, source, edge)
       else
         Seq(EdgeDelete(edge))
-    }
     case extractTransaction(start, id) => Seq(Transaction(id))
-    case extractPulse(nodeName, nodeID, value, transaction) => {
+    case extractPulse(nodeName, nodeID, value, transaction) =>
       val node = Node(nodeID, nodeName)
       Seq(node, Pulse(node, value, Transaction(transaction)))
-    }
     case _ => Seq()
   }
 
@@ -92,7 +90,7 @@ object log2dot {
     val edges = events.collect{case e: Edge => e}.toSet -- deletedEdges.map{_.edge}
 
     def labelledEdge(e: Edge) = labels.get(e.source) match {
-      case Some(label) => f""""${e.source.id}%s" -> "${e.sink.id}%s" [label="${label}%.40s"];"""
+      case Some(label) => f""""${e.source.id}%s" -> "${e.sink.id}%s" [label="$label%.40s"];"""
       case None => e.toString
     }
 

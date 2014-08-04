@@ -6,7 +6,7 @@ import scala.language.implicitConversions
 
 case class Order(value: Int) {
   val createdOn = new Date
-  override def toString = s"Order(${value})"
+  override def toString = s"Order($value)"
 }
 
 sealed abstract class Participant(val name: String)

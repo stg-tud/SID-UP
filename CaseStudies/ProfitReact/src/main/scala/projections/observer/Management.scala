@@ -23,7 +23,7 @@ class Management extends Observable[Int](projections.management) {
       update(projections.sales, v.direct)
   }
 
-  val purchObserver = Observer(projections.purchases) {
+  val purchasesObserver = Observer(projections.purchases) {
     v: Message =>
       lastPurchases = v.total
       update(projections.purchases, v.direct)

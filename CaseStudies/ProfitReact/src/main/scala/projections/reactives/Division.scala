@@ -12,7 +12,7 @@ abstract class Division {
 
 class Purchases(perOrderCost: Signal[Int]) extends Division {
   val orderCount: Signal[Int] = orders.single.map { _.size }
-  val total = (orderCount * perOrderCost + orders.single.map { sumValues })
+  val total = orderCount * perOrderCost + orders.single.map(sumValues)
 
   RemoteReactives.rebind(projections.purchases, total)
 }

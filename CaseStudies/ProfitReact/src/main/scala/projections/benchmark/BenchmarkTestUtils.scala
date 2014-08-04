@@ -44,7 +44,7 @@ trait InitRMI extends TestCommon {
   val p = new Purchases(perOrderCost)
   val m = new Management()
 
-  val managObserver = new Observer[Int](projections.management) {
+  val managementObserver = new Observer[Int](projections.management) {
     def receive(v: Int) = done(v)
   }
 

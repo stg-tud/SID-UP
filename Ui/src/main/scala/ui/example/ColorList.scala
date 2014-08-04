@@ -25,8 +25,8 @@ object ColorList extends App {
 
   // functionality
   val list = new ReactiveList[Color](Colors)
-  val displayText = list.selectionOption.single.map(_.map(_.toString).getOrElse("none"))
-  val displayColor = list.selectionOption.single.map(_.map(_.actualColor).getOrElse(java.awt.Color.BLACK))
+  val displayText = list.selectionOption.single.map(_.fold(ifEmpty = "none")(_.toString))
+  val displayColor = list.selectionOption.single.map(_.fold(ifEmpty = java.awt.Color.BLACK)(_.actualColor))
   val label = new ReactiveLabel(displayText)
   label.foreground << displayColor
 

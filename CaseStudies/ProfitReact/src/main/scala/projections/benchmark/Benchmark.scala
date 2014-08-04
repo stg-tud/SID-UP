@@ -19,7 +19,7 @@ object SimpleBenchmark extends PerformanceTest {
     new RegressionReporter(
       RegressionReporter.Tester.OverlapIntervals(),
       RegressionReporter.Historian.Complete()),
-    HtmlReporter(true),
+    HtmlReporter(embedDsv = true),
     new DsvReporter(delimiter = '\t'),
     new GnuplotReporter(),
     new LoggingReporter)
