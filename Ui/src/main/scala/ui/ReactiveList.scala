@@ -23,7 +23,7 @@ class ReactiveList[T](initialElements: Signal[List[T]]) extends {
   }
   private val _selection = Var(asComponent.getSelectedValuesList().toList.headOption)
   asComponent.addListSelectionListener(new ListSelectionListener() {
-    override def valueChanged(event: ListSelectionEvent) {
+    override def valueChanged(event: ListSelectionEvent): Unit = {
       if (!event.getValueIsAdjusting()) {
         _selection << asComponent.getSelectedValuesList().toList.headOption
       }

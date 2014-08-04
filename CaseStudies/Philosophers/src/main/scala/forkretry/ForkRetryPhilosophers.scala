@@ -18,7 +18,7 @@ object RetryFork {
 case class RetryFork(id: Int) {
   // input
   val in = Var[Set[Signal[Option[RetryPhilosopher]]]](Set())
-  def addPhilosopher(phil: RetryPhilosopher)(implicit tx: InTxn) {
+  def addPhilosopher(phil: RetryPhilosopher)(implicit tx: InTxn): Unit = {
     in << in.now + phil.request
   }
 

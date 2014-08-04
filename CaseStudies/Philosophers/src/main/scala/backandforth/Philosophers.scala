@@ -16,7 +16,7 @@ import scala.language.postfixOps
 case class Fork(id: Int) {
   // input
   val in = Var[Set[Signal[Option[Philosopher]]]](Set())
-  def addPhilosopher(phil: Philosopher)(implicit tx: InTxn) {
+  def addPhilosopher(phil: Philosopher)(implicit tx: InTxn): Unit = {
     in << in.now + phil.request
   }
 

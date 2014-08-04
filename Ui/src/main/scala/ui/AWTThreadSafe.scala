@@ -2,12 +2,12 @@ package ui
 import java.awt.EventQueue
 
 object AWTThreadSafe {
-  def apply(op: => Unit) {
+  def apply(op: => Unit): Unit = {
     if (EventQueue.isDispatchThread()) {
       op
     } else {
       EventQueue.invokeLater(new Runnable() {
-        override def run() {
+        override def run(): Unit = {
           op
         }
       })
