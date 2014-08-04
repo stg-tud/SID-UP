@@ -22,8 +22,8 @@ trait DependentReactive[P] extends Reactive.Dependant {
     }
 
     val sourceDependenciesChanged = if (recalculateDependencies) {
-      val newDepdencies = calculateSourceDependencies(tx)
-      tx.synchronized(_sourceDependencies.swap(newDepdencies)(tx)) != newDepdencies
+      val newDependencies = calculateSourceDependencies(tx)
+      tx.synchronized(_sourceDependencies.swap(newDependencies)(tx)) != newDependencies
     } else {
       false
     }

@@ -26,11 +26,11 @@ class TransactionBuilder extends LazyLogging {
     val sourceIds = boxSet.map(_.uuid)
     val transaction = Transaction(sourceIds, inTxn)
     logger.trace(s"start $transaction")
-    ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap( /*accu, */ transaction, _))
+    ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap(transaction, _))
     logger.trace(s"finish $transaction")
   }
 
-  private def setBoxFromMap[A]( /*replyChannel : TicketAccumulator.Receiver, */ t: Transaction, box: ReactiveSource[A]): Unit = {
-    box.emit(t, boxes(box).asInstanceOf[A] /*, replyChannel*/ )
+  private def setBoxFromMap[A](t: Transaction, box: ReactiveSource[A]): Unit = {
+    box.emit(t, boxes(box).asInstanceOf[A])
   }
 }

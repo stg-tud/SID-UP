@@ -13,9 +13,9 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
   protected def dependencies(tx: InTxn): Set[Reactive[_, _]]
 
   private val lastDependencies = {
-    val depts = dependencies(constructionTransaction)
-    depts.foreach { _.addDependant(constructionTransaction, this) }
-    Ref(depts)
+    val initialDependencies = dependencies(constructionTransaction)
+    initialDependencies.foreach { _.addDependant(constructionTransaction, this) }
+    Ref(initialDependencies)
   }
 
   private val anyDependenciesChanged: TxnLocal[Boolean] = TxnLocal(false)
