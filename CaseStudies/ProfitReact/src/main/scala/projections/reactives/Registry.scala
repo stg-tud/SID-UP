@@ -5,23 +5,23 @@ import reactive.signals.{RoutableVar, Signal}
 
 import scala.language.higherKinds
 
-class Registry[V, R[+V] <: Reactive[_, _]] {
-  var reactives = Map[String, R[V]]()
+class Registry[R <: Reactive[_, _]] {
+  var reactives = Map[String, R]()
 
-  def register[T <: V](name: String, reactive: R[T]) = reactives += (name -> reactive)
+  def register(name: String, reactive: R) = reactives += (name -> reactive)
 
-  def retrieve(name: String): Option[R[V]] = reactives.get(name)
+  def retrieve(name: String): Option[R] = reactives.get(name)
 
-  def apply(name: String): R[V] = retrieve(name).get
+  def apply(name: String): R = retrieve(name).get
 
-  def clear() = reactives = Map[String, R[V]]()
+  def clear() = reactives = Map[String, R]()
 }
 
 //object Registry extends Registry[Any, ({type λ[+X] = Reactive[X, ReactiveNotification[X]]})#λ ]
 
-object SignalRegistry extends Registry[Any, Signal] {
+object SignalRegistry extends Registry[Signal[Any]] {
 
-  override def register[T](name: String, sig: Signal[T]): Unit = {
+  override def register(name: String, sig: Signal[Any]): Unit = {
     reactives.get(name) match {
       case Some(router) => router.asInstanceOf[RoutableVar[Any]] << sig
       case None => reactives += (name -> RoutableVar(sig))
