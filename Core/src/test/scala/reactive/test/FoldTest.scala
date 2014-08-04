@@ -14,8 +14,8 @@ class FoldTest extends FunSuite {
     in << 10
     val lastEvent = in << 2
 
-    Thread.sleep(10);
-    val result = out.single.now;
+    Thread.sleep(10)
+    val result = out.single.now
     assertResult(List(Nil, List(1), List(5, 1), List(10, 5, 1), List(10, 10, 5, 1), List(2, 10, 10, 5, 1))) { log.single.now }
     assertResult(List(2, 10, 10, 5, 1)) { result }
   }

@@ -16,21 +16,22 @@ class ReactiveList[T](initialElements: Signal[List[T]]) extends {
   val model = new DefaultListModel[T]()
 } with ReactiveComponent(new JList(model)) with ReactiveInput[Option[T]] {
   asComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-  val elements = RoutableVar(initialElements);
+  val elements = RoutableVar(initialElements)
   observeInEDT(elements) { newElements =>
-    model.removeAllElements();
+    model.removeAllElements()
     newElements.foreach { model.addElement(_) };
   }
   private val _selection = Var(asComponent.getSelectedValuesList().toList.headOption)
   asComponent.addListSelectionListener(new ListSelectionListener() {
     override def valueChanged(event: ListSelectionEvent) {
       if (!event.getValueIsAdjusting()) {
-        _selection << asComponent.getSelectedValuesList().toList.headOption;
+        _selection << asComponent.getSelectedValuesList().toList.headOption
       }
     }
   })
-  override val value: Signal[Option[T]] = _selection;
-  val selectionOption = value;
+  override val value: Signal[Option[T]] = _selection
+  val selectionOption = value
+
   override def setValue(value: Option[T]) = {
     value match {
       case None => asComponent.clearSelection()

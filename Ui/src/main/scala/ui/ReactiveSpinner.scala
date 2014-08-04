@@ -18,20 +18,20 @@ import reactive.signals.RoutableVar
 import reactive.Lift.single.valueToSignal
 
 class ReactiveSpinner(initialValue: Int) extends {
-  private val model = new SpinnerNumberModel(initialValue, Int.MinValue, Int.MaxValue, 1);
+  private val model = new SpinnerNumberModel(initialValue, Int.MinValue, Int.MaxValue, 1)
 } with ReactiveComponent(new JSpinner(model)) with ReactiveInput[Int] with ReactiveCommittable {
   lazy val min = {
-    val routableVar = RoutableVar(model.getMinimum().asInstanceOf[Int]);
+    val routableVar = RoutableVar(model.getMinimum().asInstanceOf[Int])
     observeInEDT(routableVar) { model.setMinimum(_) }
     routableVar
   }
   lazy val max = {
-    val routableVar = RoutableVar(model.getMaximum().asInstanceOf[Int]);
+    val routableVar = RoutableVar(model.getMaximum().asInstanceOf[Int])
     observeInEDT(routableVar) { model.setMaximum(_) }
     routableVar
   }
   lazy val step = {
-    val routableVar = RoutableVar(model.getStepSize().asInstanceOf[Int]);
+    val routableVar = RoutableVar(model.getStepSize().asInstanceOf[Int])
     observeInEDT(routableVar) { model.setStepSize(_) }
     routableVar
   }
@@ -50,10 +50,10 @@ class ReactiveSpinner(initialValue: Int) extends {
   private val editor = asComponent.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
     editor.addActionListener(new ActionListener() {
       override def actionPerformed(event: ActionEvent) {
-        _commits << event;
+        _commits << event
       }
     })
     val commits: EventStream[ActionEvent] = _commits
 
-  editor.getFormatter().asInstanceOf[DefaultFormatter].setCommitsOnValidEdit(true);
+  editor.getFormatter().asInstanceOf[DefaultFormatter].setCommitsOnValidEdit(true)
 }

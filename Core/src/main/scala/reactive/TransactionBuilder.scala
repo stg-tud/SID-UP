@@ -10,12 +10,12 @@ class TransactionBuilder extends LazyLogging {
   private var boxes = Map[ReactiveSource[_], Any]()
 
   def set[A](box: ReactiveSource[A], value: A) = {
-    boxes += box -> value;
+    boxes += box -> value
     this
   }
 
   def forget[A](box: ReactiveSource[A]): Unit = {
-    boxes -= box;
+    boxes -= box
   }
 
   private def reset(): Unit = {
@@ -24,8 +24,8 @@ class TransactionBuilder extends LazyLogging {
 
   def commit() = atomic { implicit inTxn =>
     val boxSet = boxes.keySet
-    val sourceIds = boxSet.map(_.uuid);
-    val transaction = Transaction(sourceIds, inTxn);
+    val sourceIds = boxSet.map(_.uuid)
+    val transaction = Transaction(sourceIds, inTxn)
     logger.trace(s"start $transaction")
     ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap( /*accu, */ transaction, _))
     logger.trace(s"finish $transaction")

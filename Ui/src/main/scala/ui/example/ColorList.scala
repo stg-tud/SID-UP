@@ -27,27 +27,27 @@ object ColorList extends App {
     new Color("pink", java.awt.Color.PINK),
     new Color("gray", java.awt.Color.GRAY),
     new Color("dark gray", java.awt.Color.DARK_GRAY),
-    new Color("white", java.awt.Color.WHITE));
+    new Color("white", java.awt.Color.WHITE))
 
   // functionality
-  val list = new ReactiveList[Color](Colors);
-  val displayText = list.selectionOption.single.map(_.map(_.toString).getOrElse("none"));
+  val list = new ReactiveList[Color](Colors)
+  val displayText = list.selectionOption.single.map(_.map(_.toString).getOrElse("none"))
   val displayColor = list.selectionOption.single.map(_.map(_.actualColor).getOrElse(java.awt.Color.BLACK))
-  val label = new ReactiveLabel(displayText);
-  label.foreground << displayColor;
+  val label = new ReactiveLabel(displayText)
+  label.foreground << displayColor
 
   // window layout
-  val window = new JFrame("Reactive ColorList");
-  window.setLayout(new BorderLayout());
-  window.add(new JLabel("Please select a color from this list:"), BorderLayout.NORTH);
-  window.add(new JScrollPane(list.asComponent), BorderLayout.CENTER);
+  val window = new JFrame("Reactive ColorList")
+  window.setLayout(new BorderLayout())
+  window.add(new JLabel("Please select a color from this list:"), BorderLayout.NORTH)
+  window.add(new JScrollPane(list.asComponent), BorderLayout.CENTER)
   val output = new Box(BoxLayout.X_AXIS)
-  output.add(new JLabel("You have selected: "));
+  output.add(new JLabel("You have selected: "))
   output.add(label.asComponent)
-  window.add(output, BorderLayout.SOUTH);
+  window.add(output, BorderLayout.SOUTH)
   // window configuration
-  window.pack();
-  window.setLocationRelativeTo(null);
-  window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-  window.setVisible(true);
+  window.pack()
+  window.setLocationRelativeTo(null)
+  window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+  window.setVisible(true)
 }

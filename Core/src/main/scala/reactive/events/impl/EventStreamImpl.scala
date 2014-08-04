@@ -9,12 +9,16 @@ import scala.concurrent.stm._
 
 trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
   override def hold[B >: A](initialValue: B)(implicit inTxn: InTxn): Signal[B] = fold(initialValue) { (_, value) => value }
-  override def map[B](op: A => B)(implicit inTxn: InTxn): EventStream[B] = new MappedEventStream(this, op, inTxn);
-  override def collect[B](op: PartialFunction[A, B])(implicit inTxn: InTxn): EventStream[B] = new PartiallyMappedEventStream(this, op, inTxn);
-  override def merge[B >: A](streams: EventStream[B]*)(implicit inTxn: InTxn): EventStream[B] = new MergeStream(this :: streams.toList, inTxn);
-  override def fold[B](initialValue: B)(op: (B, A) => B)(implicit inTxn: InTxn): Signal[B] = new FoldSignal(initialValue, this, op, inTxn);
+  override def map[B](op: A => B)(implicit inTxn: InTxn): EventStream[B] = new MappedEventStream(this, op, inTxn)
+
+  override def collect[B](op: PartialFunction[A, B])(implicit inTxn: InTxn): EventStream[B] = new PartiallyMappedEventStream(this, op, inTxn)
+
+  override def merge[B >: A](streams: EventStream[B]*)(implicit inTxn: InTxn): EventStream[B] = new MergeStream(this :: streams.toList, inTxn)
+
+  override def fold[B](initialValue: B)(op: (B, A) => B)(implicit inTxn: InTxn): Signal[B] = new FoldSignal(initialValue, this, op, inTxn)
+
   override def log(implicit inTxn: InTxn) = fold(List[A]())((list, elem) => list :+ elem)
-  override def filter(op: A => Boolean)(implicit inTxn: InTxn): EventStream[A] = new FilteredEventStream(this, op, inTxn);
+  override def filter(op: A => Boolean)(implicit inTxn: InTxn): EventStream[A] = new FilteredEventStream(this, op, inTxn)
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }

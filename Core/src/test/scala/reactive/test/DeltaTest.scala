@@ -14,7 +14,7 @@ class DeltaTest extends FunSuite {
     in << 5
     in << 10
 
-    Thread.sleep(10);
+    Thread.sleep(10)
     assertResult(List(3 -> 1, 1 -> 5, 5 -> 10)) { log.single.now }
   }
 }

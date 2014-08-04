@@ -33,7 +33,7 @@ trait InitReactives extends TestCommon {
   override def deinit() = {
     println(s"deinit $name")
     registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
-    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
+    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true)
     println("done")
   }
 }
@@ -59,7 +59,7 @@ trait InitRMI extends TestCommon {
   override def deinit() = {
     println(s"deinit $name")
     registry.list().foreach { name => println(s"unbind $name"); registry.unbind(name) }
-    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true);
+    java.rmi.server.UnicastRemoteObject.unexportObject(registry, true)
     println("done")
   }
 }

@@ -13,7 +13,7 @@ class VarTest extends FunSuite {
     val log = new NotificationLog(v)
     assertResult(true) { log.isEmpty }
 
-    v << 2;
+    v << 2
 
     assertResult(2) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }
@@ -24,7 +24,7 @@ class VarTest extends FunSuite {
     assertResult(true) { event1.valueChanged }
     assertResult(2) { event1.newValue }
 
-    v << 3;
+    v << 3
 
     assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }
@@ -35,7 +35,7 @@ class VarTest extends FunSuite {
     assertResult(true) { event2.valueChanged }
     assertResult(3) { event2.newValue }
 
-    v << 3;
+    v << 3
 
     assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }

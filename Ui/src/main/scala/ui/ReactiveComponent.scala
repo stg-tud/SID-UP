@@ -17,21 +17,21 @@ import reactive.events.EventSource
 
 class ReactiveComponent[T <: JComponent](val asComponent: T) {
   protected def observeInEDT[A](reactive: Signal[A])(op: A => Unit) = {
-    new ReactiveComponent.ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value)) }).activate;
+    new ReactiveComponent.ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value)) }).activate
   }
 
   lazy val foreground = {
-    val routableVar = RoutableVar(asComponent.getForeground());
+    val routableVar = RoutableVar(asComponent.getForeground())
     observeInEDT(routableVar) { asComponent.setForeground(_) }
     routableVar
   }
   lazy val background = {
-    val routableVar = RoutableVar(asComponent.getBackground());
+    val routableVar = RoutableVar(asComponent.getBackground())
     observeInEDT(routableVar) { asComponent.setBackground(_) }
     routableVar
   }
   lazy val enabled = {
-    val routableVar = RoutableVar(asComponent.isEnabled());
+    val routableVar = RoutableVar(asComponent.isEnabled())
     observeInEDT(routableVar) { asComponent.setEnabled(_) }
     routableVar
   }
@@ -40,19 +40,19 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     val _mousePosition = Var[Option[Point]](None)
     val adapter = new MouseAdapter() {
       override def mouseMoved(evt: MouseEvent) {
-        _mousePosition << Some(evt.getPoint());
+        _mousePosition << Some(evt.getPoint())
       }
       override def mouseExited(evt: MouseEvent) {
-        _mousePosition << None;
+        _mousePosition << None
       }
       override def mouseEntered(evt: MouseEvent) {
-        mouseMoved(evt);
+        mouseMoved(evt)
       }
     }
-    asComponent.addMouseListener(adapter);
-    asComponent.addMouseMotionListener(adapter);
+    asComponent.addMouseListener(adapter)
+    asComponent.addMouseMotionListener(adapter)
     _mousePosition
-  };
+  }
 
   lazy val mouseDowns: EventStream[Point] = {
     val source = EventSource[Point]
@@ -79,12 +79,13 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   lazy val mouseDrags: EventStream[(Point, Point)] = {
     val source = EventSource[(Point, Point)]
     val adapter = new MouseAdapter() {
-      var lastPressedPosition: Point = _;
+      var lastPressedPosition: Point = _
+
       override def mousePressed(evt: MouseEvent) {
         lastPressedPosition = evt.getPoint()
       }
       override def mouseDragged(evt: MouseEvent) {
-        source << (lastPressedPosition -> evt.getPoint());
+        source << (lastPressedPosition -> evt.getPoint())
         mousePressed(evt)
       }
     }
@@ -108,12 +109,12 @@ object ReactiveComponent {
   private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
     def activate() {
       scala.concurrent.stm.atomic{ implicit tx =>
-        reactive.observe(op);
+        reactive.observe(op)
         op(reactive.now);
       }
     }
     def deactivate() {
-      reactive.single.unobserve(op);
+      reactive.single.unobserve(op)
     }
   }
 }

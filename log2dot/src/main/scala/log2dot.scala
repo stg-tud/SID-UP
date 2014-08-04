@@ -118,12 +118,12 @@ object log2dot {
 
     val pulses = getPulses(events)
 
-    var i = 1;
+    var i = 1
 
     for (transaction <- events.collect{case t: Transaction => t}.distinct) {
       val dotString = dot(events.takeWhile(_ != transaction), pulses(transaction))
       Seq("dot", "-Tpng", "-o", i.toString + outfile) run new ProcessIO(in => {in.write(dotString.getBytes); in.close()}, _.close(), _.close())
-      i += 1;
+      i += 1
     }
 
   }

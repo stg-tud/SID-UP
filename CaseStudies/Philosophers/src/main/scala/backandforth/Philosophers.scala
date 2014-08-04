@@ -80,7 +80,7 @@ case class Philosopher(id: Int) {
 object Philosophers extends App {
   // ===================== PARAMETER PARSING =====================
   val sizeOfTable = if (args.length < 1) {
-    println("Using default table size 3. Supply an integer number as first program argument to customize.");
+    println("Using default table size 3. Supply an integer number as first program argument to customize.")
     3
   } else {
     Integer.parseInt(args(0))

@@ -67,7 +67,7 @@ case class RetryPhilosopher(id: Int) {
   def eatOnce() = {
 	// Variant 1: try new transaction until one succeeds
     while (try {
-      state << Eating;
+      state << Eating
       false
     } catch {
       case e: RetryFork.MultipleRequestsException => false
@@ -87,7 +87,7 @@ case class RetryPhilosopher(id: Int) {
 object RetryPhilosophers extends App {
   // ===================== PARAMETER PARSING =====================
   val sizeOfTable = if (args.length < 1) {
-    println("Using default table size 3. Supply an integer number as first program argument to customize.");
+    println("Using default table size 3. Supply an integer number as first program argument to customize.")
     3
   } else {
     Integer.parseInt(args(0))

@@ -1,5 +1,5 @@
-package reactive;
-package signals;
+package reactive
+package signals
 
 import reactive.events.EventStream
 import java.util.UUID
@@ -23,7 +23,8 @@ trait RoutableVar[A] extends Signal[A] with ReactiveSource[Signal[A]]
 object RoutableVar {
   def apply[A](initialValue: Signal[A]): RoutableVar[A] = new RoutableVar[A] {
     // a Var[Signal[A]] with delegates of all ReactiveSource[Signal[A]] input methods
-    val _input = Var(initialValue);
+    val _input = Var(initialValue)
+
     override def <<(value: Signal[A]) = _input.<<(value)
     override def set(value: Signal[A]) = _input.set(value)
     override protected[reactive] def emit(transaction: Transaction, value: Signal[A] /*, replyChannels: TicketAccumulator.Receiver**/ ) = _input.emit(transaction, value /*, replyChannels: _**/ )
@@ -34,7 +35,8 @@ object RoutableVar {
     protected[reactive] override def pulse(tx: InTxn): Reactive.PulsedState[A] = _output.pulse(tx)
     protected[reactive] override def hasPulsed(tx: InTxn): Boolean = _output.hasPulsed(tx)
     protected[reactive] override def sourceDependencies(tx: InTxn): Set[UUID] = _output.sourceDependencies(tx)
-    protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
+    protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction)
+
     protected[reactive] override def addDependant(tx: InTxn, dependant: Reactive.Dependant) = _output.addDependant(tx, dependant)
     protected[reactive] override def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = _output.removeDependant(tx, dependant)
     override def log(implicit inTxn: InTxn): Signal[Seq[A]] = _output.log
