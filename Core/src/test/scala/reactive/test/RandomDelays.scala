@@ -18,9 +18,9 @@ class RandomDelays extends FunSuite {
   def log(name: String): Unit = {
     val uid = id.incrementAndGet()
     val duration = 250 + (math.random * 500).toInt
-    timeStampPrint("Starting evaluation of Signal %s [%02d]: %d ms".format(name, uid, duration))
+    timeStampPrint(f"Starting evaluation of Signal $name [$uid%02d]: $duration ms")
     Thread.sleep(duration)
-    timeStampPrint("Finished evaluation of Signal %s [%02d]".format(name, uid, duration))
+    timeStampPrint(f"Finished evaluation of Signal $name [$uid%02d]")
   }
   def track(signal: Signal[AnyVal]): Unit = {
     // semi-implicit lifting of sink function (semi-implicit because scala

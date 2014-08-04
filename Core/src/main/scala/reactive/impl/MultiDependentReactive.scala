@@ -31,13 +31,13 @@ abstract class MultiDependentReactive(constructionTransaction: InTxn) extends La
   private def checkIfDependenciesPulsed(transaction: Transaction) = {
     val stillPending = updateAndGetStillPending(transaction)
     if (stillPending == 0) {
-      logger.trace(s"$this received last remaining notification for transaction ${transaction}, starting reevaluation")
+      logger.trace(s"$this received last remaining notification for transaction $transaction, starting reevaluation")
       true
     } else if (stillPending < 0) {
       logger.error(s"$this received orphaned notification after having pulsed; ignoring notification")
       false
     } else {
-      logger.trace(s"$this received a notification for transaction ${transaction}, ${stillPending} pending")
+      logger.trace(s"$this received a notification for transaction $transaction, $stillPending pending")
       false
     }
   }

@@ -29,7 +29,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   override def flatten[B](implicit evidence: A <:< Signal[B], inTxn: InTxn): Signal[B] = new FlattenSignal(this.asInstanceOf[Signal[Signal[B]]], inTxn)
   override def snapshot(when: EventStream[_])(implicit inTxn: InTxn): Signal[A] = pulse(when).hold(now)
   override def pulse(when: EventStream[_])(implicit inTxn: InTxn): EventStream[A] = new PulseEventStream(this, when, inTxn)
-  override def log(implicit inTxn: InTxn) = new FoldSignal(List(now), changes, ((list: List[A], elem: A) => list :+ elem), inTxn)
+  override def log(implicit inTxn: InTxn) = new FoldSignal(List(now), changes, (list: List[A], elem: A) => list :+ elem, inTxn)
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }

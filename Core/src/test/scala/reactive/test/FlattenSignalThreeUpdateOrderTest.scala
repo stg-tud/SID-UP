@@ -8,7 +8,7 @@ import reactive.signals.Signal
 import reactive.testtools.NotificationLog
 import reactive.TransactionBuilder
 import scala.concurrent._
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.Tag
 import scala.concurrent.stm.Txn
 

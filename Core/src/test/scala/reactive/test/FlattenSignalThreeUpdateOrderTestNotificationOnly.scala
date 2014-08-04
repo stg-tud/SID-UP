@@ -7,7 +7,7 @@ import reactive.testtools.{MessageBuffer, NotificationLog}
 import reactive.signals.Signal
 import reactive.TransactionBuilder
 import scala.concurrent._
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.Tag
 import reactive.signals.impl.FlattenSignal
 

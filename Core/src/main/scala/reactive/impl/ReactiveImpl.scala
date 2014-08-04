@@ -13,7 +13,7 @@ import scala.util.{Failure, Try}
 import scala.util.control.ControlThrowable
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
-  override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction.stmTx)).isEmpty
+  override def isConnectedTo(transaction: Transaction) = (transaction.sources & sourceDependencies(transaction.stmTx)).nonEmpty
 
   private[reactive] val name = {
     val classname = getClass.getName
@@ -32,12 +32,12 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   private val dependants = Ref(Set[Reactive.Dependant]())
 
   override protected[reactive] def addDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
-    logger.trace(s"$dependant <~ $this [${tx}]")
+    logger.trace(s"$dependant <~ $this [$tx]")
     dependants.transform(_ + dependant)(tx)
   }
 
   override protected[reactive] def removeDependant(tx: InTxn, dependant: Reactive.Dependant) = tx.synchronized {
-    logger.trace(s"$dependant <!~ $this [${tx}]")
+    logger.trace(s"$dependant <!~ $this [$tx]")
     dependants.transform(_ - dependant)(tx)
   }
 

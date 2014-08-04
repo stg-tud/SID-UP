@@ -38,7 +38,7 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
     subscribe.foreach { dep =>
       dep.addDependant(tx, this)
     }
-    if (!unsubscribe.isEmpty || !subscribe.isEmpty) {
+    if (unsubscribe.nonEmpty || subscribe.nonEmpty) {
       anyDependenciesChanged.set(true)(tx)
     }
   }
