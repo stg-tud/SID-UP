@@ -46,15 +46,13 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
 
   List("old", "new", "outer").permutations.foreach { permutation =>
     test(permutation.mkString(", ")) {
-      permutation.foreach { name =>
-        name match {
-          case "old" =>
-            inner1Buffered.releaseQueue()
-          case "new" =>
-            inner2Buffered.releaseQueue()
-          case "outer" =>
-            outerBuffered.releaseQueue()
-        }
+      permutation.foreach {
+        case "old" =>
+          inner1Buffered.releaseQueue()
+        case "new" =>
+          inner2Buffered.releaseQueue()
+        case "outer" =>
+          outerBuffered.releaseQueue()
       }
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
       
