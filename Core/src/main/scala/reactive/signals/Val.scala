@@ -5,7 +5,7 @@ import reactive.events.EventStream
 import reactive.events.NothingEventStream
 import scala.concurrent.stm._
 
-case class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
+case class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, A] {
   impl =>
 
   override def now(implicit inTxn: InTxn) = single.now
