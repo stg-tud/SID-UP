@@ -11,7 +11,7 @@ import scala.concurrent.stm._
 
 trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   impl =>
-  protected val value: Ref[A]
+  protected def value: Ref[A]
   protected def updateValue(tx: InTxn, newValue: A): Option[A] = {
     if (tx.synchronized(value.swap(newValue)(tx)) == newValue) {
       None
@@ -37,7 +37,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 
 object SignalImpl {
   trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] with Signal.View[A] {
-    override protected val impl: SignalImpl[A]
+    override protected def impl: SignalImpl[A]
     override def now = atomic { tx => tx.synchronized(impl.value.get(tx)) }
     override lazy val changes: EventStream[A] = atomic { impl.changes(_) }
     override lazy val delta = atomic { impl.delta(_) }

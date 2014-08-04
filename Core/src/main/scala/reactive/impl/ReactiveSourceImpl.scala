@@ -27,7 +27,7 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
 
 object ReactiveSourceImpl {
   trait ViewImpl[A] extends Reactive.View[A] {
-    protected val impl: ReactiveSourceImpl[A, _]
+    protected def impl: ReactiveSourceImpl[A, _]
     override protected[reactive] def sourceDependencies = impl.uuidSet
   }
 }

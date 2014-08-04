@@ -5,5 +5,5 @@ import reactive.events.EventStream
 import javax.swing.JComponent
 
 trait ReactiveCommittable {
-  val commits: EventStream[ActionEvent]
+  def commits: EventStream[ActionEvent]
 }

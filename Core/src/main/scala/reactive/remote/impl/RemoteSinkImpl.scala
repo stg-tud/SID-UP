@@ -32,7 +32,7 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
 
 object RemoteSinkImpl {
   trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] {
-    override protected val impl: RemoteSinkImpl[_] with ReactiveImpl[A, _]
+    override protected def impl: RemoteSinkImpl[_] with ReactiveImpl[A, _]
     override def sourceDependencies = impl._sourceDependencies
   }
 }

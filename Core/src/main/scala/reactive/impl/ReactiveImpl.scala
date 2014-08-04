@@ -85,7 +85,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 object ReactiveImpl extends LazyLogging {
 
   trait ViewImpl[O] extends Reactive.View[O] {
-    protected val impl: ReactiveImpl[O, _]
+    protected def impl: ReactiveImpl[O, _]
 
     override def log: Signal[Seq[O]] = atomic { impl.log(_) }
 

@@ -38,7 +38,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
 object DependentReactive {
   trait ViewImpl[P] extends Reactive.View[P] {
-    protected val impl: DependentReactive[_]
+    protected def impl: DependentReactive[_]
     override protected[reactive] def sourceDependencies = impl._sourceDependencies.single.get
   }
 }

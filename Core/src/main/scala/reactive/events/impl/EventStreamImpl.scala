@@ -25,7 +25,7 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
 
 object EventStreamImpl {
   trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] with EventStream.View[A] {
-    override protected val impl: EventStreamImpl[A]
+    override protected def impl: EventStreamImpl[A]
     override def hold[B >: A](initialValue: B): Signal[B] = atomic { impl.hold(initialValue)(_) }
     override def map[B](op: A => B): EventStream[B] = atomic { impl.map(op)(_) }
     override def collect[B](op: PartialFunction[A, B]): EventStream[B] = atomic { impl.collect(op)(_) }
