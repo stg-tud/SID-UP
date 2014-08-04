@@ -96,7 +96,7 @@ object log2dot {
       case None => e.toString
     }
 
-    val labelledEdges = edges.map{labelledEdge(_)}
+    val labelledEdges = edges.map{labelledEdge}
 
     (Seq("digraph Net {") ++ nodes ++ deletedEdges ++ labelledEdges ++ Seq("}")).mkString("\n")
   }

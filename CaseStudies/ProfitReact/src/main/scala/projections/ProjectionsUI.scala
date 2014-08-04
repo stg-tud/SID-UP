@@ -109,7 +109,7 @@ object ProjectionsUI {
     val orderSpinner = new ReactiveSpinner(10)
     val clientButton = new ReactiveButton("New Order")
 
-    val orderStream = orderSpinner.value.single.pulse(clientButton.commits).single.map { Order(_) }
+    val orderStream = orderSpinner.value.single.pulse(clientButton.commits).single.map { Order }
     val orders = orderStream.single.log
 
     val model = new DefaultListModel[String]()

@@ -12,7 +12,7 @@ import reactive.Lift.single.valueToSignal
 
 class ReactiveButton(initialText: Signal[String]) extends ReactiveComponent(new JButton()) with ReactiveCommittable {
   val text = RoutableVar(initialText)
-  observeInEDT(text) { asComponent.setText(_) }
+  observeInEDT(text) { asComponent.setText }
 
   private val _clicks = EventSource[ActionEvent]()
   asComponent.addActionListener(new ActionListener() {

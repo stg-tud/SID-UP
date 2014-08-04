@@ -19,7 +19,7 @@ class ReactiveList[T](initialElements: Signal[List[T]]) extends {
   val elements = RoutableVar(initialElements)
   observeInEDT(elements) { newElements =>
     model.removeAllElements()
-    newElements.foreach { model.addElement(_) };
+    newElements.foreach { model.addElement };
   }
   private val _selection = Var(asComponent.getSelectedValuesList().toList.headOption)
   asComponent.addListSelectionListener(new ListSelectionListener() {

@@ -22,17 +22,17 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
 
   lazy val foreground = {
     val routableVar = RoutableVar(asComponent.getForeground())
-    observeInEDT(routableVar) { asComponent.setForeground(_) }
+    observeInEDT(routableVar) { asComponent.setForeground }
     routableVar
   }
   lazy val background = {
     val routableVar = RoutableVar(asComponent.getBackground())
-    observeInEDT(routableVar) { asComponent.setBackground(_) }
+    observeInEDT(routableVar) { asComponent.setBackground }
     routableVar
   }
   lazy val enabled = {
     val routableVar = RoutableVar(asComponent.isEnabled())
-    observeInEDT(routableVar) { asComponent.setEnabled(_) }
+    observeInEDT(routableVar) { asComponent.setEnabled }
     routableVar
   }
 
@@ -93,8 +93,8 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     source
   }
 
-  lazy val wrappedMouseDowns = mouseDowns.single.map(ReactiveComponent.Down(_))
-  lazy val wrappedMouseUps = mouseUps.single.map(ReactiveComponent.Up(_))
+  lazy val wrappedMouseDowns = mouseDowns.single.map(ReactiveComponent.Down)
+  lazy val wrappedMouseUps = mouseUps.single.map(ReactiveComponent.Up)
   lazy val wrappedMouseDrags = mouseDrags.single.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
 
   lazy val mouseEvents = wrappedMouseDowns.single.merge (wrappedMouseUps, wrappedMouseDrags)

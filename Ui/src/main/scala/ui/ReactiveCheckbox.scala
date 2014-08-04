@@ -12,7 +12,7 @@ import reactive.Lift.single.valueToSignal
 
 class ReactiveCheckbox(initialText: Signal[String]) extends ReactiveComponent(new JCheckBox()) with ReactiveInput[Boolean] {
   val text = RoutableVar(initialText)
-  observeInEDT(text) { asComponent.setText(_) }
+  observeInEDT(text) { asComponent.setText }
 
   private val _selected = Var(asComponent.isSelected())
   asComponent.addItemListener(new ItemListener {

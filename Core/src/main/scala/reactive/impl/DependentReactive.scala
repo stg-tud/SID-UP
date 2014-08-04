@@ -11,7 +11,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
   override def toString = name
 
-  private val _sourceDependencies = Ref(scala.concurrent.stm.atomic { calculateSourceDependencies(_) })
+  private val _sourceDependencies = Ref(scala.concurrent.stm.atomic { calculateSourceDependencies })
   override def sourceDependencies(tx: InTxn) = tx.synchronized(_sourceDependencies()(tx))
 
   protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean): Unit = {
