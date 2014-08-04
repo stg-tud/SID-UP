@@ -1,19 +1,11 @@
 package ui
-import javax.swing.JComponent
-import reactive.Reactive
-import javax.swing.event.AncestorListener
-import javax.swing.event.AncestorEvent
-import reactive.signals.Signal
 import java.awt.Point
-import reactive.signals.Var
-import java.awt.event.MouseListener
-import java.awt.event.MouseEvent
-import reactive.signals.Var
-import java.awt.event.MouseAdapter
-import reactive.signals.RoutableVar
+import java.awt.event.{MouseAdapter, MouseEvent}
+import javax.swing.JComponent
+
 import reactive.Lift.single.valueToSignal
-import reactive.events.EventStream
-import reactive.events.EventSource
+import reactive.events.{EventSource, EventStream}
+import reactive.signals.{RoutableVar, Signal, Var}
 
 class ReactiveComponent[T <: JComponent](val asComponent: T) {
   protected def observeInEDT[A](reactive: Signal[A])(op: A => Unit) = {

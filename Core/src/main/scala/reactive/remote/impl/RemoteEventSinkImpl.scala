@@ -1,7 +1,7 @@
 package reactive.remote.impl
 
-import reactive.remote.RemoteDependency
 import reactive.events.impl.EventStreamImpl
+import reactive.remote.RemoteDependency
 
 class RemoteEventSinkImpl[A](dependency: RemoteDependency[A]) extends RemoteSinkImpl[A](dependency) with EventStreamImpl[A] {
   self =>

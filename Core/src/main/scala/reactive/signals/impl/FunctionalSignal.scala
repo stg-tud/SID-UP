@@ -3,6 +3,7 @@ package signals
 package impl
 
 import reactive.impl.MultiDependentReactive
+
 import scala.concurrent.stm.InTxn
 
 class FunctionalSignal[A](private val op: InTxn => A, private val inputs: Iterable[Signal[_]], tx: InTxn) extends {

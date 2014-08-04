@@ -1,8 +1,9 @@
 package reactive.remote.impl
 
+import reactive.Transaction
 import reactive.remote.RemoteSignalDependency
 import reactive.signals.impl.SignalImpl
-import reactive.Transaction
+
 import scala.concurrent.stm._
 
 class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends RemoteSinkImpl[A](dependency) with SignalImpl[A] {

@@ -1,17 +1,11 @@
 package projections.benchmark
 
 import java.util.concurrent.Semaphore
-import org.scalameter.api._
-import projections._
-import reactive.events.EventSource
-import reactive.signals.Var
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.future
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.concurrent.Semaphore
+
+import com.typesafe.scalalogging.LazyLogging
 import projections._
 import reactive.remote.RemoteReactives
-import com.typesafe.scalalogging.LazyLogging
+import reactive.signals.Var
 
 trait InitReactives extends TestCommon {
   import projections.reactives._

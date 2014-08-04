@@ -1,12 +1,9 @@
 package projections.reactives
 
-import reactive.events.EventSource
-import reactive.events.EventStream
 import reactive.Reactive
-import reactive.signals.RoutableVar
-import reactive.signals.Signal
+import reactive.signals.{RoutableVar, Signal}
+
 import scala.language.higherKinds
-import projections.Order
 
 class Registry[V, R[+V] <: Reactive[_, _]] {
   var reactives = Map[String, R[V]]()

@@ -3,8 +3,10 @@ package events
 package impl
 
 import java.util.UUID
+
 import reactive.impl.MultiDependentReactive
 import reactive.signals.Signal
+
 import scala.concurrent.stm.InTxn
 
 /** triggers an event with the value of `signal` every time `events` fires

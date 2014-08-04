@@ -1,17 +1,11 @@
 package ui
 
-import java.awt.event.ActionEvent
+import java.awt.event.{ActionEvent, ActionListener}
 import javax.swing.JTextField
-import java.awt.event.ActionListener
-import javax.swing.JComponent
-import javax.swing.event.DocumentListener
-import javax.swing.event.DocumentEvent
-import reactive.Reactive
-import reactive.signals.Var
-import java.awt.EventQueue
-import reactive.signals.Signal
-import reactive.events.EventStream
-import reactive.events.EventSource
+import javax.swing.event.{DocumentEvent, DocumentListener}
+
+import reactive.events.{EventSource, EventStream}
+import reactive.signals.{Signal, Var}
 
 class ReactiveTextField() extends ReactiveComponent(new JTextField()) with ReactiveCommittable {
   private val _commits = EventSource[ActionEvent]()

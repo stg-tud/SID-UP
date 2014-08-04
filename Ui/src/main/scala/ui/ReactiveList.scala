@@ -1,15 +1,10 @@
 package ui
 
-import reactive.signals.Signal
-import javax.swing.JList
-import javax.swing.ListModel
-import javax.swing.DefaultListModel
-import javax.swing.AbstractListModel
-import reactive.signals.RoutableVar
-import javax.swing.event.ListSelectionListener
-import javax.swing.ListSelectionModel
-import javax.swing.event.ListSelectionEvent
-import reactive.signals.Var
+import javax.swing.{DefaultListModel, JList, ListSelectionModel}
+import javax.swing.event.{ListSelectionEvent, ListSelectionListener}
+
+import reactive.signals.{RoutableVar, Signal, Var}
+
 import scala.collection.JavaConversions._
 
 class ReactiveList[T](initialElements: Signal[List[T]]) extends {

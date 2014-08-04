@@ -1,6 +1,7 @@
 package projections
 
 import java.util.Date
+
 import scala.language.implicitConversions
 
 case class Order(value: Int) {

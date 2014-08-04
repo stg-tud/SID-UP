@@ -2,8 +2,9 @@ package reactive
 package events
 package impl
 
-import reactive.signals.Signal
 import reactive.impl.SingleDependentReactive
+import reactive.signals.Signal
+
 import scala.concurrent.stm._
 
 class DeltaEventStream[A](val dependency: Signal[A], constructionTransaction: InTxn) extends SingleDependentReactive(constructionTransaction) with DependentEventStreamImpl[(A, A)] {

@@ -1,16 +1,10 @@
 package ui.example
 
-import javax.swing.JFrame
 import java.awt.BorderLayout
+import javax.swing.{Box, BoxLayout, JFrame, JLabel, JScrollPane, WindowConstants}
+
 import reactive.Lift.single._
-import reactive.LiftableWrappers._
-import ui.ReactiveLabel
-import ui.ReactiveList
-import javax.swing.WindowConstants
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.JLabel
-import javax.swing.JScrollPane
+import ui.{ReactiveLabel, ReactiveList}
 
 object ColorList extends App {
   // domain definitions

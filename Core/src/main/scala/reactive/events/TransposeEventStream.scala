@@ -1,9 +1,10 @@
 package reactive.events
 
-import reactive.impl.DynamicDependentReactive
-import reactive.{Reactive, Transaction}
-import reactive.signals.Signal
+import reactive.Reactive
 import reactive.events.impl.DependentEventStreamImpl
+import reactive.impl.DynamicDependentReactive
+import reactive.signals.Signal
+
 import scala.concurrent.stm.InTxn
 
 /**

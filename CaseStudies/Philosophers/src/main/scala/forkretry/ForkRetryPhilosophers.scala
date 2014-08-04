@@ -1,15 +1,14 @@
 package forkretry
 
-import reactive.signals.Var
-import reactive.signals.Signal
-import reactive.signals.TransposeSignal
-import reactive.Lift.single._
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent._
-import scala.concurrent.stm._
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import java.util.concurrent.TimeoutException
+
+import reactive.Lift.single._
+import reactive.signals.{Signal, TransposeSignal, Var}
+
+import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.{Await, _}
+import scala.concurrent.duration._
+import scala.concurrent.stm._
 
 object RetryFork {
   case class MultipleRequestsException(fork: RetryFork) extends RuntimeException("Multiple Requests for " + fork)
@@ -42,7 +41,7 @@ object RetryPhilosopher {
 }
 
 case class RetryPhilosopher(id: Int) {
-  import RetryPhilosopher._
+  import forkretry.RetryPhilosopher._
 
   // input
   val state: Var[State] = Var(Thinking)

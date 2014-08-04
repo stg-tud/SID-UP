@@ -2,11 +2,10 @@ package reactive
 package signals
 package impl
 
-import reactive.impl.ReactiveImpl
 import reactive.events.EventStream
-import reactive.events.impl.ChangesEventStream
-import reactive.events.impl.DeltaEventStream
-import reactive.events.impl.PulseEventStream
+import reactive.events.impl.{ChangesEventStream, DeltaEventStream, PulseEventStream}
+import reactive.impl.ReactiveImpl
+
 import scala.concurrent.stm._
 
 trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {

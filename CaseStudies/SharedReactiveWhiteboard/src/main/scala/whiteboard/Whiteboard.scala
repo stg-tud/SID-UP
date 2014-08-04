@@ -1,9 +1,10 @@
 package whiteboard
 
-import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel}
+import java.awt.event.{WindowAdapter, WindowEvent}
+import java.awt.{BorderLayout, Dimension}
 import javax.swing._
-import java.awt.{Dimension, BorderLayout}
-import java.awt.event.{WindowEvent, WindowAdapter}
+
+import whiteboard.ui.panels.{DrawingPanel, ShapeSelectionPanel, StrokeInputPanel}
 
 
 object Whiteboard {

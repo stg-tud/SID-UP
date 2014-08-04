@@ -1,7 +1,6 @@
 package reactive
 
 import java.util.UUID
-import scala.concurrent.stm.InTxn
 
 trait ReactiveSource[A] {
   def <<(value: A): Unit

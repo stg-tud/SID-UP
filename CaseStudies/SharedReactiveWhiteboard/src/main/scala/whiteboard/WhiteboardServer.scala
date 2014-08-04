@@ -1,16 +1,16 @@
 package whiteboard
 
-import java.rmi.server.UnicastRemoteObject
-import reactive.remote.RemoteReactives
-import whiteboard.figures.Shape
 import java.rmi.Naming
-import reactive.events.{ EventStream, TransposeEventStream }
-import reactive.signals.{ TransposeSignal, Signal, Var }
-import reactive.remote.impl.{ RemoteSignalSinkImpl, RemoteEventSinkImpl, RemoteSignalSourceImpl }
-import reactive.remote.RemoteDependency
-import reactive.remote.RemoteSignalDependency
-import scala.concurrent.stm._
+import java.rmi.server.UnicastRemoteObject
+
 import reactive.Lift.single._
+import reactive.events.{EventStream, TransposeEventStream}
+import reactive.remote.{RemoteDependency, RemoteSignalDependency}
+import reactive.remote.impl.{RemoteEventSinkImpl, RemoteSignalSinkImpl, RemoteSignalSourceImpl}
+import reactive.signals.{Signal, TransposeSignal, Var}
+import whiteboard.figures.Shape
+
+import scala.concurrent.stm._
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {

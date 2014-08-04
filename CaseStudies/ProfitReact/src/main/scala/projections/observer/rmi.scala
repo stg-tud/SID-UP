@@ -1,10 +1,11 @@
 package projections.observer
 
-import projections.Order
-import projections.Participant
-import scala.concurrent._
-import ExecutionContext.Implicits.global
 import java.rmi.server.UnicastRemoteObject
+
+import projections.Participant
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 @remote trait RemoteObservable[I] {
   def addObserver(o: RemoteObserver[I]): Unit

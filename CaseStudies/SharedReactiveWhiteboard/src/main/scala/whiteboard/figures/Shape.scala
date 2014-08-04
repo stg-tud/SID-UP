@@ -1,7 +1,6 @@
 package whiteboard.figures
 
-import java.awt.{BasicStroke, Graphics2D, Point, Color}
-import reactive.signals.Val
+import java.awt.{BasicStroke, Color, Graphics2D, Point}
 
 abstract class Shape(
   val strokeWidth: Int = 1,

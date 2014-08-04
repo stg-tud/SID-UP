@@ -1,8 +1,8 @@
 package reactive
 package signals
 
-import reactive.events.EventStream
-import reactive.events.NothingEventStream
+import reactive.events.{EventStream, NothingEventStream}
+
 import scala.concurrent.stm._
 
 case class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, A] {

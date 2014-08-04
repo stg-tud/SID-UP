@@ -1,10 +1,11 @@
 package reactive.remote.impl
 
 import java.rmi.server.UnicastRemoteObject
-import reactive.events.impl.EventStreamImpl
+
 import reactive.Transaction
-import reactive.remote.{ RemoteDependant, RemoteDependency }
 import reactive.impl.ReactiveImpl
+import reactive.remote.{RemoteDependant, RemoteDependency}
+
 import scala.concurrent.stm.InTxn
 
 class RemoteSinkImpl[P](val dependency: RemoteDependency[P])

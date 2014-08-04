@@ -3,6 +3,7 @@ package signals
 package impl
 
 import reactive.impl.DynamicDependentReactive
+
 import scala.concurrent.stm.InTxn
 
 class FlattenSignal[A](val outer: Signal[Signal[A]], tx: InTxn) extends DynamicDependentReactive(tx) with DependentSignalImpl[A] {

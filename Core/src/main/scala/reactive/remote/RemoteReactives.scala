@@ -2,9 +2,9 @@ package reactive.remote
 
 import java.rmi.Naming
 
-import reactive.signals.Signal
 import reactive.events.EventStream
 import reactive.remote.impl._
+import reactive.signals.Signal
 
 
 object RemoteReactives {

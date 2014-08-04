@@ -1,10 +1,9 @@
 package reactive
 
-import java.util.UUID
-import scala.collection.immutable.TreeMap
-import scala.concurrent.stm._
-import reactive.impl.ReactiveImpl
 import com.typesafe.scalalogging.LazyLogging
+import reactive.impl.ReactiveImpl
+
+import scala.concurrent.stm._
 
 class TransactionBuilder extends LazyLogging {
   private var boxes = Map[ReactiveSource[_], Any]()

@@ -2,6 +2,7 @@ package reactive
 package impl
 
 import java.util.UUID
+
 import scala.concurrent.stm.InTxn
 
 abstract class SingleDependentReactive(tx: InTxn) {

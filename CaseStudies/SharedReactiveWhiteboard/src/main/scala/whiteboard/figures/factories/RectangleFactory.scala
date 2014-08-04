@@ -1,7 +1,8 @@
 package whiteboard.figures.factories
 
+import java.awt.{Color, Point}
+
 import whiteboard.figures.Rectangle
-import java.awt.{Point, Color}
 
 class RectangleFactory extends ShapeFactory {
   override def nextShape(strokeWidth: Int, color: Color, mousePath: List[Point]) =

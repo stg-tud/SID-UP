@@ -1,10 +1,11 @@
 package whiteboard.ui.panels
 
 import javax.swing.{BoxLayout, JPanel}
-import ui.ReactiveButton
+
 import reactive.Lift.single._
+import ui.ReactiveButton
 import whiteboard.figures.factories._
-import whiteboard.{Command, ClearCommand}
+import whiteboard.{ClearCommand, Command}
 
 class ShapeSelectionPanel extends JPanel() {
   setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))

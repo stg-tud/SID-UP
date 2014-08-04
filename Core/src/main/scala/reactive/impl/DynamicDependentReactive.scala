@@ -2,8 +2,10 @@ package reactive
 package impl
 
 import java.util.UUID
-import scala.concurrent.stm._
+
 import com.typesafe.scalalogging.LazyLogging
+
+import scala.concurrent.stm._
 
 abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends LazyLogging {
   self: DependentReactive[_] =>

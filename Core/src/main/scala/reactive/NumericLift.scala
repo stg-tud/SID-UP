@@ -1,6 +1,7 @@
 package reactive
 
 import reactive.signals.Signal
+
 import scala.concurrent.stm.InTxn
 
 object NumericLift {

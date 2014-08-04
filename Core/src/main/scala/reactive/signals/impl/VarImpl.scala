@@ -3,6 +3,7 @@ package signals
 package impl
 
 import reactive.impl.ReactiveSourceImpl
+
 import scala.concurrent.stm._
 
 class VarImpl[A](initialValue: A) extends {

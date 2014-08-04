@@ -1,6 +1,6 @@
 package whiteboard.figures
 
-import java.awt.{Graphics2D, Point, Color}
+import java.awt.{Color, Graphics2D, Point}
 
 case class Rectangle(
   override val strokeWidth: Int = 1,

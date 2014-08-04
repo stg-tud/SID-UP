@@ -1,6 +1,7 @@
 package reactive
 
 import java.util.UUID
+
 import scala.concurrent.stm.InTxn
 
 trait ReactiveConstant[+O, +P] extends Reactive[O, P] {

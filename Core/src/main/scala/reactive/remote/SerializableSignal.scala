@@ -1,9 +1,6 @@
 package reactive.remote
 
-import java.io.Externalizable
-import java.io.ObjectInput
-import java.io.ObjectOutput
-import java.io.ObjectStreamException
+import java.io.{Externalizable, ObjectInput, ObjectOutput, ObjectStreamException}
 import java.util.UUID
 
 import reactive.signals.Signal

@@ -2,9 +2,8 @@ package reactive
 package impl
 
 import java.util.UUID
-import scala.concurrent.stm.Ref
-import reactive.Reactive.PulsedState
-import scala.concurrent.stm.InTxn
+
+import scala.concurrent.stm.{InTxn, Ref}
 
 trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, P] =>

@@ -1,21 +1,13 @@
 package ui
 
-import javax.swing.JSpinner
-import javax.swing.SpinnerNumberModel
-import javax.swing.event.ChangeListener
-import javax.swing.event.ChangeEvent
-import java.awt.event.ActionEvent
-import javax.swing.JFormattedTextField
+import java.awt.event.{ActionEvent, ActionListener}
+import javax.swing.{JFormattedTextField, JSpinner, SpinnerNumberModel}
+import javax.swing.event.{ChangeEvent, ChangeListener}
 import javax.swing.text.DefaultFormatter
-import java.awt.event.ActionListener
-import javax.swing.JComponent
-import reactive.signals.Var
-import reactive.Reactive
-import reactive.signals.Signal
-import reactive.events.EventSource
-import reactive.events.EventStream
-import reactive.signals.RoutableVar
+
 import reactive.Lift.single.valueToSignal
+import reactive.events.{EventSource, EventStream}
+import reactive.signals.{RoutableVar, Signal, Var}
 
 class ReactiveSpinner(initialValue: Int) extends {
   private val model = new SpinnerNumberModel(initialValue, Int.MinValue, Int.MaxValue, 1)

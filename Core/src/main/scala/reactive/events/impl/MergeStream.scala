@@ -3,6 +3,7 @@ package events
 package impl
 
 import reactive.impl.MultiDependentReactive
+
 import scala.concurrent.stm.InTxn
 
 class MergeStream[A](private val streams: Iterable[EventStream[A]], tx: InTxn) extends {

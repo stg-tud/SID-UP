@@ -1,9 +1,10 @@
 package whiteboard.ui.panels
 
+import java.awt.{Color, Graphics, Graphics2D}
 import javax.swing.JPanel
-import java.awt.{ Graphics2D, Color, Graphics }
+
 import reactive.Lift.single._
-import reactive.signals.{ RoutableVar, Signal }
+import reactive.signals.RoutableVar
 import whiteboard.figures.Shape
 
 class ShapePanel extends JPanel {

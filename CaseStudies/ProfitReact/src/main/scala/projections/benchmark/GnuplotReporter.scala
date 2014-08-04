@@ -1,9 +1,8 @@
 package projections.benchmark
 
 import org.scalameter._
-import org.scalameter.reporting._
 import org.scalameter.utils.Tree
-import scalax.io._
+
 import scalax.file.Path
 
 class GnuplotReporter extends Reporter {

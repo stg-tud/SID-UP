@@ -1,12 +1,12 @@
 package whiteboard.ui.panels
 
-import javax.swing._
 import java.awt.{Color, FlowLayout}
-import reactive.Lift.single._
-import ui.ReactiveButton
-import ui.ReactiveSpinner
+import javax.swing._
 import javax.swing.event.{ChangeEvent, ChangeListener}
+
+import reactive.Lift.single._
 import reactive.signals.Var
+import ui.{ReactiveButton, ReactiveSpinner}
 
 class StrokeInputPanel extends JPanel(new FlowLayout) {
   private val colorWindow = new ColorWindow

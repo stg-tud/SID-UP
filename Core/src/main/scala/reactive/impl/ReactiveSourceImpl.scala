@@ -2,6 +2,7 @@ package reactive
 package impl
 
 import java.util.UUID
+
 import scala.concurrent.stm.InTxn
 
 trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {

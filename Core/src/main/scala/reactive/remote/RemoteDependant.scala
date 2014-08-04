@@ -1,8 +1,8 @@
 package reactive.remote
 
-import reactive.Transaction
 import java.util.UUID
-import java.rmi.Remote
+
+import reactive.Transaction
 
 /**
  * This is the remote equivalent to Reactive.Dependant

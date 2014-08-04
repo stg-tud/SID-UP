@@ -1,9 +1,9 @@
 package reactive
 
-import reactive.signals.Val
-import reactive.signals.impl.FunctionalSignal
 import reactive.events.EventStream
-import reactive.signals.Signal
+import reactive.signals.{Signal, Val}
+import reactive.signals.impl.FunctionalSignal
+
 import scala.concurrent.stm._
 import scala.language.implicitConversions
 

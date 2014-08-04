@@ -1,9 +1,8 @@
 package reactive.signals.impl
 
-import reactive.Transaction
 import reactive.impl.DependentReactive
-import scala.concurrent.stm.Ref
-import scala.concurrent.stm.InTxn
+
+import scala.concurrent.stm.{InTxn, Ref}
 
 trait DependentSignalImpl[A] extends SignalImpl[A] with DependentReactive[A] {
   self =>

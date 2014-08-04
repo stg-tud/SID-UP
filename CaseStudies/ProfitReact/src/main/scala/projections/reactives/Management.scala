@@ -1,11 +1,8 @@
 package projections.reactives
 
-import Numeric.Implicits._
-import projections.Order
-import reactive.Lift._
 import reactive.NumericLift.single._
-import reactive.signals.Signal
 import reactive.remote.RemoteReactives
+import reactive.signals.Signal
 
 class Management {
   val purchases: Signal[Int] = RemoteReactives.lookupSignal[Int](projections.purchases)

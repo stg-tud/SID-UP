@@ -5,6 +5,7 @@ package impl
 import reactive.impl.ReactiveImpl
 import reactive.signals.Signal
 import reactive.signals.impl.FoldSignal
+
 import scala.concurrent.stm._
 
 trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {

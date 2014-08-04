@@ -1,32 +1,15 @@
 package projections
 
-import java.awt.BorderLayout
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JScrollPane
-import javax.swing.WindowConstants
-import reactive.Lift.single._
-import reactive.LiftableWrappers._
-import reactive.signals._
-import ui.ReactiveButton
-import ui.ReactiveLabel
-import ui.ReactiveList
-import ui.ReactiveSpinner
-import java.awt.Window
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-import java.awt.Color
-import javax.swing.JComponent
-import projections.reactives._
-import reactive.events.EventStream
-import reactive.events.EventSource
-import javax.swing.DefaultListModel
+import java.awt.{BorderLayout, Window}
 import java.util.Date
-import javax.swing.JList
-import ui.ReactiveCheckbox
-import javax.swing.ScrollPaneConstants
+import javax.swing.{DefaultListModel, JComponent, JFrame, JLabel, JList, JScrollPane, ScrollPaneConstants, WindowConstants}
+
+import reactive.Lift.single._
+import reactive.signals._
+import ui.{ReactiveButton, ReactiveCheckbox, ReactiveLabel, ReactiveSpinner}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 object ProjectionsUI {
 

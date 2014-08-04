@@ -2,6 +2,7 @@ package reactive
 package events
 
 import reactive.signals.Signal
+
 import scala.concurrent.stm.InTxn
 
 trait EventStream[+A] extends Reactive[A, A] {

@@ -1,15 +1,16 @@
 package reactive
 package impl
 
-import java.util.concurrent.Executors
-import scala.util.Failure
-import scala.util.Try
-import Reactive._
-import scala.concurrent.stm._
-import reactive.signals.Signal
 import java.lang.reflect.InvocationTargetException
-import scala.util.control.ControlThrowable
+import java.util.concurrent.Executors
+
 import com.typesafe.scalalogging.LazyLogging
+import reactive.Reactive._
+import reactive.signals.Signal
+
+import scala.concurrent.stm._
+import scala.util.{Failure, Try}
+import scala.util.control.ControlThrowable
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction.stmTx)).isEmpty

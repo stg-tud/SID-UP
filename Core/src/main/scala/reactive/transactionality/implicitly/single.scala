@@ -1,7 +1,8 @@
 package reactive.transactionality.implicitly
 
-import reactive.signals.Signal
 import reactive.events.EventStream
+import reactive.signals.Signal
+
 import scala.language.implicitConversions
 
 object single {

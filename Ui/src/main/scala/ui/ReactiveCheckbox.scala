@@ -1,14 +1,9 @@
 package ui
 
+import java.awt.event.{ItemEvent, ItemListener}
 import javax.swing.JCheckBox
-import java.awt.event.ItemListener
-import java.awt.event.ItemEvent
-import javax.swing.JComponent
-import reactive.Reactive
-import reactive.signals.Var
-import reactive.signals.Signal
-import reactive.signals.RoutableVar
-import reactive.Lift.single.valueToSignal
+
+import reactive.signals.{RoutableVar, Signal, Var}
 
 class ReactiveCheckbox(initialText: Signal[String]) extends ReactiveComponent(new JCheckBox()) with ReactiveInput[Boolean] {
   val text = RoutableVar(initialText)

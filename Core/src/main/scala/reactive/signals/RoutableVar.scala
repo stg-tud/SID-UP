@@ -1,8 +1,10 @@
 package reactive
 package signals
 
-import reactive.events.EventStream
 import java.util.UUID
+
+import reactive.events.EventStream
+
 import scala.concurrent.stm.InTxn
 
 /**

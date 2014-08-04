@@ -1,7 +1,6 @@
 package projections.observer
 
-import projections.Order
-import projections.Participant
+import projections.{Order, Participant}
 
 case class Message(total: Int, direct: Boolean)
 

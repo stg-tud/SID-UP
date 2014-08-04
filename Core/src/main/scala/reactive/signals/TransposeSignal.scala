@@ -1,8 +1,9 @@
 package reactive.signals
 
+import reactive.Reactive
 import reactive.impl.DynamicDependentReactive
-import reactive.{ Reactive, Transaction }
 import reactive.signals.impl.DependentSignalImpl
+
 import scala.concurrent.stm.InTxn
 
 /**

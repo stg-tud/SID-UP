@@ -1,11 +1,11 @@
 package reactive.remote.impl
 
-import reactive.Reactive
-import reactive.Transaction
-import reactive.impl.ReactiveImpl
-import java.util.UUID
-import reactive.remote.{RemoteDependency, RemoteDependant}
 import java.rmi.server.UnicastRemoteObject
+import java.util.UUID
+
+import reactive.{Reactive, Transaction}
+import reactive.impl.ReactiveImpl
+import reactive.remote.{RemoteDependant, RemoteDependency}
 
 abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[P] {
   def dependency: Reactive[_, P]

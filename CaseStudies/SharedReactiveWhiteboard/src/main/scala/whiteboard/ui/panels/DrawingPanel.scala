@@ -1,18 +1,18 @@
 package whiteboard.ui.panels
 
-import java.awt.{Dimension, Color}
-import whiteboard.figures.factories.ShapeFactory
+import java.awt.{Color, Dimension}
+import java.rmi.Naming
+import javax.swing.JOptionPane
+
+import reactive.events.EventStream
+import reactive.remote.impl.{RemoteEventSourceImpl, RemoteSignalSinkImpl, RemoteSignalSourceImpl}
 import reactive.signals.Signal
 import ui.ReactiveComponent
-import whiteboard.figures.Shape
-import ui.ReactiveComponent.{Drag, Down, MouseEvent}
-import reactive.events.EventStream
-import java.rmi.Naming
+import ui.ReactiveComponent.{Down, Drag, MouseEvent}
 import whiteboard.WhiteboardServer.RemoteWhiteboard
-import reactive.remote.RemoteReactives
-import reactive.remote.impl.{RemoteSignalSourceImpl, RemoteEventSourceImpl, RemoteSignalSinkImpl}
-import javax.swing.JOptionPane
-import whiteboard.{ShapeCommand, Command}
+import whiteboard.figures.Shape
+import whiteboard.figures.factories.ShapeFactory
+import whiteboard.{Command, ShapeCommand}
 
 class DrawingPanel(
   val nextShapeFactory: Signal[ShapeFactory], 

@@ -1,9 +1,6 @@
 package reactive
 
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-import reactive.signals.Var
-import reactive.signals.Signal
+import reactive.signals.{Signal, Var}
 
 object Environment extends App {
   lazy val timestamp: Signal[Long] = {

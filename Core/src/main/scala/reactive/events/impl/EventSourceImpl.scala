@@ -3,6 +3,7 @@ package events
 package impl
 
 import reactive.impl.ReactiveSourceImpl
+
 import scala.concurrent.stm.InTxn
 
 class EventSourceImpl[A] extends EventStreamImpl[A] with ReactiveSourceImpl[A, A] with EventSource[A] {

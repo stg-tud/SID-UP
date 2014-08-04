@@ -1,7 +1,9 @@
 package reactive
 
 import java.util.UUID
+
 import reactive.signals.Signal
+
 import scala.concurrent.stm.InTxn
 
 trait Reactive[+O, +P] extends Reactive.Dependency {
