@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 
 class FoldTest extends FunSuite {
   test("fold works") {
-    val in = EventSource[Int]
+    val in = EventSource[Int]()
     val out = in.single.fold(List.empty[Int]) { (list, value) => value :: list }
     val log = out.single.log
 

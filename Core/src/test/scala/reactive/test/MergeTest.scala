@@ -6,9 +6,9 @@ import reactive.signals.Var
 
 class MergeTest extends FunSuite {
   test("merge event stream works") {
-    val e1 = EventSource[Object]
-    val e2 = EventSource[Int]
-    val e3 = EventSource[Long]
+    val e1 = EventSource[Object]()
+    val e2 = EventSource[Int]()
+    val e3 = EventSource[Long]()
     val merge = e1.single.merge[Any](e2, e3)
 
     val mergeLog = merge.single.log
@@ -37,7 +37,7 @@ class MergeTest extends FunSuite {
     assertResult(Set(sx.uuid)) { sx.single.sourceDependencies }
     val cx = sx.single.changes
     assertResult(Set(sx.uuid)) { cx.single.sourceDependencies }
-    val e1 = EventSource[Int]
+    val e1 = EventSource[Int]()
     val merged = e1.single.merge(cx)
   }
 }

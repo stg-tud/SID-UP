@@ -24,7 +24,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened.single.now }
     assertResult(Set(inner.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification1 = log.dequeue
+    val notification1 = log.dequeue()
     assertResult(true) { notification1.valueChanged }
     assertResult(234) { notification1.newValue }
     assertResult(false) { notification1.sourceDependenciesChanged }
@@ -34,7 +34,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened.single.now }
     assertResult(Set(inner.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification2 = log.dequeue
+    val notification2 = log.dequeue()
     assertResult(false) { notification2.valueChanged }
     assertResult(234) { notification2.newValue }
     assertResult(false) { notification2.sourceDependenciesChanged }
@@ -44,7 +44,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(1) { flattened.single.now }
     assertResult(Set(inner.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification3 = log.dequeue
+    val notification3 = log.dequeue()
     assertResult(true) { notification3.valueChanged }
     assertResult(1) { notification3.newValue }
     assertResult(false) { notification3.sourceDependenciesChanged }
@@ -65,7 +65,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened.single.now }
     assertResult(Set(inner2.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification1 = log.dequeue
+    val notification1 = log.dequeue()
     assertResult(true) { notification1.valueChanged }
     assertResult(234) { notification1.newValue }
     assertResult(true) { notification1.sourceDependenciesChanged }
@@ -76,7 +76,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened.single.now }
     assertResult(Set(inner3.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification2 = log.dequeue
+    val notification2 = log.dequeue()
     assertResult(false) { notification2.valueChanged }
     assertResult(234) { notification2.newValue }
     assertResult(true) { notification2.sourceDependenciesChanged }
@@ -89,7 +89,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(444) { flattened.single.now }
     assertResult(Set(inner3.uuid, outer.uuid)) { flattened.single.sourceDependencies }
     assertResult(1) { log.size }
-    val notification3 = log.dequeue
+    val notification3 = log.dequeue()
     assertResult(true) { notification3.valueChanged }
     assertResult(444) { notification3.newValue }
     assertResult(false) { notification3.sourceDependenciesChanged }
@@ -116,7 +116,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(123) { flattened1.single.now }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.single.sourceDependencies }
     assertResult(1) { log1.size }
-    val notification1 = log1.dequeue
+    val notification1 = log1.dequeue()
     assertResult(true) { notification1.valueChanged }
     assertResult(123) { notification1.newValue }
     assertResult(false) { notification1.sourceDependenciesChanged }
@@ -125,7 +125,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(123) { flattened2.single.now }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.single.sourceDependencies }
     assertResult(1) { log2.size }
-    val notification2 = log2.dequeue
+    val notification2 = log2.dequeue()
     assertResult(true) { notification2.valueChanged }
     assertResult(123) { notification2.newValue }
     assertResult(false) { notification2.sourceDependenciesChanged }
@@ -136,7 +136,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened1.single.now }
     assertResult(Set(middle.uuid, outer1.uuid)) { flattened1.single.sourceDependencies }
     assertResult(1) { log1.size }
-    val notification3 = log1.dequeue
+    val notification3 = log1.dequeue()
     assertResult(true) { notification3.valueChanged }
     assertResult(234) { notification3.newValue }
     assertResult(true) { notification3.sourceDependenciesChanged }
@@ -145,7 +145,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened2.single.now }
     assertResult(Set(middle.uuid, outer2.uuid)) { flattened2.single.sourceDependencies }
     assertResult(1) { log2.size }
-    val notification4 = log2.dequeue
+    val notification4 = log2.dequeue()
     assertResult(true) { notification4.valueChanged }
     assertResult(234) { notification4.newValue }
     assertResult(true) { notification4.sourceDependenciesChanged }
@@ -161,7 +161,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened1.single.now }
     assertResult(Set(inner.uuid, middle.uuid, outer1.uuid)) { flattened1.single.sourceDependencies }
     assertResult(1, log1) { log1.size }
-    val notification5 = log1.dequeue
+    val notification5 = log1.dequeue()
     assertResult(false) { notification5.valueChanged }
     assertResult(234) { notification5.newValue }
     assertResult(true) { notification5.sourceDependenciesChanged }
@@ -170,7 +170,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(234) { flattened2.single.now }
     assertResult(Set(inner.uuid, middle.uuid, outer2.uuid)) { flattened2.single.sourceDependencies }
     assertResult(1) { log2.size }
-    val notification6 = log2.dequeue
+    val notification6 = log2.dequeue()
     assertResult(false) { notification6.valueChanged }
     assertResult(234) { notification6.newValue }
     assertResult(true) { notification6.sourceDependenciesChanged }
@@ -185,7 +185,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(0) { flattened1.single.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.single.sourceDependencies }
     assertResult(1) { log1.size }
-    val notification7 = log1.dequeue
+    val notification7 = log1.dequeue()
     assertResult(true) { notification7.valueChanged }
     assertResult(0) { notification7.newValue }
     assertResult(true) { notification7.sourceDependenciesChanged }
@@ -194,7 +194,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(0) { flattened2.single.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.single.sourceDependencies }
     assertResult(1) { log2.size }
-    val notification8 = log2.dequeue
+    val notification8 = log2.dequeue()
     assertResult(true) { notification8.valueChanged }
     assertResult(0) { notification8.newValue }
     assertResult(true) { notification8.sourceDependenciesChanged }
@@ -205,7 +205,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(999) { flattened1.single.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer1.uuid)) { flattened1.single.sourceDependencies }
     assertResult(1) { log1.size }
-    val notification9 = log1.dequeue
+    val notification9 = log1.dequeue()
     assertResult(true) { notification9.valueChanged }
     assertResult(999) { notification9.newValue }
     assertResult(false) { notification9.sourceDependenciesChanged }
@@ -214,7 +214,7 @@ class FlattenSignalTest extends FunSuite {
     assertResult(999) { flattened2.single.now }
     assertResult(Set(inner2.uuid, middle2.uuid, outer2.uuid)) { flattened2.single.sourceDependencies }
     assertResult(1) { log2.size }
-    val notification10 = log2.dequeue
+    val notification10 = log2.dequeue()
     assertResult(true) { notification10.valueChanged }
     assertResult(999) { notification10.newValue }
     assertResult(false) { notification10.sourceDependenciesChanged }

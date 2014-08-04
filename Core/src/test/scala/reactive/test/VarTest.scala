@@ -18,7 +18,7 @@ class VarTest extends FunSuite {
     assertResult(2) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
-    val event1 = log.dequeue
+    val event1 = log.dequeue()
     assertResult(false) { event1.sourceDependenciesChanged }
     assertResult(Set(v.uuid)) { event1.newSourceDependencies }
     assertResult(true) { event1.valueChanged }
@@ -29,7 +29,7 @@ class VarTest extends FunSuite {
     assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
-    val event2 = log.dequeue
+    val event2 = log.dequeue()
     assertResult(false) { event2.sourceDependenciesChanged }
     assertResult(Set(v.uuid)) { event2.newSourceDependencies }
     assertResult(true) { event2.valueChanged }
@@ -40,7 +40,7 @@ class VarTest extends FunSuite {
     assertResult(3) { v.single.now }
     assertResult(Set(v.uuid)) { v.single.sourceDependencies }
     assertResult(1) { log.size }
-    val event3 = log.dequeue
+    val event3 = log.dequeue()
     assertResult(false) { event3.sourceDependenciesChanged }
     assertResult(Set(v.uuid)) { event3.newSourceDependencies }
     assertResult(false) { event3.valueChanged }

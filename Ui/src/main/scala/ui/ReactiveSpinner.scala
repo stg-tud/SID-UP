@@ -46,7 +46,7 @@ class ReactiveSpinner(initialValue: Int) extends {
   val value: Signal[Int] = _value
   def setValue(value: Int) = model.setValue(value)
 
-  private val _commits = EventSource[ActionEvent]
+  private val _commits = EventSource[ActionEvent]()
   private val editor = asComponent.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
     editor.addActionListener(new ActionListener() {
       override def actionPerformed(event: ActionEvent) {

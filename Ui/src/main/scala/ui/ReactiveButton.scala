@@ -14,7 +14,7 @@ class ReactiveButton(initialText: Signal[String]) extends ReactiveComponent(new 
   val text = RoutableVar(initialText)
   observeInEDT(text) { asComponent.setText(_) }
 
-  private val _clicks = EventSource[ActionEvent]
+  private val _clicks = EventSource[ActionEvent]()
   asComponent.addActionListener(new ActionListener() {
     override def actionPerformed(event: ActionEvent) = {
       _clicks << event

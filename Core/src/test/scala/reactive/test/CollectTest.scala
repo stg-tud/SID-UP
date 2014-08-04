@@ -6,7 +6,7 @@ import reactive.signals.Var
 
 class CollectTest extends FunSuite {
   test("collect event stream works") {
-    val e = EventSource[Int]
+    val e = EventSource[Int]()
 
     val isEven: PartialFunction[Int, String] = {
       case x if x % 2 == 0 => x + " is even"

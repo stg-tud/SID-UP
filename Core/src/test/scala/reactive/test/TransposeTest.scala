@@ -88,7 +88,7 @@ class TransposeTest extends FunSuite {
   }
 
   test("TransposeEventStream does something sane") {
-    val e1, e2, e3 = EventSource[String]
+    val e1, e2, e3 = EventSource[String]()
 
     val listSig = Var(Seq(e1, e2, e3))
     val transposed = scala.concurrent.stm.atomic { new TransposeEventStream[String](listSig, _) }

@@ -9,7 +9,7 @@ import org.scalatest.FunSuite
 class SnapshotTest extends FunSuite {
   test("snapshotting works") {
     val var1 = Var(1)
-    val events = EventSource[Object]
+    val events = EventSource[Object]()
     val snapshot = var1.single.snapshot(events)
     val merged = add(var1, snapshot)
 

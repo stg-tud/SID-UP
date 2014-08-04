@@ -53,9 +53,9 @@ class RandomDelays extends FunSuite {
     val valueLog = c.single.log
     assertResult(List(8)) { valueLog.single.now }
 
-    println
+    println()
     println("--------------------------")
-    println
+    println()
 
     track(s)
     track(a1)
@@ -65,9 +65,9 @@ class RandomDelays extends FunSuite {
     track(b2)
     track(c)
 
-    println
+    println()
     println("--------------------------")
-    println
+    println()
 
     timeStampPrint("updating source...")
     s << 2
@@ -78,9 +78,9 @@ class RandomDelays extends FunSuite {
     Thread.sleep(100)
     assertResult(List(8, 10)) { valueLog.single.now }
 
-    println
+    println()
     println("--------------------------")
-    println
+    println()
 
     timeStampPrint("updating source...")
     s << 4
@@ -91,9 +91,9 @@ class RandomDelays extends FunSuite {
     Thread.sleep(100)
     assertResult(List(8, 10, 16)) { valueLog.single.now }
 
-    println
+    println()
     println("--------------------------")
-    println
+    println()
 
     timeStampPrint("updating source twice ...")
     s << 5

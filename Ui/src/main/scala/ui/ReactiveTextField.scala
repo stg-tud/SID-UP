@@ -14,7 +14,7 @@ import reactive.events.EventStream
 import reactive.events.EventSource
 
 class ReactiveTextField() extends ReactiveComponent(new JTextField()) with ReactiveCommittable {
-  private val _commits = EventSource[ActionEvent]
+  private val _commits = EventSource[ActionEvent]()
   asComponent.addActionListener(new ActionListener() {
     override def actionPerformed(event: ActionEvent) = {
       _commits << event

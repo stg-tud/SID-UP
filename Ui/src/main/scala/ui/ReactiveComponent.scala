@@ -17,7 +17,7 @@ import reactive.events.EventSource
 
 class ReactiveComponent[T <: JComponent](val asComponent: T) {
   protected def observeInEDT[A](reactive: Signal[A])(op: A => Unit) = {
-    new ReactiveComponent.ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value)) }).activate
+    new ReactiveComponent.ReactiveAndObserverPair(reactive, { value: A => AWTThreadSafe(op(value))}).activate()
   }
 
   lazy val foreground = {
@@ -55,7 +55,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   }
 
   lazy val mouseDowns: EventStream[Point] = {
-    val source = EventSource[Point]
+    val source = EventSource[Point]()
     val adapter = new MouseAdapter() {
       override def mousePressed(evt: MouseEvent) {
         source << evt.getPoint()
@@ -66,7 +66,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   }
 
   lazy val mouseUps: EventStream[Point] = {
-    val source = EventSource[Point]
+    val source = EventSource[Point]()
     val adapter = new MouseAdapter() {
       override def mouseReleased(evt: MouseEvent) {
         source << evt.getPoint()
@@ -77,7 +77,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   }
 
   lazy val mouseDrags: EventStream[(Point, Point)] = {
-    val source = EventSource[(Point, Point)]
+    val source = EventSource[(Point, Point)]()
     val adapter = new MouseAdapter() {
       var lastPressedPosition: Point = _
 
