@@ -49,7 +49,7 @@ case class RetryPhilosopher(id: Int) {
   val state: Var[State] = Var(Thinking)
 
   // auto-release forks whenever eating successfully
-  state.single.changes.single.filter(_ == Eating).single.observe { _ => Future { state << Thinking } }
+  state.single.changes.single.filter(_ == Eating).single.observe { _ => state << Thinking }
 
   // intermediate
   val request = state.single.map {
