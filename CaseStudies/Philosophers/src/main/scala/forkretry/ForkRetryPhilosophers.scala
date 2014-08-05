@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Await, _}
 import scala.concurrent.duration._
 import scala.concurrent.stm._
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
 
 object RetryFork {
   case class MultipleRequestsException(fork: RetryFork) extends RuntimeException("Multiple Requests for " + fork)
@@ -26,7 +28,7 @@ case class RetryFork(id: Int) {
   val requests = requestStates.single.map(_.flatten)
 
   // output
-  val owner = requests.single.tmap { (requests, tx) =>
+  val owner = requests.single.map { requests =>
     if (requests.size > 1) throw new RetryFork.MultipleRequestsException(this)
     requests.headOption
   }
@@ -47,7 +49,7 @@ case class RetryPhilosopher(id: Int) {
   val state: Var[State] = Var(Thinking)
 
   // auto-release forks whenever eating successfully
-  state.single.changes.single.filter(_ == Eating).single.observe { _ => state << Thinking }
+  state.single.changes.single.filter(_ == Eating).single.observe { _ => Future { state << Thinking } }
 
   // intermediate
   val request = state.single.map {
@@ -64,12 +66,14 @@ case class RetryPhilosopher(id: Int) {
 
   // behavior
   def eatOnce() = {
-	// Variant 1: try new transaction until one succeeds
+    // Variant 1: try new transaction until one succeeds
     while (try {
       state << Eating
       false
     } catch {
-      case e: RetryFork.MultipleRequestsException => false
+      case e: RetryFork.MultipleRequestsException =>
+        RetryPhilosophers.log(this + " suffered fork acquisition failure!")
+        false
     }) {}
 
 	// Variant 2: rollback update transaction until it succeeds
@@ -77,7 +81,9 @@ case class RetryPhilosopher(id: Int) {
 //      try {
 //        state << Eating;
 //      } catch {
-//        case e: RetryFork.MultipleRequestsException => retry(tx)
+//        case e: RetryFork.MultipleRequestsException =>
+//          RetryPhilosophers.log(this + " suffered fork acquisition failure!")
+//          retry(tx)
 //      }
 //    }
   }
@@ -128,10 +134,11 @@ object RetryPhilosophers extends App {
   //  }
 
   // ---- table state observation ----
+  val count = new AtomicInteger(0)
   atomic { implicit tx =>
     val eatingStates = philosopher.map(_.request)
     val allEating = new TransposeSignal(eatingStates, tx).map(_.flatten)
-    allEating.changes. /*filter(!_.isEmpty).*/ observe(eating => log("Now eating: " + eating))
+    allEating.changes. /*filter(!_.isEmpty).*/ observe { eating => log((if (!eating.isEmpty) count.incrementAndGet(); else count.decrementAndGet()) + " - Now eating: " + eating) }
   }
 
   // ===================== STARTUP =====================
@@ -149,6 +156,8 @@ object RetryPhilosophers extends App {
         log(phil + " dies.")
       }
   }
+
+  threads.foreach(_._2.onFailure { case x => x.printStackTrace() })
 
   // ===================== SHUTDOWN =====================
   // wait for keyboard input

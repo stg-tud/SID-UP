@@ -3,14 +3,16 @@ package impl
 
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
 import reactive.Reactive._
 import reactive.signals.Signal
-
 import scala.concurrent.stm._
-import scala.util.{Failure, Try}
+import scala.util.{ Failure, Try }
 import scala.util.control.ControlThrowable
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.SynchronousQueue
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = (transaction.sources & sourceDependencies(transaction.stmTx)).nonEmpty
@@ -25,9 +27,9 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
   private val pulse: TxnLocal[PulsedState[P]] = TxnLocal(Pending)
 
-  override protected[reactive] def pulse(tx: InTxn): PulsedState[P] = pulse()(tx)
+  override protected[reactive] def pulse(tx: InTxn): PulsedState[P] = tx.synchronized { pulse()(tx) }
 
-  override protected[reactive] def hasPulsed(tx: InTxn): Boolean = pulse(tx).pulsed
+  override protected[reactive] def hasPulsed(tx: InTxn): Boolean = tx.synchronized { pulse(tx).pulsed }
 
   private val dependants = Ref(Set[Reactive.Dependant]())
 
@@ -44,26 +46,29 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]): Unit = {
     val tx = transaction.stmTx
 
-    def setPulse() = tx.synchronized {
+    // set pulse
+    tx.synchronized {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction)}")
       this.pulse.set(PulsedState(pulse))(tx)
     }
-    setPulse()
 
     val pulsed = pulse.isDefined
 
     ReactiveImpl.parallelForeach(tx.synchronized(dependants()(tx))) { dep =>
       dep.ping(transaction, sourceDependenciesChanged, pulsed)
-    }
+    }.collect { case Failure(e) => throw e }
 
-    def registerObserverNotifications() = tx.synchronized {
-      val value = getObserverValue(transaction, pulse.get)
+    if (pulsed) tx.synchronized {
       val obsToNotify = observers()(tx)
-      Txn.afterCommit { _ =>
-        ReactiveImpl.parallelForeach(obsToNotify) { _(value) }
-      }(tx)
+      if (obsToNotify.nonEmpty) {
+        val value = getObserverValue(transaction, pulse.get)
+        Txn.afterCommit { _ =>
+          ReactiveImpl.parallelForeach(obsToNotify) {
+            _(value)
+          }.collect { case Failure(e) => e.printStackTrace() }
+        }(tx)
+      }
     }
-    if (pulsed) registerObserverNotifications()
   }
 
   protected def getObserverValue(transaction: Transaction, pulseValue: P): O
@@ -103,7 +108,7 @@ object ReactiveImpl extends LazyLogging {
 
   import scala.concurrent._
 
-  private val pool = Executors.newCachedThreadPool()
+  private val pool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]());
   private implicit val myExecutionContext = new ExecutionContext {
     def execute(runnable: Runnable): Unit = {
       pool.submit(runnable)
@@ -143,15 +148,10 @@ object ReactiveImpl extends LazyLogging {
       }
 
       logger.trace(s"$this fork/join completed")
-      // TODO this should probably be converted into an exception thrown forward to
-      // the original caller and be accumulated through all fork/joins along the path?
-      results.foreach {
-        case Failure(e: InvocationTargetException) => throw e.getTargetException
-        //        case Failure(e) => e.printStackTrace()
-        case Failure(e) => throw e
-        case _ =>
+      results.map {
+        case Failure(e: InvocationTargetException) => Failure(e.getTargetException)
+        case x => x
       }
-      results
     }
   }
 }

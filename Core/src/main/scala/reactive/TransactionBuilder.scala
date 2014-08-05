@@ -2,8 +2,8 @@ package reactive
 
 import com.typesafe.scalalogging.LazyLogging
 import reactive.impl.ReactiveImpl
-
 import scala.concurrent.stm._
+import scala.util.Failure
 
 class TransactionBuilder extends LazyLogging {
   private var boxes = Map[ReactiveSource[_], Any]()
@@ -26,7 +26,7 @@ class TransactionBuilder extends LazyLogging {
     val sourceIds = boxSet.map(_.uuid)
     val transaction = Transaction(sourceIds, inTxn)
     logger.trace(s"start $transaction")
-    ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap(transaction, _))
+    ReactiveImpl.parallelForeach(boxSet)(setBoxFromMap(transaction, _)).collect { case Failure(e) => throw e }
     logger.trace(s"finish $transaction")
   }
 

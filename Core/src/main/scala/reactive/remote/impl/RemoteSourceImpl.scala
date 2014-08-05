@@ -2,10 +2,10 @@ package reactive.remote.impl
 
 import java.rmi.server.UnicastRemoteObject
 import java.util.UUID
-
-import reactive.{Reactive, Transaction}
+import reactive.{ Reactive, Transaction }
 import reactive.impl.ReactiveImpl
-import reactive.remote.{RemoteDependant, RemoteDependency}
+import reactive.remote.{ RemoteDependant, RemoteDependency }
+import scala.util.Failure
 
 abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[P] {
   def dependency: Reactive[_, P]
@@ -18,7 +18,7 @@ abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dep
     _.update(transaction,
       pulse = if (pulsed) dependency.pulse(transaction.stmTx).asOption else None,
       updatedSourceDependencies = if (sourceDependenciesChanged) Some(dependency.sourceDependencies(transaction.stmTx)) else None)
-  }
+  }.collect { case Failure(e) => throw e }
 
   override def registerRemoteDependant(transaction: Transaction, dependant: RemoteDependant[P]): Set[UUID] = {
     dependants += dependant
