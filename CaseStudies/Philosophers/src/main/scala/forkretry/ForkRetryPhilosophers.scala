@@ -73,7 +73,7 @@ case class RetryPhilosopher(id: Int) {
     } catch {
       case e: RetryFork.MultipleRequestsException =>
         RetryPhilosophers.log(this + " suffered fork acquisition failure!")
-        false
+        true
     }) {}
 
 	// Variant 2: rollback update transaction until it succeeds
