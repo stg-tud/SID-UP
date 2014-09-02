@@ -64,11 +64,8 @@ object Benchmark extends PerformanceTest {
 //  )
 
   simpleTestGroup("three hosts",
-    "wrappedplayground" -> (new ThreeHosts(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ThreeHosts(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
-    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
+    "wrappedplayground" -> (new ThreeHosts(_, SidupWrapper)),
+    "wrappedscalareact" -> (new ThreeHosts(_, UnoptimizedWrapper))
   )
 
 //  simpleTestGroup("three hosts with independent sources",
@@ -80,11 +77,8 @@ object Benchmark extends PerformanceTest {
 //  )
 
   simpleTestGroup("three hosts with many sources",
-    "wrappedplayground" -> (new ManySources(_, PlaygroundWrapper)),
-    "wrappedscalareact" -> (new ManySources(_, ScalaReactWrapper())),
-    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
-    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
+    "wrappedplayground" -> (new ManySources(_, SidupWrapper)),
+    "wrappedscalareact" -> (new ManySources(_, UnoptimizedWrapper))
   )
 
 //  simpleTestGroup("three hosts with many changing sources",
@@ -95,7 +89,7 @@ object Benchmark extends PerformanceTest {
 //    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
 //  )
 
-  def simpleTestGroup(groupname: String, tests: Pair[String, Int => SimpleTest]*) =
+  def simpleTestGroup(groupname: String, tests: Tuple2[String, Int => SimpleTest]*) =
     performance.of(groupname.replace(' ','_')).config(
       exec.benchRuns -> repetitions,
       exec.maxWarmupRuns -> 4
