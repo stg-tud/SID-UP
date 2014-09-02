@@ -1,10 +1,10 @@
-package reactive.mutex.test
+package unoptimized.mutex.test
 
 import org.scalatest.FunSuite
 import scala.concurrent._
 import scala.concurrent.duration._
-import reactive.mutex.TransactionLock
-import reactive.mutex.TransactionLockImpl
+import unoptimized.mutex.TransactionLock
+import unoptimized.mutex.TransactionLockImpl
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference

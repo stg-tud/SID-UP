@@ -1,7 +1,7 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
-import reactive.signals.Var
+import unoptimized.signals.Var
 
 class DeltaTest extends FunSuite {
   test("delta works") {

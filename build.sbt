@@ -7,7 +7,7 @@ lazy val core = project in file("Core")
 
 lazy val unoptimized = project in file("Unoptimized")
 
-lazy val ui = project.in(file("Benchmark")).dependsOn(core, unoptimized)
+lazy val benchmark = project.in(file("Benchmark")).dependsOn(core, unoptimized)
 
 scalaVersion in ThisBuild := "2.11.2"
 

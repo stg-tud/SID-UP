@@ -30,13 +30,6 @@ object Benchmark extends PerformanceTest {
   val repetitions = 10
   val iterations = 10
   val testsize = 25
-  val nanobusy = Seq(0L)
-  val nanosleep = {
-    val tenthmilli = 100L * 1000L
-    val milli = 1000L * 1000L
-    Seq(1L, 2L, 3L, 5L).map(_ * tenthmilli) ++
-      Seq(1L, 2L, 3L, 5L, 10L).map(_ * milli)
-  }
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -47,12 +40,10 @@ object Benchmark extends PerformanceTest {
   }
 
   val parameters = for {
-    e <- Gen.enumeration("nanosleep")(nanosleep: _*)
-    d <- Gen.enumeration("nanonbusy")(nanobusy: _*)
     a <- Gen.single("repetitions")(repetitions)
     b <- Gen.single("iterations")(iterations)
     c <- Gen.single("testsize")(testsize)
-  } yield (a, b, c, d, e)
+  } yield (a, b, c)
 
 //  simpleTestGroup("signal chain",
 //    "scalareact" -> (new ReactChainBench(_)),
@@ -116,10 +107,7 @@ object Benchmark extends PerformanceTest {
             println(s"before test $groupname $name")
             simpleTest = test(testsize)
             simpleTest.init()
-          }.setUp { case (repetitions, iterations, testsize, busytime, sleeptime) =>
-            globalUtils.Simulate.nanobusy = busytime
-            globalUtils.Simulate.nanosleep = sleeptime
-            globalUtils.Simulate.coordinatorsleep = sleeptime
+          }.setUp { case (repetitions, iterations, testsize) =>
             // manual warmup step …
             simpleTest.run(-42)
             iterate(iterations) { i =>
@@ -127,7 +115,7 @@ object Benchmark extends PerformanceTest {
               assert(simpleTest.validateResult(i, res))
             }
             simpleTest.run(-84)
-          }.in { case (_, iterations, _, _, _) =>
+          }.in { case (_, iterations, _) =>
             iterate(iterations) { i =>
               val res = simpleTest.run(i)
               assert(simpleTest.validateResult(i, res))

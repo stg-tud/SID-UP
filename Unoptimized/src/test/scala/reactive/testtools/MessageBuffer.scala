@@ -1,11 +1,11 @@
-package reactive.testtools
+package unoptimized.testtools
 
-import reactive.signals.impl.SignalImpl
-import reactive.signals.Signal
+import unoptimized.signals.impl.SignalImpl
+import unoptimized.signals.Signal
 import scala.collection.mutable
-import reactive.Transaction
-import reactive.impl.SingleDependentReactive
-import reactive.signals.impl.DependentSignalImpl
+import unoptimized.Transaction
+import unoptimized.impl.SingleDependentReactive
+import unoptimized.signals.impl.DependentSignalImpl
 
 
 class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A] with DependentSignalImpl[A] with SingleDependentReactive {

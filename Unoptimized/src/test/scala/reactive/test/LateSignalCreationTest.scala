@@ -1,8 +1,8 @@
-package reactive.test
+package unoptimized.test
 
-import reactive.signals.Var
-import reactive.Lift._
-import reactive.LiftableWrappers._
+import unoptimized.signals.Var
+import unoptimized.Lift._
+import unoptimized.LiftableWrappers._
 import org.scalatest.FunSuite
 
 class LateSignalCreationTest extends FunSuite {

@@ -1,11 +1,11 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.{Tag, FunSuite}
-import reactive.signals.Var
-import reactive.signals.Val
-import reactive.signals.RoutableVar
-import reactive.TransactionBuilder
-import reactive.Lift._
+import unoptimized.signals.Var
+import unoptimized.signals.Val
+import unoptimized.signals.RoutableVar
+import unoptimized.TransactionBuilder
+import unoptimized.Lift._
 
 class SignalMonadicTest extends FunSuite {
   test("explicit usage: changing inner and outer values") {

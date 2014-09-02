@@ -1,15 +1,15 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
-import reactive.signals.Var
-import reactive.testtools.{MessageBuffer, NotificationLog}
-import reactive.signals.Signal
-import reactive.TransactionBuilder
+import unoptimized.signals.Var
+import unoptimized.testtools.{MessageBuffer, NotificationLog}
+import unoptimized.signals.Signal
+import unoptimized.TransactionBuilder
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.scalatest.Tag
-import reactive.signals.impl.FlattenSignal
+import unoptimized.signals.impl.FlattenSignal
 
 class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with BeforeAndAfter {
   var inner1: Var[Int] = _

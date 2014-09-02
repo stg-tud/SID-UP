@@ -1,12 +1,12 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
-import reactive.signals.Var
-import reactive.testtools.MessageBuffer
-import reactive.signals.Signal
-import reactive.testtools.NotificationLog
-import reactive.TransactionBuilder
+import unoptimized.signals.Var
+import unoptimized.testtools.MessageBuffer
+import unoptimized.signals.Signal
+import unoptimized.testtools.NotificationLog
+import unoptimized.TransactionBuilder
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.scalatest.Tag

@@ -1,5 +1,5 @@
-package reactive.test
-import reactive.events.EventSource
+package unoptimized.test
+import unoptimized.events.EventSource
 import org.scalatest.FunSuite
 
 class FoldTest extends FunSuite {

@@ -1,11 +1,11 @@
-//package reactive
+//package unoptimized
 //package testtools
 //
 //import util.TicketAccumulator
 //import scala.concurrent._
 //import ExecutionContext.Implicits.global
-//import reactive.signals.impl.SignalImpl
-//import reactive.signals.Signal
+//import unoptimized.signals.impl.SignalImpl
+//import unoptimized.signals.Signal
 //
 //class FakeNetwork[A](input: Signal[A]) extends SignalImpl[A](input.sourceDependencies, input.now) with Signal.Dependant[A] {
 //  input.addDependant(None, this);

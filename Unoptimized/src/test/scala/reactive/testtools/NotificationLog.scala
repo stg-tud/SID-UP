@@ -1,9 +1,9 @@
-package reactive
+package unoptimized
 package testtools
 
 import scala.collection.mutable
 import java.util.UUID
-import reactive.signals.Signal
+import unoptimized.signals.Signal
 
 case class Notification[P](transaction: Transaction, newSourceDependencies: Set[UUID], sourceDependenciesChanged: Boolean, newValue: P, valueChanged: Boolean)
 

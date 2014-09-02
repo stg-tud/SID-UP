@@ -1,8 +1,8 @@
-package reactive.test
-import reactive.events.EventSource
-import reactive.TransactionBuilder
+package unoptimized.test
+import unoptimized.events.EventSource
+import unoptimized.TransactionBuilder
 import org.scalatest.FunSuite
-import reactive.signals.Var
+import unoptimized.signals.Var
 
 class CollectTest extends FunSuite {
   test("collect event stream works") {

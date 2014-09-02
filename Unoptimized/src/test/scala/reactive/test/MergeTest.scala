@@ -1,8 +1,8 @@
-package reactive.test
-import reactive.events.EventSource
-import reactive.TransactionBuilder
+package unoptimized.test
+import unoptimized.events.EventSource
+import unoptimized.TransactionBuilder
 import org.scalatest.FunSuite
-import reactive.signals.Var
+import unoptimized.signals.Var
 
 class MergeTest extends FunSuite {
   test("merge event stream works") {

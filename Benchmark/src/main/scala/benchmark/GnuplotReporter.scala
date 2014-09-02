@@ -9,7 +9,7 @@ class GnuplotReporter extends Reporter {
   val delimiter = "\t"
   val newline = "\n"
   val newblock = "\n\n\n"
-  val resultdir = initialContext.goe(Key.reports.resultDir, "tmp")
+  val resultdir = currentContext.goe(Key.reports.resultDir, "tmp")
 
   def report(cd: CurveData, persistor: Persistor): Unit = {
     val file = Path(resultdir, s"${cd.context.scope}.tsv")

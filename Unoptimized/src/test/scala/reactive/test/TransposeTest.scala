@@ -1,9 +1,9 @@
-package reactive.test
+package unoptimized.test
 
-import reactive.TransactionBuilder
+import unoptimized.TransactionBuilder
 import org.scalatest.FunSuite
-import reactive.signals.{TransposeSignal, Var}
-import reactive.events.{TransposeEventStream, EventSource}
+import unoptimized.signals.{TransposeSignal, Var}
+import unoptimized.events.{TransposeEventStream, EventSource}
 
 class TransposeTest extends FunSuite {
   test("TransposeSignal does something sane") {

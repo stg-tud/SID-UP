@@ -1,14 +1,14 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
-import reactive.signals.Var
-import reactive.signals.Val
-import reactive.Reactive
-import reactive.testtools.NotificationLog
-import reactive.signals.Signal
-import reactive.Lift._
-import reactive.Transaction
-import reactive.TransactionBuilder
+import unoptimized.signals.Var
+import unoptimized.signals.Val
+import unoptimized.Reactive
+import unoptimized.testtools.NotificationLog
+import unoptimized.signals.Signal
+import unoptimized.Lift._
+import unoptimized.Transaction
+import unoptimized.TransactionBuilder
 
 class FlattenSignalTest extends FunSuite {
   test("inner value update works") {

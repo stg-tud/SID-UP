@@ -1,8 +1,8 @@
-package reactive.test
-import reactive.signals.Var
-import reactive.TransactionBuilder
-import reactive.Lift._
-import reactive.LiftableWrappers._
+package unoptimized.test
+import unoptimized.signals.Var
+import unoptimized.TransactionBuilder
+import unoptimized.Lift._
+import unoptimized.LiftableWrappers._
 import org.scalatest.FunSuite
 
 class TransactionTest extends FunSuite {

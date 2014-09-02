@@ -1,11 +1,11 @@
-//package reactive.test
+//package unoptimized.test
 //import org.scalatest.FunSuite
-//import reactive.signals.Var
-//import reactive.testtools.MessageMixup
-//import reactive.Lift
-//import reactive.LiftableWrappers._
+//import unoptimized.signals.Var
+//import unoptimized.testtools.MessageMixup
+//import unoptimized.Lift
+//import unoptimized.LiftableWrappers._
 //import org.scalatest.BeforeAndAfter
-//import reactive.signals.Signal
+//import unoptimized.signals.Signal
 //import scala.concurrent._
 //import ExecutionContext.Implicits.global
 //import scala.util.Success

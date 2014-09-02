@@ -1,12 +1,12 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
-import reactive.signals.Signal
-import reactive.Lift._
-import reactive.signals.Var
+import unoptimized.signals.Signal
+import unoptimized.Lift._
+import unoptimized.signals.Var
 
 class RandomDelays extends FunSuite {
   val format = new SimpleDateFormat("[mm:ss.SSS] ")

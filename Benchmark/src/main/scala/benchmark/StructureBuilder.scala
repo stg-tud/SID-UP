@@ -1,7 +1,6 @@
 package benchmark
 
 import scala.language.higherKinds
-import globalUtils.Simulate
 
 object StructureBuilder {
   def makeChain[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int], additionalSources: Int = 0): GenSig[Int] = {
@@ -10,7 +9,6 @@ object StructureBuilder {
     Range(0, length).foreach { i =>
       val sources = curr +: Range(0, additionalSources).map(makeVar(_))
       curr = combine(sources) { vs =>
-        Simulate()
         vs(0) + 1
       }
     }
@@ -22,7 +20,6 @@ object StructureBuilder {
     val fanned = Range(0, width).map { i =>
       val sources = start +: Range(0, additionalSources).map(makeVar(_))
       combine(sources) { vs =>
-        Simulate()
         vs(0) + 1
       }
     }
@@ -32,9 +29,9 @@ object StructureBuilder {
   def makeRegular[GenSig[Int], GenVar[Int] <: GenSig[Int]](wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int]): GenSig[Int] = {
     import wrapper._
 
-    def inc(source: GenSig[Int]): GenSig[Int] = map(source){v => {Simulate(); v + 1}}
-    def sum(sources: GenSig[Int]*): GenSig[Int] = combine(sources){vs => {Simulate(); vs.sum}}
-    def noc(sources: GenSig[Int]*): GenSig[Int] = combine(sources){_ => {Simulate(); 0}}
+    def inc(source: GenSig[Int]): GenSig[Int] = map(source){_ + 1}
+    def sum(sources: GenSig[Int]*): GenSig[Int] = combine(sources){_.sum}
+    def noc(sources: GenSig[Int]*): GenSig[Int] = combine(sources){_ => 0}
 
     // row 3
     val c1 = inc(start)

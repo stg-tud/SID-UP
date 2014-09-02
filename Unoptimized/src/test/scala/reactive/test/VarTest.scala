@@ -1,8 +1,8 @@
-package reactive.test
+package unoptimized.test
 
 import org.scalatest.FunSuite
-import reactive.signals.Var
-import reactive.testtools.NotificationLog
+import unoptimized.signals.Var
+import unoptimized.testtools.NotificationLog
 
 class VarTest extends FunSuite {
   test("var << x works") {
