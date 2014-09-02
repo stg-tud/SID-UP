@@ -39,13 +39,13 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   lazy val mousePosition: Signal[Option[Point]] = {
     val _mousePosition = Var[Option[Point]](None)
     val adapter = new MouseAdapter() {
-      override def mouseMoved(evt: MouseEvent) {
+      override def mouseMoved(evt: MouseEvent): Unit = {
         _mousePosition << Some(evt.getPoint());
       }
-      override def mouseExited(evt: MouseEvent) {
+      override def mouseExited(evt: MouseEvent): Unit = {
         _mousePosition << None;
       }
-      override def mouseEntered(evt: MouseEvent) {
+      override def mouseEntered(evt: MouseEvent): Unit = {
         mouseMoved(evt);
       }
     }
@@ -57,7 +57,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   lazy val mouseDowns: EventStream[Point] = {
     val source = EventSource[Point]
     val adapter = new MouseAdapter() {
-      override def mousePressed(evt: MouseEvent) {
+      override def mousePressed(evt: MouseEvent): Unit = {
         source << evt.getPoint()
       }
     }
@@ -68,7 +68,7 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
   lazy val mouseUps: EventStream[Point] = {
     val source = EventSource[Point]
     val adapter = new MouseAdapter() {
-      override def mouseReleased(evt: MouseEvent) {
+      override def mouseReleased(evt: MouseEvent): Unit = {
         source << evt.getPoint()
       }
     }
@@ -80,10 +80,10 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     val source = EventSource[(Point, Point)]
     val adapter = new MouseAdapter() {
       var lastPressedPosition: Point = _;
-      override def mousePressed(evt: MouseEvent) {
+      override def mousePressed(evt: MouseEvent): Unit = {
         lastPressedPosition = evt.getPoint()
       }
-      override def mouseDragged(evt: MouseEvent) {
+      override def mouseDragged(evt: MouseEvent): Unit = {
         source << (lastPressedPosition -> evt.getPoint());
         mousePressed(evt)
       }
@@ -106,11 +106,11 @@ object ReactiveComponent {
   case class Drag(from: Point, to: Point) extends MouseEvent
 
   private case class ReactiveAndObserverPair[A](reactive: Signal[A], op: A => Unit) {
-    def activate() {
+    def activate(): Unit = {
       reactive.observe(op);
       op(reactive.now);
     }
-    def deactivate() {
+    def deactivate(): Unit = {
       reactive.unobserve(op);
     }
   }

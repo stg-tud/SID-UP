@@ -2,9 +2,9 @@ package reactive
 package impl
 
 import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
-trait DynamicDependentReactive extends Logging {
+trait DynamicDependentReactive extends LazyLogging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
   protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
@@ -15,7 +15,7 @@ trait DynamicDependentReactive extends Logging {
   private var anyDependenciesChanged: Boolean = _
   private var anyPulse: Boolean = _
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     if (synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")

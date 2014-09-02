@@ -17,7 +17,7 @@ abstract class Division(participant: Participant) extends Observable[Message](pa
     }
   }
 
-  protected def recalculate(direct: Boolean = false) {
+  protected def recalculate(direct: Boolean = false): Unit = {
     total = calculateTotal(currentOrders)
     publish(Message(total, direct))
   }

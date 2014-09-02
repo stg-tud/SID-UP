@@ -5,9 +5,9 @@ import scala.collection.immutable.TreeMap
 import util.TicketAccumulator
 import util.TransactionAction
 import util.COMMIT
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
-class TransactionBuilder extends Logging {
+class TransactionBuilder extends LazyLogging {
 //  private val accu = new TicketAccumulator
   
   // use an arbitrary constant ordering to prevent deadlocks by lock acquisition during commits
@@ -20,15 +20,15 @@ class TransactionBuilder extends Logging {
     this
   }
 
-  def forget[A](box: ReactiveSource[A]) {
+  def forget[A](box: ReactiveSource[A]): Unit = {
     boxes -= box;
   }
 
-  private def reset() {
+  private def reset(): Unit = {
     boxes = boxes.empty
   }
 
-  def commit() {
+  def commit(): Unit = {
     val boxSet = boxes.keySet
     val sourceIds = boxSet.map(_.uuid);
 //    new TransactionExecutor[Transaction] {
@@ -55,7 +55,7 @@ class TransactionBuilder extends Logging {
 //    if(reply != COMMIT) { throw new IllegalStateException("Did not receive a transaction action consensus") }
   }
 
-  private def setBoxFromMap[A](/*replyChannel : TicketAccumulator.Receiver, */t: Transaction, box: ReactiveSource[A]) {
+  private def setBoxFromMap[A](/*replyChannel : TicketAccumulator.Receiver, */t: Transaction, box: ReactiveSource[A]): Unit = {
     box.emit(t, boxes(box).asInstanceOf[A]/*, replyChannel*/)
   }
 }

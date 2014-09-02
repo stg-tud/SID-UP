@@ -21,20 +21,20 @@ class TicketAccumulator extends TicketAccumulator.Receiver {
   private var notifyWhenDone: Iterable[TicketAccumulator.Receiver] = _
   private var accumulatedAction: TransactionAction = _
 
-  def initializeForNotification(count: Int)(notifyWhenDone: TicketAccumulator.Receiver*) {
+  def initializeForNotification(count: Int)(notifyWhenDone: TicketAccumulator.Receiver*): Unit = {
     this.notifyWhenDone = notifyWhenDone;
     awaiting = count;
     accumulatedAction = COMMIT
     maybeFire();
   }
-  override def apply(action: TransactionAction) {
+  override def apply(action: TransactionAction): Unit = {
     if (awaiting == 0) throw new IllegalStateException("Not awaiting any Tickets at this point!");
     awaiting -= 1;
     accumulatedAction = accumulatedAction.and(action)
     maybeFire();
   }
 
-  private def maybeFire() {
+  private def maybeFire(): Unit = {
     if (awaiting == 0) {
       notifyWhenDone.foreach { _(accumulatedAction) }
     }

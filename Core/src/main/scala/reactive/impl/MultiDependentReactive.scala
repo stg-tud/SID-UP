@@ -2,9 +2,9 @@ package reactive
 package impl
 
 import java.util.UUID
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
-trait MultiDependentReactive extends Logging {
+trait MultiDependentReactive extends LazyLogging {
   self: DependentReactive[_] =>
 
   protected val dependencies: Set[Reactive.Dependency]
@@ -16,7 +16,7 @@ trait MultiDependentReactive extends Logging {
   private var anyPulse: Boolean = _
 
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean) {
+  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
     synchronized {
       if (currentTransaction != transaction) {
         if (pendingNotifications != 0) throw new IllegalStateException(s"Cannot process transaction ${ transaction.uuid }, previous transaction ${ currentTransaction.uuid } not completed yet! ($pendingNotifications notifications pending)")

@@ -24,16 +24,16 @@ class ReactiveTextField() extends ReactiveComponent(new JTextField()) with React
 
   val _text = Var(asComponent.getText)
   asComponent.getDocument().addDocumentListener(new DocumentListener {
-    override def changedUpdate(evt: DocumentEvent) {
+    override def changedUpdate(evt: DocumentEvent): Unit = {
       update()
     }
-    override def removeUpdate(evt: DocumentEvent) {
+    override def removeUpdate(evt: DocumentEvent): Unit = {
       update()
     }
-    override def insertUpdate(evt: DocumentEvent) {
+    override def insertUpdate(evt: DocumentEvent): Unit = {
       update()
     }
-    def update() {
+    def update(): Unit = {
       _text << asComponent.getText
     }
   })

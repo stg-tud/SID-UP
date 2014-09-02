@@ -9,8 +9,8 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
 
   def log: Signal[Seq[O]]
-  def observe(obs: O => Unit)
-  def unobserve(obs: O => Unit)
+  def observe(obs: O => Unit): Unit
+  def unobserve(obs: O => Unit): Unit
 }
 
 object Reactive {

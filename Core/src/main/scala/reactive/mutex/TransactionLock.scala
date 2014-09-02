@@ -4,8 +4,8 @@ import java.util.UUID
 import java.rmi.server.UnicastRemoteObject
 
 @remote trait TransactionLock {
-  def acquire(uuid: UUID)
-  def release(uuid: UUID)
+  def acquire(uuid: UUID): Unit
+  def release(uuid: UUID): Unit
   def owner: Option[UUID]
 }
 

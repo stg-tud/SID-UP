@@ -2,12 +2,12 @@ package reactive
 package impl
 
 import scala.collection.mutable
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
 
-trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
 
   private[reactive] val name = {
@@ -23,20 +23,20 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
   private var dependants = Set[Reactive.Dependant]()
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) {
+  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
     synchronized {
       logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
       dependants += dependant
     }
   }
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) {
+  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
     synchronized {
       logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
       dependants -= dependant
     }
   }
 
-  protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) {
+  protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
     synchronized {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
       this.pulse = pulse
@@ -54,22 +54,22 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with Logging {
   // ====== Observing stuff ======
 
   private val observers = mutable.Set[O => Unit]()
-  def observe(obs: O => Unit) {
+  def observe(obs: O => Unit) = {
     observers += obs
     logger.trace(s"$this observers: ${observers.size}")
   }
-  def unobserve(obs: O => Unit) {
+  def unobserve(obs: O => Unit) = {
     observers -= obs
     logger.trace(s"$this observers: ${observers.size}")
   }
 
-  private def notifyObservers(transaction: Transaction, value: O) {
+  private def notifyObservers(transaction: Transaction, value: O) = {
     logger.trace(s"$this -> Observers(${observers.size})")
     ReactiveImpl.parallelForeach(observers) { _(value) }
   }
 }
 
-object ReactiveImpl extends Logging {
+object ReactiveImpl extends LazyLogging {
   import scala.concurrent._
   private implicit val myExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
 
@@ -81,7 +81,7 @@ object ReactiveImpl extends Logging {
       val head = iterator.next()
 
       val futures = iterator.foldLeft(List[(A, Future[B])]()) { (futures, element) =>
-        (element -> future { op(element) }) :: futures
+        (element -> Future { op(element) }) :: futures
       }
       val headResult = Try { op(head) }
       val results = headResult :: futures.map {

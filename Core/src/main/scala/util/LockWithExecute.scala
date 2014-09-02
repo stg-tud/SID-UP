@@ -21,5 +21,6 @@ class LockWithExecute(lock: ReentrantReadWriteLock) {
 }
 
 object LockWithExecute {
+  import scala.language.implicitConversions
   implicit def apply(lock: ReentrantReadWriteLock) = new LockWithExecute(lock)
 }

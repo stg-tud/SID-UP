@@ -76,7 +76,7 @@ object ProjectionsUI {
       management = management
     )
     orders.observe { order =>
-      future { c.setOrders(order) }
+      Future { c.setOrders(order) }
     }
     m.disableTransaction << glitch
   }
@@ -99,7 +99,7 @@ object ProjectionsUI {
       management = m.difference
     )
     orders.observe { order =>
-      future { setOrder << order }
+      Future { setOrder << order }
     }
   }
 
@@ -173,7 +173,7 @@ object ProjectionsUI {
     window
   }
 
-  def transpose(dx: Int, dy: Int, window: Window) {
+  def transpose(dx: Int, dy: Int, window: Window): Unit = {
     val location = window.getLocation()
     window.setLocation(location.x + dx, location.y + dy)
   }

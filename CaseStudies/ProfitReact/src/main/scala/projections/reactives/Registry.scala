@@ -24,7 +24,7 @@ class Registry[V, R[+V] <: Reactive[_, _]] {
 
 object SignalRegistry extends Registry[Any, Signal] {
 
-  override def register[T](name: String, sig: Signal[T]) {
+  override def register[T](name: String, sig: Signal[T]): Unit = {
     reactives.get(name) match {
       case Some(router) => router.asInstanceOf[RoutableVar[Any]] << sig
       case None => reactives += (name -> RoutableVar(sig))

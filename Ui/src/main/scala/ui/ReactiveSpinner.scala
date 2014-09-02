@@ -49,7 +49,7 @@ class ReactiveSpinner(initialValue: Int) extends {
   private val _commits = EventSource[ActionEvent]
   private val editor = asComponent.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
     editor.addActionListener(new ActionListener() {
-      override def actionPerformed(event: ActionEvent) {
+      override def actionPerformed(event: ActionEvent): Unit = {
         _commits << event;
       }
     })

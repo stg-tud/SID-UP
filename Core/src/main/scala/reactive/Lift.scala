@@ -6,6 +6,7 @@ import reactive.events.EventStream
 import reactive.signals.Signal
 
 object Lift {
+  import scala.language.implicitConversions
   implicit def valueToSignal[A](value: A): Signal[A] = new Val(value)
 
   implicit def signal1[A1, B](fun: A1 => B): Signal[A1] => Signal[B] = a => a.map(fun)

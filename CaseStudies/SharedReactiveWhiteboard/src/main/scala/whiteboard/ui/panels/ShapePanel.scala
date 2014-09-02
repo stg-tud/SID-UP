@@ -12,7 +12,7 @@ class ShapePanel extends JPanel {
   // Repaint when a new shape was added
   shapes.observe { _ => repaint() }
 
-  override def paintComponent(g: Graphics) {
+  override def paintComponent(g: Graphics): Unit = {
     g.setColor(Color.WHITE)
     g.fillRect(0, 0, getWidth, getHeight)
     g.setColor(Color.BLACK)
