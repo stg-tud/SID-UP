@@ -1,1 +1,0 @@
-name := "sidup-ui"

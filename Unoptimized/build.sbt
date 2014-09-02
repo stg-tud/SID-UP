@@ -1,0 +1,1 @@
+name := "sidup-core-unoptimized"
