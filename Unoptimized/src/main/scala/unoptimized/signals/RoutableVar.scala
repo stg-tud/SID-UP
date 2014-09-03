@@ -33,6 +33,7 @@ object RoutableVar {
     protected[unoptimized] override def pulse(transaction: Transaction): Option[A] = _output.pulse(transaction)
     protected[unoptimized] override def hasPulsed(transaction: Transaction): Boolean = _output.hasPulsed(transaction)
     protected[unoptimized] override def sourceDependencies(transaction: Transaction): Set[UUID] = _output.sourceDependencies(transaction)
+    protected[unoptimized] override def sourceDependenciesChanged(transaction: Transaction): Boolean = _output.sourceDependenciesChanged(transaction)
     protected[unoptimized] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction);
     protected[unoptimized] override def addDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.addDependant(transaction, dependant)
     protected[unoptimized] override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant) = _output.removeDependant(transaction, dependant)

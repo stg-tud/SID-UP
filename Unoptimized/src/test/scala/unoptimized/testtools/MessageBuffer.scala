@@ -12,9 +12,9 @@ class MessageBuffer[A](override val dependency: Signal[A]) extends SignalImpl[A]
 
   val messages = mutable.MutableList[(Transaction, Boolean, Boolean)]()
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
+  override def ping(transaction: Transaction): Unit = {
     messages.synchronized {
-      messages += ((transaction, sourceDependenciesChanged, pulsed))
+      messages += ((transaction, dependency.sourceDependenciesChanged(transaction), dependency.pulse(transaction).isDefined))
     }
   }
 

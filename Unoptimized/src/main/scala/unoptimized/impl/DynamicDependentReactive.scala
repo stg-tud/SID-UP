@@ -6,4 +6,6 @@ import com.typesafe.scalalogging.LazyLogging
 
 trait DynamicDependentReactive extends LazyLogging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
+    
+  override val isDynamicNode: Boolean = true
 }

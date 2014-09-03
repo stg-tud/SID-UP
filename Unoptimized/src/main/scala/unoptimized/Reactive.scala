@@ -7,6 +7,7 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 
   protected[unoptimized] def pulse(transaction: Transaction): Option[P]
   protected[unoptimized] def hasPulsed(transaction: Transaction): Boolean
+  protected[unoptimized] def sourceDependenciesChanged(transaction: Transaction): Boolean 
 
   def log: Signal[Seq[O]]
   def observe(obs: O => Unit): Unit
@@ -15,7 +16,7 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 
 object Reactive {
   trait Dependant {
-    protected[unoptimized] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
+    protected[unoptimized] def ping(transaction: Transaction): Unit
   }
   trait Dependency {
     protected[unoptimized] def sourceDependencies(transaction: Transaction): Set[UUID]

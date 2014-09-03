@@ -19,8 +19,10 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
   private var currentTransaction: Transaction = _
   private var pulse: Option[P] = None
-  def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
-  def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
+  private var sourceDeptsChanged: Boolean = false
+  override def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
+  override def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
+  override def sourceDependenciesChanged(transaction: Transaction): Boolean = hasPulsed(transaction) && sourceDeptsChanged 
 
   private var dependants = Set[Reactive.Dependant]()
   override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
@@ -41,8 +43,9 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
       this.pulse = pulse
       this.currentTransaction = transaction
+      this.sourceDeptsChanged = sourceDependenciesChanged
       val pulsed = pulse.isDefined
-      ReactiveImpl.parallelForeach(dependants) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
+      ReactiveImpl.parallelForeach(dependants) { _.ping(transaction) }
       if (pulsed) {
         val value = getObserverValue(transaction, pulse.get)
         notifyObservers(transaction, value)

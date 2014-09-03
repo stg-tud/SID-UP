@@ -33,46 +33,53 @@ trait DependentReactive[P] extends Reactive.Dependant {
 
   protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
 
+  protected val isDynamicNode: Boolean = false
+  
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
   private var currentTransaction: Transaction = _
-  private var anyDependenciesChanged: Boolean = _
-  private var anyPulse: Boolean = _
 
-  override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
-    val waitingFor = synchronized {
+  override def ping(transaction: Transaction): Unit = {
+    val (waitingFor, anyDependenciesChanged: Boolean, anyPulse: Boolean) = synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
         currentTransaction = transaction
-        anyDependenciesChanged = false
-        anyPulse = false
       }
 
       if (hasPulsed(transaction)) {
         throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
       } else {
-        anyDependenciesChanged |= sourceDependenciesChanged
-        anyPulse |= pulsed
 
         val newDependencies = dependencies(transaction)
         val unsubscribe = lastDependencies.diff(newDependencies)
         val subscribe = newDependencies.diff(lastDependencies)
         lastDependencies = newDependencies
         unsubscribe.foreach { dep =>
-          anyDependenciesChanged = true
           dep.removeDependant(transaction, this)
         }
         subscribe.foreach { dep =>
-          anyDependenciesChanged = true
           dep.addDependant(transaction, this)
         }
 
-        lastDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
+        //lastDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
+        lastDependencies.foldLeft((Set[Reactive[_, _]](), false, false)) { (tuple, dependency) =>
+          if (!dependency.isConnectedTo(transaction)) {
+            tuple
+          } else {
+            val (waitingFor, anyDependenciesChanged, anyPulse) = tuple
+            if (!dependency.hasPulsed(transaction)) {
+              (waitingFor + dependency, anyDependenciesChanged, anyPulse)
+            } else {
+              (waitingFor, anyDependenciesChanged | dependency.sourceDependenciesChanged(transaction), anyPulse | dependency.pulse(transaction).isDefined)
+            }
+          }
+        }
       }
     }
 
+    
     if (waitingFor.isEmpty) {
-      doReevaluation(transaction, anyDependenciesChanged, anyPulse)
+      doReevaluation(transaction, anyDependenciesChanged | (isDynamicNode & anyPulse), anyPulse)
     } else {
       logger.trace(s"$name still waits for updates from $waitingFor)")
     }
