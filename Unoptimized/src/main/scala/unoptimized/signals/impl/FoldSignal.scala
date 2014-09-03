@@ -3,7 +3,6 @@ package signals
 package impl
 
 import unoptimized.events.EventStream
-import util.TicketAccumulator
 import unoptimized.impl.SingleDependentReactive
 
 class FoldSignal[A, B](private val initialValue: A, val dependency: EventStream[B], op: (A, B) => A) extends DependentSignalImpl[A] with SingleDependentReactive {
