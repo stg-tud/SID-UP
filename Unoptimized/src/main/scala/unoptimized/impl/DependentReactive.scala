@@ -34,13 +34,13 @@ trait DependentReactive[P] extends Reactive.Dependant {
   protected def dependencies(transaction: Transaction): Set[Reactive[_, _]]
 
   protected val isDynamicNode: Boolean = false
-  
+
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
   private var currentTransaction: Transaction = _
 
   override def ping(transaction: Transaction): Unit = {
-    val (waitingFor, anyDependenciesChanged: Boolean, anyPulse: Boolean) = synchronized {
+    val (waitingFor, anyDependenciesChanged, anyPulse) = synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
         currentTransaction = transaction
@@ -61,23 +61,25 @@ trait DependentReactive[P] extends Reactive.Dependant {
           dep.addDependant(transaction, this)
         }
 
-        //lastDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
-        lastDependencies.foldLeft((Set[Reactive[_, _]](), false, false)) { (tuple, dependency) =>
-          if (!dependency.isConnectedTo(transaction)) {
-            tuple
-          } else {
-            val (waitingFor, anyDependenciesChanged, anyPulse) = tuple
-            if (!dependency.hasPulsed(transaction)) {
-              (waitingFor + dependency, anyDependenciesChanged, anyPulse)
+        var anyDependenciesChanged = false
+        var anyPulse = false
+        val waitingFor = lastDependencies.find { dependency =>
+          if (dependency.isConnectedTo(transaction)) {
+            if (dependency.hasPulsed(transaction)) {
+              anyPulse = anyPulse | dependency.pulse(transaction).isDefined
+              anyDependenciesChanged = anyDependenciesChanged | dependency.sourceDependenciesChanged(transaction)
+              false
             } else {
-              (waitingFor, anyDependenciesChanged | dependency.sourceDependenciesChanged(transaction), anyPulse | dependency.pulse(transaction).isDefined)
+              true
             }
+          } else {
+            false
           }
         }
+        (waitingFor, anyDependenciesChanged, anyPulse)
       }
     }
 
-    
     if (waitingFor.isEmpty) {
       doReevaluation(transaction, anyDependenciesChanged | (isDynamicNode & anyPulse), anyPulse)
     } else {

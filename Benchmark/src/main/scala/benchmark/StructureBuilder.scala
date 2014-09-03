@@ -3,35 +3,23 @@ package benchmark
 import scala.language.higherKinds
 
 object StructureBuilder {
-  def makeChain[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int], additionalSources: Int = 0): GenSig[Int] = {
+  def makeChain[GenSig[Int], GenVar[Int] <: GenSig[Int]](length: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int]): GenSig[Int] = {
     import wrapper._
-    var curr: GenSig[Int] = start
-    Range(0, length).foreach { i =>
-      val sources = curr +: Range(0, additionalSources).map(makeVar(_))
-      curr = combine(sources) { vs =>
-        vs(0) + 1
-      }
-    }
-    curr
+    Range(0, length).foldLeft(start) { (curr, i) => map(curr) { _ + 1 } }
   }
 
-  def makeFan[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int], additionalSources: Int = 0): GenSig[Int] = {
+  def makeFan[GenSig[Int], GenVar[Int] <: GenSig[Int]](width: Int, wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int]): GenSig[Int] = {
     import wrapper._
-    val fanned = Range(0, width).map { i =>
-      val sources = start +: Range(0, additionalSources).map(makeVar(_))
-      combine(sources) { vs =>
-        vs(0) + 1
-      }
-    }
+    val fanned = Range(0, width).map { i => map(start) { _ + 1 } }
     combine(fanned)(_.sum)
   }
 
   def makeRegular[GenSig[Int], GenVar[Int] <: GenSig[Int]](wrapper: ReactiveWrapper[GenSig, GenVar], start: GenSig[Int]): GenSig[Int] = {
     import wrapper._
 
-    def inc(source: GenSig[Int]): GenSig[Int] = map(source){_ + 1}
-    def sum(sources: GenSig[Int]*): GenSig[Int] = combine(sources){_.sum}
-    def noc(sources: GenSig[Int]*): GenSig[Int] = combine(sources){_ => 0}
+    def inc(source: GenSig[Int]): GenSig[Int] = map(source) { _ + 1 }
+    def sum(sources: GenSig[Int]*): GenSig[Int] = combine(sources) { _.sum }
+    def noc(sources: GenSig[Int]*): GenSig[Int] = combine(sources) { _ => 0 }
 
     // row 3
     val c1 = inc(start)
@@ -60,7 +48,7 @@ object StructureBuilder {
     val b8 = sum(b7, c2)
 
     // row 3
-    val c5  = sum(c4, b8)
+    val c5 = sum(c4, b8)
 
     // row 4
     val d1 = inc(c2)

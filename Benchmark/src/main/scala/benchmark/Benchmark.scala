@@ -1,22 +1,21 @@
 package benchmark
 
 import org.scalameter.api._
-import benchmark.networks._
 import scala.util.Random
 
 object Benchmark extends PerformanceTest {
 
-  def measurer = new Measurer.IgnoringGC with Measurer.PeriodicReinstantiation {
+  lazy val measurer = new Measurer.IgnoringGC with Measurer.PeriodicReinstantiation {
     override val defaultFrequency = 12
     override val defaultFullGC = true
   }
 
-  val executor = LocalExecutor(// SeparateJvmsExecutor || LocalExecutor
+  lazy val executor = LocalExecutor( // SeparateJvmsExecutor || LocalExecutor
     new Executor.Warmer.Default,
-    Aggregator.complete(Aggregator.average),
+    Aggregator.average,
     measurer)
 
-  val reporter: Reporter = Reporter.Composite(
+  lazy val reporter: Reporter = Reporter.Composite(
     new RegressionReporter(
       RegressionReporter.Tester.Accepter(),
       RegressionReporter.Historian.Complete()),
@@ -25,11 +24,10 @@ object Benchmark extends PerformanceTest {
     new GnuplotReporter(),
     new LoggingReporter)
 
-  val persistor = new SerializationPersistor("./tmp/")
+  lazy val persistor = new SerializationPersistor("./tmp/")
 
   val repetitions = 10
   val iterations = 10
-  val testsize = 25
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
@@ -39,85 +37,48 @@ object Benchmark extends PerformanceTest {
     }
   }
 
-  val parameters = for {
-    a <- Gen.single("repetitions")(repetitions)
-    b <- Gen.single("iterations")(iterations)
-    c <- Gen.single("testsize")(testsize)
-  } yield (a, b, c)
+  val parameters = Gen.single("iterations")(iterations)
 
-//  simpleTestGroup("signal chain",
-//    "scalareact" -> (new ReactChainBench(_)),
-//    "playground" -> (new DistChainBench(_)),
-//    "wrappedplayground" -> (new WrappedChainBench(_, PlaygroundWrapper)),
-//    "wrappedscalareact" -> (new WrappedChainBench(_, ScalaReactWrapper())),
-//    "wrappedscalarx" -> (new WrappedChainBench(_, ScalaRxWrapper)),
-//    "wrappedscalarxparallel" -> (new WrappedChainBench(_, ScalaRxWrapperParallel))
-//  )
-//
-//  simpleTestGroup("signal fan",
-//    "scalareact" -> (new ReactFanBench(_)),
-//    "playground" -> (new DistFanBench(_)),
-//    "wrappedplayground" -> (new WrappedFanBench(_, PlaygroundWrapper)),
-//    "wrappedscalareact" -> (new WrappedFanBench(_, ScalaReactWrapper())),
-//    "wrappedscalarx" -> (new WrappedFanBench(_, ScalaRxWrapper)),
-//    "wrappedscalarxparallel" -> (new WrappedFanBench(_, ScalaRxWrapperParallel))
-//  )
+  val graphs = Map[String, BenchmarkGraphTrait](
+    "optimized" -> new BenchmarkGraph(SidupWrapper),
+    "unoptimized" -> new BenchmarkGraph(UnoptimizedWrapper))
 
-  simpleTestGroup("three hosts",
-    "wrappedplayground" -> (new ThreeHosts(_, SidupWrapper)),
-    "wrappedscalareact" -> (new ThreeHosts(_, UnoptimizedWrapper))
-  )
+  performTest("change only A", SourceA)
+  performTest("change only B", SourceB)
+  performTest("change only C", SourceC)
+  performTest("change A and B", SourceA, SourceB)
+  performTest("change A and C", SourceA, SourceC)
+  performTest("change B and C", SourceB, SourceC)
+  performTest("change all", SourceA, SourceB, SourceC)
 
-//  simpleTestGroup("three hosts with independent sources",
-//    "wrappedplayground" -> (new IndependentSources(_, PlaygroundWrapper)),
-//    "wrappedscalareact" -> (new IndependentSources(_, ScalaReactWrapper())),
-//    "wrappedscalarx" -> (new IndependentSources(_, ScalaRxWrapper)),
-//    "wrappedscalarxparallel" -> (new IndependentSources(_, ScalaRxWrapperParallel)),
-//    "hackkedelmsimulation" -> (new IndependentSources(_, new ElmSimulationWrapper()))
-//  )
+  def performTest(testName: String, sources: Source*) =
+    performance.of(testName.replace(' ', '_')).config(
+//      exec.benchRuns -> repetitions,
+      /*exec.maxWarmupRuns -> 4*/).in {
 
-  simpleTestGroup("three hosts with many sources",
-    "wrappedplayground" -> (new ManySources(_, SidupWrapper)),
-    "wrappedscalareact" -> (new ManySources(_, UnoptimizedWrapper))
-  )
-
-//  simpleTestGroup("three hosts with many changing sources",
-//    "wrappedplayground" -> (new ManyChangingSources(_, PlaygroundWrapper)),
-//    "wrappedscalareact" -> (new ManyChangingSources(_, ScalaReactWrapper())),
-//    "wrappedscalarx" -> (new ThreeHosts(_, ScalaRxWrapper)),
-//    "wrappedscalarxparallel" -> (new ThreeHosts(_, ScalaRxWrapperParallel)),
-//    "hackkedelmsimulation" -> (new ThreeHosts(_, new ElmSimulationWrapper()))
-//  )
-
-  def simpleTestGroup(groupname: String, tests: Tuple2[String, Int => SimpleTest]*) =
-    performance.of(groupname.replace(' ','_')).config(
-      exec.benchRuns -> repetitions,
-      exec.maxWarmupRuns -> 4
-    ).in {
-      tests.foreach { case (name, test) =>
-        measure.method(name).in {
-          var simpleTest: SimpleTest = null
-          using(parameters).beforeTests {
-            println(s"before test $groupname $name")
-            simpleTest = test(testsize)
-            simpleTest.init()
-          }.setUp { case (repetitions, iterations, testsize) =>
-            // manual warmup step …
-            simpleTest.run(-42)
-            iterate(iterations) { i =>
-              val res = simpleTest.run(i)
-              assert(simpleTest.validateResult(i, res))
+        graphs.foreach {
+          case (name, graph) =>
+            def runTest(value: Int): Unit = {
+              graph.set(sources.map(_ -> value): _*)
+              assert(graph.validateResult, graph.state)
             }
-            simpleTest.run(-84)
-          }.in { case (_, iterations, _) =>
-            iterate(iterations) { i =>
-              val res = simpleTest.run(i)
-              assert(simpleTest.validateResult(i, res))
+
+            measure.method(name).in {
+              using(parameters)/*.beforeTests {
+                println(s"before test $testName $name")
+              }.setUp {
+                case (iterations) =>
+                  // manual warmup step …
+                  runTest(-42)
+                  iterate(iterations) { runTest(_) }
+                  runTest(-84)
+              }*/.in {
+                case (iterations) =>
+                  iterate(iterations) { runTest(_) }
+              }
             }
-          }
         }
       }
-    }
 
 }
 
