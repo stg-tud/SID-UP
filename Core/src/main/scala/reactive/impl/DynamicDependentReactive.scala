@@ -16,17 +16,15 @@ trait DynamicDependentReactive extends LazyLogging {
   private var anyPulse: Boolean = _
 
   override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
-    val waitingFor = synchronized {
-      if (currentTransaction != transaction) {
-        if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
-        currentTransaction = transaction
-        anyDependenciesChanged = false
-        anyPulse = false
-      }
+    if (!hasPulsed(transaction)) {
+      val waitingFor = synchronized {
+        if (currentTransaction != transaction) {
+          if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
+          currentTransaction = transaction
+          anyDependenciesChanged = false
+          anyPulse = false
+        }
 
-      if (hasPulsed(transaction)) {
-        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
-      } else {
         anyDependenciesChanged |= sourceDependenciesChanged
         anyPulse |= pulsed
 
@@ -43,14 +41,14 @@ trait DynamicDependentReactive extends LazyLogging {
           dep.addDependant(transaction, this)
         }
 
-        lastDependencies.filter(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
+        lastDependencies.find(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
       }
-    }
-    
-    if (waitingFor.isEmpty) {
-      doReevaluation(transaction, anyDependenciesChanged, anyPulse)
-    } else {
-      logger.trace(s"$name still waits for updates from $waitingFor)")
+
+      if (waitingFor.isEmpty) {
+        doReevaluation(transaction, anyDependenciesChanged, anyPulse)
+      } else {
+        logger.trace(s"$name still waits for update from $waitingFor and possibly more)")
+      }
     }
   }
 

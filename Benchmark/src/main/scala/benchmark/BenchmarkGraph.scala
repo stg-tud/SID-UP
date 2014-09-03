@@ -18,13 +18,20 @@ trait BenchmarkGraphTrait {
   def validateResult: Boolean = theoreticalResult == getLast
   def theoreticalResult: Int
   def state: String
+  def reset(): Unit
 }
 
 class BenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: ReactiveWrapper[GenSig, GenVar], val size: Int = 25) extends BenchmarkGraphTrait {
+  val initialValue = -10
 
   import wrapper._
 
-  val source = Map[Source, GenVar[Int]](SourceA -> makeVar(-10), SourceB -> makeVar(-10), SourceC -> makeVar(-10))
+  val source = Map[Source, GenVar[Int]](SourceA -> makeVar(0), SourceB -> makeVar(0), SourceC -> makeVar(0))
+
+  def reset = {
+    set(SourceA -> initialValue, SourceB -> initialValue, SourceC -> initialValue)
+    assert(validateResult)
+  }
 
   def set(values: (Source, Int)*) = {
     setValues(values.map { case (sourceId, value) => source(sourceId) -> value }: _*)
@@ -42,20 +49,22 @@ class BenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: React
     map(source(SourceB)) { v: Int =>
       v + 1000
     })
-    def theoreticalB = ((get(SourceB) + 1000 + 1) * size)
+  def theoreticalB = ((get(SourceB) + 1000 + 1) * size)
 
   val secondC = StructureBuilder.makeRegular(wrapper,
     map(source(SourceC)) { v: Int =>
       v + 1000
     })
-    def theoreticalC = (get(SourceC) + 1000 + 9)
+  def theoreticalC = (get(SourceC) + 1000 + 9)
 
   val last = combine(Seq(secondA, secondB, secondC))(_.sum)
 
-  def theoreticalResult: Int = theoreticalA + theoreticalB  + theoreticalC 
+  def theoreticalResult: Int = theoreticalA + theoreticalB + theoreticalC
   def state = "Sources: A -> %d => %d (expected %d), B -> %d => %d (expected %d), C -> %d => %d (expected %d), Out -> %d (expected: %d)".format(
-      get(SourceA), getValue(secondA), theoreticalA,
-      get(SourceB), getValue(secondB), theoreticalB,
-      get(SourceC), getValue(secondC), theoreticalC,
-      getLast, theoreticalResult)
+    get(SourceA), getValue(secondA), theoreticalA,
+    get(SourceB), getValue(secondB), theoreticalB,
+    get(SourceC), getValue(secondC), theoreticalC,
+    getLast, theoreticalResult)
+
+  reset
 }

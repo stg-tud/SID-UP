@@ -40,15 +40,12 @@ trait DependentReactive[P] extends Reactive.Dependant {
   private var currentTransaction: Transaction = _
 
   override def ping(transaction: Transaction): Unit = {
-    val (waitingFor, anyDependenciesChanged, anyPulse) = synchronized {
-      if (currentTransaction != transaction) {
-        if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
-        currentTransaction = transaction
-      }
-
-      if (hasPulsed(transaction)) {
-        throw new IllegalStateException(s"Already pulsed in transaction ${transaction.uuid} but received another update")
-      } else {
+    if (!hasPulsed(transaction)) {
+      val (waitingFor, anyDependenciesChanged, anyPulse) = synchronized {
+        if (currentTransaction != transaction) {
+          if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
+          currentTransaction = transaction
+        }
 
         val newDependencies = dependencies(transaction)
         val unsubscribe = lastDependencies.diff(newDependencies)
@@ -78,12 +75,12 @@ trait DependentReactive[P] extends Reactive.Dependant {
         }
         (waitingFor, anyDependenciesChanged, anyPulse)
       }
-    }
 
-    if (waitingFor.isEmpty) {
-      doReevaluation(transaction, anyDependenciesChanged | (isDynamicNode & anyPulse), anyPulse)
-    } else {
-      logger.trace(s"$name still waits for updates from $waitingFor)")
+      if (waitingFor.isEmpty) {
+        doReevaluation(transaction, anyDependenciesChanged | (isDynamicNode & anyPulse), anyPulse)
+      } else {
+        logger.trace(s"$name still waits for updates from $waitingFor and possibly more)")
+      }
     }
   }
 

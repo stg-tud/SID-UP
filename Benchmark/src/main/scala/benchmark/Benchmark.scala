@@ -52,33 +52,34 @@ object Benchmark extends PerformanceTest {
   performTest("change all", SourceA, SourceB, SourceC)
 
   def performTest(testName: String, sources: Source*) =
-    performance.of(testName.replace(' ', '_')).config(
-//      exec.benchRuns -> repetitions,
-      /*exec.maxWarmupRuns -> 4*/).in {
+    performance.of(testName.replace(' ', '_')).config( //      exec.benchRuns -> repetitions,
+    /*exec.maxWarmupRuns -> 4*/ ).in {
 
-        graphs.foreach {
-          case (name, graph) =>
-            def runTest(value: Int): Unit = {
-              graph.set(sources.map(_ -> value): _*)
-              assert(graph.validateResult, graph.state)
-            }
+      graphs.foreach {
+        case (name, graph) =>
+          def runTest(value: Int): Unit = {
+            graph.set(sources.map(_ -> value): _*)
+//            Thread.sleep(10)
+            assert(graph.validateResult, graph.state)
+          }
 
-            measure.method(name).in {
-              using(parameters)/*.beforeTests {
-                println(s"before test $testName $name")
-              }.setUp {
+          measure.method(name).in {
+            using(parameters).beforeTests {
+              graph.reset()
+              println(s"before test $testName $name: " + graph.state)
+            } /*.setUp {
                 case (iterations) =>
                   // manual warmup step …
                   runTest(-42)
                   iterate(iterations) { runTest(_) }
                   runTest(-84)
-              }*/.in {
+              }*/ .in {
                 case (iterations) =>
                   iterate(iterations) { runTest(_) }
               }
-            }
-        }
+          }
       }
+    }
 
 }
 
