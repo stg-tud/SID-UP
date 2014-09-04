@@ -16,7 +16,13 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   private[unoptimized] val name = {
     val classname = getClass.getName
     val unqualifiedClassname = classname.substring(classname.lastIndexOf('.') + 1)
-    s"$unqualifiedClassname($hashCode)"
+
+    val trace = Thread.currentThread().getStackTrace();
+    var i = 0;
+    while(!trace(i).toString().startsWith("unoptimized.")) i += 1
+    while(trace(i).toString.startsWith("unoptimized.") && !trace(i).toString().startsWith("unoptimized.test.")) i += 1
+
+    s"$unqualifiedClassname($hashCode) from ${trace(i + 2 /* + 2 to strip the benchmark wrappers! */)}"
   }
   override def toString = name
 
