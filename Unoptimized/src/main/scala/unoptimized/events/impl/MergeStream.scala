@@ -5,7 +5,7 @@ package impl
 import unoptimized.impl.MultiDependentReactive
 
 class MergeStream[A](private val streams: Iterable[EventStream[A]]) extends {
-  override val dependencies = streams.toSet : Set[Reactive[_,_]]
+  override val dependencies = streams.toSet : Set[Reactive[_, _]]
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
 
   protected def reevaluate(transaction: Transaction): Option[A] = {
