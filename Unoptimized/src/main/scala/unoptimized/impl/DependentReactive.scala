@@ -38,30 +38,24 @@ trait DependentReactive[P] extends Reactive.Dependant {
   private var lastDependencies = dependencies(null)
   lastDependencies.foreach { _.addDependant(null, this) }
   private var currentTransaction: Transaction = _
-  private var reevaluationStarted: Boolean = _
+  private var reevaluationIssued: Boolean = _
 
   override def ping(transaction: Transaction): Unit = {
     val maybeReevaluationReady: DependentReactive.ReevaluationReadinessResult = synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, Previous transaction ${currentTransaction.uuid} not completed yet!")
         currentTransaction = transaction
-        reevaluationStarted = false
+        reevaluationIssued = false
       }
 
-      if (reevaluationStarted) {
+      if (reevaluationIssued) {
         DependentReactive.StaleNotification
       } else {
-        val newDependencies = dependencies(transaction)
-        val unsubscribe = lastDependencies.diff(newDependencies)
-        val subscribe = newDependencies.diff(lastDependencies)
-        lastDependencies = newDependencies
-        unsubscribe.foreach { dep =>
-          dep.removeDependant(transaction, this)
-        }
-        subscribe.foreach { dep =>
-          dep.addDependant(transaction, this)
-        }
-
+        if(isDynamicNode) updateDependencySubscriptions(transaction)
+        
+        // iterate all dependencies to
+        //   a) see if one still must be updated this turn, and
+        //   b) at the same time aggregate source id set and pulse changed bits, in case none is found
         var anyDependenciesChanged = false
         var anyPulse = false
         val waitingFor = lastDependencies.find { dependency =>
@@ -77,23 +71,41 @@ trait DependentReactive[P] extends Reactive.Dependant {
             false
           }
         }
+
         waitingFor match {
           case None =>
-            reevaluationStarted = true
+            reevaluationIssued = true
             DependentReactive.Ready(anyDependenciesChanged, anyPulse)
           case Some(waitingFor) =>
             DependentReactive.NotReady(waitingFor)
         }
       }
     }
+
     maybeReevaluationReady match {
       case DependentReactive.StaleNotification =>
       // ignore stale notification
       case DependentReactive.Ready(anyDependenciesChanged, anyPulse) =>
-        doReevaluation(transaction, anyDependenciesChanged | (isDynamicNode & anyPulse), anyPulse)
+        doReevaluation(transaction, anyDependenciesChanged || (isDynamicNode  && anyPulse), anyPulse)
       case DependentReactive.NotReady(waitingFor) =>
         logger.trace(s"$name still waits for updates from $waitingFor and possibly more)")
     }
+  }
+
+  private def updateDependencySubscriptions(transaction: Transaction): Boolean = {
+    val newDependencies = dependencies(transaction)
+    val unsubscribe = lastDependencies.diff(newDependencies)
+    val subscribe = newDependencies.diff(lastDependencies)
+    lastDependencies = newDependencies
+
+    unsubscribe.foreach { dep =>
+      dep.removeDependant(transaction, this)
+    }
+    subscribe.foreach { dep =>
+      dep.addDependant(transaction, this)
+    }
+
+    unsubscribe.nonEmpty | subscribe.nonEmpty
   }
 
   protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
@@ -104,6 +116,6 @@ trait DependentReactive[P] extends Reactive.Dependant {
 object DependentReactive {
   sealed trait ReevaluationReadinessResult
   case object StaleNotification extends ReevaluationReadinessResult
-  case class NotReady(foundDependency: Reactive[_,_]) extends ReevaluationReadinessResult
+  case class NotReady(foundDependency: Reactive[_, _]) extends ReevaluationReadinessResult
   case class Ready(anyDependenciesChanged: Boolean, anyPulse: Boolean) extends ReevaluationReadinessResult
 }
