@@ -4,7 +4,7 @@ package impl
 import java.util.UUID
 
 trait SingleDependentReactive {
-  self: DependentReactive[_]=>
+  self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
   protected val dependency: Reactive.Dependency
   dependency.addDependant(null, this)
