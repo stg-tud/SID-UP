@@ -13,7 +13,7 @@ import reactive.signals.Signal
   * because a change in only the value of the signal will never change the pulse of this.
   */
 class PulseEventStream[A](private val signal: Signal[A], private val events: EventStream[_]) extends {
-  override val dependencies = Set[Reactive.Dependency](events, signal)
+  override val dependencies = Set[Reactive[_, _]](events, signal)
 } with DependentEventStreamImpl[A] with MultiDependentReactive {
 
   override protected def reevaluate(transaction: Transaction): Option[A] = {
