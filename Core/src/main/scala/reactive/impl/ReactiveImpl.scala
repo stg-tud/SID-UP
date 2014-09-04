@@ -19,7 +19,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
     while(!trace(i).toString().startsWith("reactive.")) i += 1
     while(trace(i).toString.startsWith("reactive.") && !trace(i).toString().startsWith("reactive.test.")) i += 1
 
-    unqualifiedClassname + " from " + trace(i).toString
+    s"$unqualifiedClassname($hashCode) from ${trace(i)}"
   }
   override def toString = name
 

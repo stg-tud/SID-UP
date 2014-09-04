@@ -36,7 +36,6 @@ libraryDependencies in ThisBuild ++= (
     "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0" ::
     "org.slf4j" % "slf4j-simple" % "1.7.5" % "test" ::
     "org.scalatest" %% "scalatest" % "2.1.7" % "test" ::
-    "org.scala-stm" %% "scala-stm" % "0.7" ::
     Nil)
 
 javaOptions in ThisBuild ++= (

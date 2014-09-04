@@ -16,7 +16,7 @@ trait MultiDependentReactive extends LazyLogging {
   private var anyPulse: Boolean = _
 
   override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
-    synchronized {
+    val pending = synchronized {
       if (currentTransaction != transaction) {
         if (!hasPulsed(currentTransaction)) throw new IllegalStateException(s"Cannot process transaction ${transaction.uuid}, previous transaction ${currentTransaction.uuid} not completed yet! ($pendingNotifications notifications pending)")
         currentTransaction = transaction
@@ -28,12 +28,13 @@ trait MultiDependentReactive extends LazyLogging {
         anyDependenciesChanged |= sourceDependenciesChanged
         anyPulse |= pulsed
       }
+      pendingNotifications
     }
 
-    if (pendingNotifications == 0) {
+    if (pending == 0) {
       logger.trace(s"$this received last remaining notification for transaction ${transaction.uuid}, starting reevaluation")
       doReevaluation(transaction, anyDependenciesChanged, anyPulse)
-    } else if (pendingNotifications < 0) {
+    } else if (pending < 0) {
       throw new IllegalStateException(s"$this received more notifications than expected for transaction ${transaction.uuid}")
     } else {
       logger.trace(s"$this received a notification for transaction ${transaction.uuid}, $pendingNotifications pending")
