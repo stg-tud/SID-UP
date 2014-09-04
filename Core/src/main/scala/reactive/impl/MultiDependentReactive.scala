@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
 trait MultiDependentReactive extends LazyLogging {
   self: DependentReactive[_] with ReactiveImpl[_, _] =>
 
-  protected val dependencies: Set[Reactive.Dependency]
+  protected val dependencies: Set[Reactive[_, _]]
   dependencies.foreach { _.addDependant(null, this) }
 
   private var currentTransaction: Transaction = null
