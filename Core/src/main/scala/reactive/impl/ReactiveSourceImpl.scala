@@ -6,7 +6,6 @@ import java.util.UUID
 trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   self: ReactiveImpl[_, P] =>
   override val uuid = UUID.randomUUID();
-  override val name = s"ReactiveSource($uuid)"
   override def sourceDependencies(transaction: Transaction) = Set(uuid)
   override def isConnectedTo(transaction: Transaction) = transaction.sources.contains(uuid)
   private lazy val transaction = new TransactionBuilder();
