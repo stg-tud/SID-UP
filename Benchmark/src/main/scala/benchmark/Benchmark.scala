@@ -26,8 +26,7 @@ object Benchmark extends PerformanceTest {
 
   lazy val persistor = new SerializationPersistor("./tmp/")
 
-  val repetitions = 10
-  val iterations = 10
+  val iterations = 1000
 
   def iterate[T](iterations: Int)(f: Int => T) = {
     var i = 0
