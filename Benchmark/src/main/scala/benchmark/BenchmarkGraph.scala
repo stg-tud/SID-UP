@@ -4,9 +4,9 @@ import scala.language.higherKinds
 import benchmark._
 
 sealed trait Source
-case object SourceA extends Source
-case object SourceB extends Source
-case object SourceC extends Source
+case object Chain extends Source
+case object Fan extends Source
+case object Regular extends Source
 
 trait BenchmarkGraphTrait {
   val size: Int
@@ -21,15 +21,15 @@ trait BenchmarkGraphTrait {
   def reset(): Unit
 }
 
-class BenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: ReactiveWrapper[GenSig, GenVar], val size: Int = 25) extends BenchmarkGraphTrait {
+case class SingleSourceBenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: ReactiveWrapper[GenSig, GenVar], val size: Int = 25) extends BenchmarkGraphTrait {
   val initialValue = -10
 
   import wrapper._
 
-  val source = Map[Source, GenVar[Int]](SourceA -> makeVar(0), SourceB -> makeVar(0), SourceC -> makeVar(0))
+  val source = Map[Source, GenVar[Int]](Chain -> makeVar(0), Fan -> makeVar(0), Regular -> makeVar(0))
 
   def reset = {
-    set(SourceA -> initialValue, SourceB -> initialValue, SourceC -> initialValue)
+    set(Chain -> initialValue, Fan -> initialValue, Regular -> initialValue)
     assert(validateResult)
   }
 
@@ -40,30 +40,72 @@ class BenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: React
   def getLast = getValue(last)
 
   val secondA = StructureBuilder.makeChain(size, wrapper,
-    map(source(SourceA)) { v: Int =>
+    map(source(Chain)) { v: Int =>
       v + 1000
     })
-  def theoreticalA = (get(SourceA) + 1000 + size)
+  def theoreticalA = (get(Chain) + 1000 + size)
 
   val secondB = StructureBuilder.makeFan(size, wrapper,
-    map(source(SourceB)) { v: Int =>
+    map(source(Fan)) { v: Int =>
       v + 1000
     })
-  def theoreticalB = ((get(SourceB) + 1000 + 1) * size)
+  def theoreticalB = ((get(Fan) + 1000 + 1) * size)
 
   val secondC = StructureBuilder.makeRegular(wrapper,
-    map(source(SourceC)) { v: Int =>
+    map(source(Regular)) { v: Int =>
       v + 1000
     })
-  def theoreticalC = (get(SourceC) + 1000 + 9)
+  def theoreticalC = (get(Regular) + 1000 + 9)
 
   val last = combine(Seq(secondA, secondB, secondC))(_.sum)
 
   def theoreticalResult: Int = theoreticalA + theoreticalB + theoreticalC
   def state = "Sources: A -> %d => %d (expected %d), B -> %d => %d (expected %d), C -> %d => %d (expected %d), Out -> %d (expected: %d)".format(
-    get(SourceA), getValue(secondA), theoreticalA,
-    get(SourceB), getValue(secondB), theoreticalB,
-    get(SourceC), getValue(secondC), theoreticalC,
+    get(Chain), getValue(secondA), theoreticalA,
+    get(Fan), getValue(secondB), theoreticalB,
+    get(Regular), getValue(secondC), theoreticalC,
+    getLast, theoreticalResult)
+
+  reset
+}
+
+case class ManySourcesBenchmarkGraph[GenSig[Int], GenVar[Int] <: GenSig[Int]](val wrapper: ReactiveWrapper[GenSig, GenVar], val size: Int = 25, val sourceCount: Int = 20, val sourceUpdateCount: Int = 4) extends BenchmarkGraphTrait {
+  val initialValue = -10
+
+  import wrapper._
+
+  val sources = Map[Source, Seq[GenVar[Int]]](Chain -> (1 to sourceCount).map { _ => makeVar(0) }.toSeq, Fan -> (0 to sourceCount).map { _ => makeVar(0) }.toSeq, Regular -> (0 to sourceCount).map { _ => makeVar(0) }.toSeq)
+
+  def reset = {
+    set(Chain -> initialValue, Fan -> initialValue, Regular -> initialValue)
+    assert(validateResult, state)
+  }
+
+  def set(values: (Source, Int)*) = {
+    setValues(values.flatMap { case (sourceId, value) => sources(sourceId).take(sourceUpdateCount).map { _ -> value } }: _*)
+  }
+  def get(sourceId: Source) = getValue(sources(sourceId).head)
+  def getLast = getValue(last)
+
+  val secondA = StructureBuilder.makeChain(size, wrapper,
+    combine(sources(Chain)) { _.sum + 1000 })
+  def theoreticalA = (sourceUpdateCount * get(Chain) + 1000 + size)
+
+  val secondB = StructureBuilder.makeFan(size, wrapper,
+    combine(sources(Fan)) { _.sum + 1000 })
+  def theoreticalB = ((sourceUpdateCount * get(Fan) + 1000 + 1) * size)
+
+  val secondC = StructureBuilder.makeRegular(wrapper,
+    combine(sources(Regular)) { _.sum + 1000 })
+  def theoreticalC = (sourceUpdateCount * get(Regular) + 1000 + 9)
+
+  val last = combine(Seq(secondA, secondB, secondC))(_.sum)
+
+  def theoreticalResult: Int = theoreticalA + theoreticalB + theoreticalC
+  def state = "Sources: A -> %d => %d (expected %d), B -> %d => %d (expected %d), C -> %d => %d (expected %d), Out -> %d (expected: %d)".format(
+    get(Chain), getValue(secondA), theoreticalA,
+    get(Fan), getValue(secondB), theoreticalB,
+    get(Regular), getValue(secondC), theoreticalC,
     getLast, theoreticalResult)
 
   reset
