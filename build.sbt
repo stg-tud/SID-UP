@@ -22,17 +22,21 @@ version in ThisBuild := "0.1.1-STM"
 organization in ThisBuild := "de.tuda.stg"
 
 scalacOptions in ThisBuild ++= (
-    "-deprecation" ::
-    "-encoding" :: "UTF-8" ::
-    "-unchecked" ::
-    "-feature" ::
-    "-target:jvm-1.7" ::
-    //"-language:implicitConversions" ::
-    //"-language:reflectiveCalls" ::
-    "-Xlint" ::
-    "-Xfuture" ::
-    //"-Xlog-implicits" ::
-    Nil)
+  "-deprecation" ::
+  "-encoding" :: "UTF-8" ::
+  "-unchecked" ::
+  "-feature" ::
+  "-target:jvm-1.7" ::
+  "-Xlint" ::
+  "-Xfuture" ::
+  //"-Xlog-implicits" ::
+  //"-Xfatal-warnings" ::
+  "-Yno-adapted-args" ::
+  //"-Ywarn-numeric-widen" ::
+  //"-Ywarn-value-discard" ::
+  "-Ywarn-dead-code" ::
+  //"-Yno-predef" ::
+  Nil)
 
 libraryDependencies in ThisBuild ++= (
     "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0" ::
