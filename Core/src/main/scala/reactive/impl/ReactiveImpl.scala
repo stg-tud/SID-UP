@@ -6,6 +6,9 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.SynchronousQueue
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
@@ -19,11 +22,11 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
     while(!trace(i).toString().startsWith("reactive.")) i += 1
     while(trace(i).toString.startsWith("reactive.") && !trace(i).toString().startsWith("reactive.test.")) i += 1
 
-    s"$unqualifiedClassname($hashCode) from ${trace(i)}"
+    s"$unqualifiedClassname($hashCode) from ${trace(i + 2 /* + 2 to strip the benchmark wrappers! */)}"
   }
   override def toString = name
 
-  private var currentTransaction: Transaction = _
+  @volatile private var currentTransaction: Transaction = _
   private var pulse: Option[P] = None
   def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
@@ -77,8 +80,18 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
 object ReactiveImpl extends LazyLogging {
   import scala.concurrent._
-  private implicit val myExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
 
+  private val pool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]());
+  private implicit val myExecutionContext = new ExecutionContext {
+    def execute(runnable: Runnable): Unit = {
+      pool.submit(runnable)
+    }
+
+    def reportFailure(t: Throwable): Unit = {
+      t.printStackTrace()
+    }
+  }
+  
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
       Nil

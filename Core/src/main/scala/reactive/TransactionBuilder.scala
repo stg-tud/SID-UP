@@ -2,9 +2,6 @@ package reactive
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import util.TicketAccumulator
-import util.TransactionAction
-import util.COMMIT
 import com.typesafe.scalalogging.LazyLogging
 
 class TransactionBuilder extends LazyLogging {
