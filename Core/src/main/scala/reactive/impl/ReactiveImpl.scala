@@ -27,33 +27,26 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def toString = name
 
   @volatile private var currentTransaction: Transaction = _
-  private var pulse: Option[P] = None
+  @volatile private var pulse: Option[P] = None
   def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
-  private var dependants = Set[Reactive.Dependant]()
+  @volatile private var dependants = Set[Reactive.Dependant]()
   override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    synchronized {
-      logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants += dependant
-    }
+    logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
+    dependants += dependant
   }
   override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    synchronized {
-      logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants -= dependant
-    }
+    logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
+    dependants -= dependant
   }
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
     val pulsed = pulse.isDefined
     logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
-    val deptsToNotify = synchronized {
-      this.pulse = pulse
-      this.currentTransaction = transaction
-      dependants
-    }
-    ReactiveImpl.parallelForeach(deptsToNotify) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
+    this.pulse = pulse
+    this.currentTransaction = transaction
+    ReactiveImpl.parallelForeach(dependants) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
       notifyObservers(transaction, value)
