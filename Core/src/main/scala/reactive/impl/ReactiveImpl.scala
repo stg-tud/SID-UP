@@ -19,39 +19,65 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
     val trace = Thread.currentThread().getStackTrace();
     var i = 0;
-    while(!trace(i).toString().startsWith("reactive.")) i += 1
-    while(trace(i).toString.startsWith("reactive.") && !trace(i).toString().startsWith("reactive.test.")) i += 1
+    while (!trace(i).toString().startsWith("reactive.")) i += 1
+    while (trace(i).toString.startsWith("reactive.") && !trace(i).toString().startsWith("reactive.test.")) i += 1
 
     s"$unqualifiedClassname($hashCode) from ${trace(i)}"
   }
   override def toString = name
 
-  @volatile private var currentTransaction: Transaction = _
+  private var currentTransaction: Transaction = _
   private var pulse: Option[P] = None
-  def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
+  // =============================================================================================
+  // Trade-off: better speed for worse memory footprint:
+  // Never drop pulse values.
+  def pulse(transaction: Transaction): Option[P] = if (hasPulsed(transaction)) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
-    
+  // ---------------------------------------------------------------------------------------------
+  // Trade-off: better memory footprint for worse speed:
+  // Drop (outdated) pulse value when new transaction is observed
+  //  def pulse(transaction: Transaction): Option[P] = {
+  //    hasPulsed(transaction)
+  //    pulse
+  //  }
+  //  def hasPulsed(transaction: Transaction): Boolean = {
+  //    synchronized {
+  //      if (currentTransaction == transaction) {
+  //        true
+  //      } else {
+  //        pulse = None
+  //        false
+  //      }
+  //    }
+  //  }
+  // =============================================================================================
+
   private var dependants = Set[Reactive.Dependant]()
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
+  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean = {
     synchronized {
       logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
       dependants += dependant
+      transaction != null && isPulseUpcoming(transaction)
     }
   }
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
+  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean = {
     synchronized {
       logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
       dependants -= dependant
+      transaction != null && isPulseUpcoming(transaction)
     }
   }
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
     synchronized {
       logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
-      this.pulse = pulse
-      this.currentTransaction = transaction
+      val deptsToPing = synchronized {
+        this.pulse = pulse
+        this.currentTransaction = transaction
+        dependants
+      }
       val pulsed = pulse.isDefined
-      ReactiveImpl.parallelForeach(dependants) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
+      ReactiveImpl.parallelForeach(deptsToPing) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
       if (pulsed) {
         val value = getObserverValue(transaction, pulse.get)
         notifyObservers(transaction, value)
@@ -91,7 +117,7 @@ object ReactiveImpl extends LazyLogging {
       t.printStackTrace()
     }
   }
-  
+
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
       Nil
