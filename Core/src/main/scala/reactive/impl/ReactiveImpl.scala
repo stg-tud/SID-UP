@@ -47,8 +47,8 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
     val pulsed = pulse.isDefined
+    logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
     val deptsToNotify = synchronized {
-      logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
       this.pulse = pulse
       this.currentTransaction = transaction
       dependants
