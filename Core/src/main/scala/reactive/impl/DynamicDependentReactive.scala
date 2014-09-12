@@ -36,7 +36,7 @@ trait DynamicDependentReactive extends LazyLogging {
         	anyDependenciesChanged |= updateDependencySubscriptions(transaction)
         }
 
-        val waitingFor = lastDependencies.find(dependency => dependency.isConnectedTo(transaction) && !dependency.hasPulsed(transaction))
+        val waitingFor = lastDependencies.find(dependency => dependency.isPulseUpcoming(transaction))
 
         waitingFor match {
           case None =>

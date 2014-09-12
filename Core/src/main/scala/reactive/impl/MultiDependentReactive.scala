@@ -42,6 +42,6 @@ trait MultiDependentReactive extends LazyLogging {
   }
 
   override protected def calculateSourceDependencies(transaction: Transaction): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(transaction))
+    dependencies.flatMap(_.sourceDependencies(transaction))
   }
 }
