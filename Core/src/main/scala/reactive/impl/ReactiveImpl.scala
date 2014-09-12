@@ -28,7 +28,7 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
   @volatile private var currentTransaction: Transaction = _
   @volatile private var pulse: Option[P] = None
-  def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
+  def pulse(transaction: Transaction): Option[P] = if (hasPulsed(transaction)) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
 
   @volatile private var dependants = Set[Reactive.Dependant]()

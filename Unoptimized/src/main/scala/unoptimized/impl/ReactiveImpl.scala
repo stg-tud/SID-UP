@@ -7,8 +7,8 @@ import java.util.concurrent.Executors
 import scala.util.Failure
 import scala.util.Try
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.SynchronousQueue
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
@@ -19,45 +19,40 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
 
     val trace = Thread.currentThread().getStackTrace();
     var i = 0;
-    while(!trace(i).toString().startsWith("unoptimized.")) i += 1
-    while(trace(i).toString.startsWith("unoptimized.") && !trace(i).toString().startsWith("unoptimized.test.")) i += 1
+    while (!trace(i).toString().startsWith("unoptimized.")) i += 1
+    while (trace(i).toString.startsWith("unoptimized.") && !trace(i).toString().startsWith("unoptimized.test.")) i += 1
 
     s"$unqualifiedClassname($hashCode) from ${trace(i + 2 /* + 2 to strip the benchmark wrappers! */)}"
   }
   override def toString = name
 
   @volatile private var currentTransaction: Transaction = _
-  private var pulse: Option[P] = None
-  private var sourceDeptsChanged: Boolean = false
-  override def pulse(transaction: Transaction): Option[P] = if (currentTransaction == transaction) pulse else None
-  override def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
-  override def sourceDependenciesChanged(transaction: Transaction): Boolean = hasPulsed(transaction) && sourceDeptsChanged 
+  @volatile private var pulse: Option[P] = None
+  @volatile private var sourceDeptsChanged: Boolean = false
+  def pulse(transaction: Transaction): Option[P] = if (hasPulsed(transaction)) pulse else None
+  def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
+  def sourceDependenciesChanged(transaction: Transaction): Boolean = hasPulsed(transaction) && sourceDeptsChanged 
 
-  private var dependants = Set[Reactive.Dependant]()
+  @volatile private var dependants = Set[Reactive.Dependant]()
   override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    synchronized {
-      logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants += dependant
-    }
+    logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
+    dependants += dependant
   }
   override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    synchronized {
-      logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
-      dependants -= dependant
-    }
+    logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
+    dependants -= dependant
   }
 
   protected[unoptimized] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
-    synchronized {
-      logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
-      this.pulse = pulse
-      this.sourceDeptsChanged = sourceDependenciesChanged
-      this.currentTransaction = transaction
-      ReactiveImpl.parallelForeach(dependants) { _.ping(transaction) }
-      if (pulse.isDefined) {
-        val value = getObserverValue(transaction, pulse.get)
-        notifyObservers(transaction, value)
-      }
+    val pulsed = pulse.isDefined
+    logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
+    this.pulse = pulse
+    this.sourceDeptsChanged = sourceDependenciesChanged
+    this.currentTransaction = transaction
+    ReactiveImpl.parallelForeach(dependants) { _.ping(transaction) }
+    if (pulsed) {
+      val value = getObserverValue(transaction, pulse.get)
+      notifyObservers(transaction, value)
     }
   }
   protected def getObserverValue(transaction: Transaction, pulseValue: P): O
@@ -93,7 +88,7 @@ object ReactiveImpl extends LazyLogging {
       t.printStackTrace()
     }
   }
-  
+
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
       Nil
