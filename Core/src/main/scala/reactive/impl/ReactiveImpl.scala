@@ -114,17 +114,8 @@ object ReactiveImpl extends LazyLogging {
 
   import scala.concurrent._
 
-  private val pool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]());
-  private implicit val myExecutionContext = new ExecutionContext {
-    def execute(runnable: Runnable): Unit = {
-      pool.submit(runnable)
-    }
-
-    def reportFailure(t: Throwable): Unit = {
-      t.printStackTrace()
-    }
-  }
-
+  private implicit val myExecutionContext = ExecutionContext.fromExecutor(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
+  
   def runWrappingRollbackErrors[A](op: => A) = {
     try {
       op
