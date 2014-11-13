@@ -1,11 +1,12 @@
 package reactive
 
 import reactive.events.EventStream
-import reactive.signals.{Signal, Val}
+import reactive.signals.{ Signal, Val }
 import reactive.signals.impl.FunctionalSignal
-
 import scala.concurrent.stm._
 import scala.language.implicitConversions
+import reactive.events.impl.TuplePulseEventStream1
+import reactive.events.impl.TuplePulseEventStream2
 
 object Lift {
   object single {
@@ -22,17 +23,17 @@ object Lift {
     implicit def eventStream1[A, B](fun: A => B): EventStream[A] => EventStream[B] = a => a.single.map(fun)
     implicit def eventStreamSink1[A](fun: A => Unit): EventStream[A] => Unit = a => a.single.observe(fun)
 
-    implicit def eventStream2a[A1, A2, B](fun: (A1, A2) => B): (EventStream[A1], Signal[A2]) => EventStream[B] = (a1: EventStream[A1], a2: Signal[A2]) => ???
-    implicit def eventStream2b[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], EventStream[A2]) => EventStream[B] = (a1: Signal[A1], a2: EventStream[A2]) => ???
-    implicit def eventStream3a[A1, A2, A3, B](fun: (A1, A2, A3) => B): (EventStream[A1], Signal[A2], Signal[A3]) => EventStream[B] = (a1: EventStream[A1], a2: Signal[A2], a3: Signal[A3]) => ???
-    implicit def eventStream3b[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], EventStream[A2], Signal[A3]) => EventStream[B] = (a1: Signal[A1], a2: EventStream[A2], a3: Signal[A3]) => ???
-    implicit def eventStream3c[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], EventStream[A3]) => EventStream[B] = (a1: Signal[A1], a2: Signal[A2], a3: EventStream[A3]) => ???
+    implicit def eventStream2a[A1, A2, B](fun: (A1, A2) => B): (EventStream[A1], Signal[A2]) => EventStream[B] = (e: EventStream[A1], a2: Signal[A2]) => atomic { tx => transactional.eventStream2a(fun)(e, a2, tx) }
+    implicit def eventStream2b[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], EventStream[A2]) => EventStream[B] = (a1: Signal[A1], e: EventStream[A2]) => atomic { tx => transactional.eventStream2b(fun)(a1, e, tx) }
+    implicit def eventStream3a[A1, A2, A3, B](fun: (A1, A2, A3) => B): (EventStream[A1], Signal[A2], Signal[A3]) => EventStream[B] = (e: EventStream[A1], a2: Signal[A2], a3: Signal[A3]) => atomic { tx => transactional.eventStream3a(fun)(e, a2, a3, tx) }
+    implicit def eventStream3b[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], EventStream[A2], Signal[A3]) => EventStream[B] = (a1: Signal[A1], e: EventStream[A2], a3: Signal[A3]) => atomic { tx => transactional.eventStream3b(fun)(a1, e, a3, tx) }
+    implicit def eventStream3c[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], EventStream[A3]) => EventStream[B] = (a1: Signal[A1], a2: Signal[A2], e: EventStream[A3]) => atomic { tx => transactional.eventStream3c(fun)(a1, a2, e, tx) }
 
-    implicit def eventStreamSink2a[A1, A2](fun: (A1, A2) => Unit): (EventStream[A1], Signal[A2]) => Unit = (a1: EventStream[A1], a2: Signal[A2]) => ???
-    implicit def eventStreamSink2b[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], EventStream[A2]) => Unit = (a1: Signal[A1], a2: EventStream[A2]) => ???
-    implicit def eventStreamSink3a[A1, A2, A3](fun: (A1, A2, A3) => Unit): (EventStream[A1], Signal[A2], Signal[A3]) => Unit = (a1: EventStream[A1], a2: Signal[A2], a3: Signal[A3]) => ???
-    implicit def eventStreamSink3b[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], EventStream[A2], Signal[A3]) => Unit = (a1: Signal[A1], a2: EventStream[A2], a3: Signal[A3]) => ???
-    implicit def eventStreamSink3c[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], EventStream[A3]) => Unit = (a1: Signal[A1], a2: Signal[A2], a3: EventStream[A3]) => ???
+    implicit def eventStreamSink2a[A1, A2](fun: (A1, A2) => Unit): (EventStream[A1], Signal[A2]) => Unit = (e: EventStream[A1], a2: Signal[A2]) => atomic { tx => transactional.eventStreamSink2a(fun)(e, a2, tx) }
+    implicit def eventStreamSink2b[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], EventStream[A2]) => Unit = (a1: Signal[A1], e: EventStream[A2]) => atomic { tx => transactional.eventStreamSink2b(fun)(a1, e, tx) }
+    implicit def eventStreamSink3a[A1, A2, A3](fun: (A1, A2, A3) => Unit): (EventStream[A1], Signal[A2], Signal[A3]) => Unit = (e: EventStream[A1], a2: Signal[A2], a3: Signal[A3]) => atomic { tx => transactional.eventStreamSink3a(fun)(e, a2, a3, tx) }
+    implicit def eventStreamSink3b[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], EventStream[A2], Signal[A3]) => Unit = (a1: Signal[A1], e: EventStream[A2], a3: Signal[A3]) => atomic { tx => transactional.eventStreamSink3b(fun)(a1, e, a3, tx) }
+    implicit def eventStreamSink3c[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], EventStream[A3]) => Unit = (a1: Signal[A1], a2: Signal[A2], e: EventStream[A3]) => atomic { tx => transactional.eventStreamSink3c(fun)(a1, a2, e, tx) }
   }
   object transactional {
     implicit def valueToSignal[A](value: A): Signal[A] = new Val(value)
@@ -48,16 +49,16 @@ object Lift {
     implicit def eventStream1[A, B](fun: A => B): (EventStream[A], InTxn) => EventStream[B] = (a, inTxn) => a.map(fun)(inTxn)
     implicit def eventStreamSink1[A](fun: A => Unit): (EventStream[A], InTxn) => Unit = (a, inTxn) => a.observe(fun)(inTxn)
 
-    implicit def eventStream2a[A1, A2, B](fun: (A1, A2) => B): (EventStream[A1], Signal[A2], InTxn) => EventStream[B] = (a1: EventStream[A1], a2: Signal[A2], inTxn: InTxn) => ???
-    implicit def eventStream2b[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], EventStream[A2], InTxn) => EventStream[B] = (a1: Signal[A1], a2: EventStream[A2], inTxn: InTxn) => ???
-    implicit def eventStream3a[A1, A2, A3, B](fun: (A1, A2, A3) => B): (EventStream[A1], Signal[A2], Signal[A3], InTxn) => EventStream[B] = (a1: EventStream[A1], a2: Signal[A2], a3: Signal[A3], inTxn: InTxn) => ???
-    implicit def eventStream3b[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], EventStream[A2], Signal[A3], InTxn) => EventStream[B] = (a1: Signal[A1], a2: EventStream[A2], a3: Signal[A3], inTxn: InTxn) => ???
-    implicit def eventStream3c[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], EventStream[A3], InTxn) => EventStream[B] = (a1: Signal[A1], a2: Signal[A2], a3: EventStream[A3], inTxn: InTxn) => ???
+    implicit def eventStream2a[A1, A2, B](fun: (A1, A2) => B): (EventStream[A1], Signal[A2], InTxn) => EventStream[B] = (e: EventStream[A1], a2: Signal[A2], inTxn: InTxn) => new TuplePulseEventStream1(e, a2, inTxn).map(fun.tupled)(inTxn)
+    implicit def eventStream2b[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], EventStream[A2], InTxn) => EventStream[B] = (a1: Signal[A1], e: EventStream[A2], inTxn: InTxn) => new TuplePulseEventStream1(e, a1, inTxn).map(t => fun(t._2, t._1))(inTxn)
+    implicit def eventStream3a[A1, A2, A3, B](fun: (A1, A2, A3) => B): (EventStream[A1], Signal[A2], Signal[A3], InTxn) => EventStream[B] = (e: EventStream[A1], a2: Signal[A2], a3: Signal[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a2, a3, inTxn).map(fun.tupled)(inTxn)
+    implicit def eventStream3b[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], EventStream[A2], Signal[A3], InTxn) => EventStream[B] = (a1: Signal[A1], e: EventStream[A2], a3: Signal[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a1, a3, inTxn).map(t => fun(t._2, t._1, t._3))(inTxn)
+    implicit def eventStream3c[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], EventStream[A3], InTxn) => EventStream[B] = (a1: Signal[A1], a2: Signal[A2], e: EventStream[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a1, a2, inTxn).map(t => fun(t._2, t._3, t._1))(inTxn)
 
-    implicit def eventStreamSink2a[A1, A2](fun: (A1, A2) => Unit): (EventStream[A1], Signal[A2], InTxn) => Unit = (a1: EventStream[A1], a2: Signal[A2], inTxn: InTxn) => ???
-    implicit def eventStreamSink2b[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], EventStream[A2], InTxn) => Unit = (a1: Signal[A1], a2: EventStream[A2], inTxn: InTxn) => ???
-    implicit def eventStreamSink3a[A1, A2, A3](fun: (A1, A2, A3) => Unit): (EventStream[A1], Signal[A2], Signal[A3], InTxn) => Unit = (a1: EventStream[A1], a2: Signal[A2], a3: Signal[A3], inTxn: InTxn) => ???
-    implicit def eventStreamSink3b[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], EventStream[A2], Signal[A3], InTxn) => Unit = (a1: Signal[A1], a2: EventStream[A2], a3: Signal[A3], inTxn: InTxn) => ???
-    implicit def eventStreamSink3c[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], EventStream[A3], InTxn) => Unit = (a1: Signal[A1], a2: Signal[A2], a3: EventStream[A3], inTxn: InTxn) => ???
+    implicit def eventStreamSink2a[A1, A2](fun: (A1, A2) => Unit): (EventStream[A1], Signal[A2], InTxn) => Unit = (e: EventStream[A1], a2: Signal[A2], inTxn: InTxn) => new TuplePulseEventStream1(e, a2, inTxn).observe(fun.tupled)(inTxn)
+    implicit def eventStreamSink2b[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], EventStream[A2], InTxn) => Unit = (a1: Signal[A1], e: EventStream[A2], inTxn: InTxn) => new TuplePulseEventStream1(e, a1, inTxn).map(t => (t._2, t._1))(inTxn).observe(fun.tupled)(inTxn)
+    implicit def eventStreamSink3a[A1, A2, A3](fun: (A1, A2, A3) => Unit): (EventStream[A1], Signal[A2], Signal[A3], InTxn) => Unit = (e: EventStream[A1], a2: Signal[A2], a3: Signal[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a2, a3, inTxn).observe(fun.tupled)(inTxn)
+    implicit def eventStreamSink3b[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], EventStream[A2], Signal[A3], InTxn) => Unit = (a1: Signal[A1], e: EventStream[A2], a3: Signal[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a1, a3, inTxn).observe(t => fun(t._2, t._1, t._3))(inTxn)
+    implicit def eventStreamSink3c[A1, A2, A3](fun: (A1, A2, A3) => Unit): (Signal[A1], Signal[A2], EventStream[A3], InTxn) => Unit = (a1: Signal[A1], a2: Signal[A2], e: EventStream[A3], inTxn: InTxn) => new TuplePulseEventStream2(e, a1, a2, inTxn).observe(t => fun(t._2, t._3, t._1))(inTxn)
   }
 }
