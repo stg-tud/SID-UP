@@ -16,15 +16,15 @@ object Philosophers extends App {
 
   // ============================================= Infrastructure ========================================================
 
-  sealed trait PhilosopherState
-  case object Thinking extends PhilosopherState
-  case object Eating extends PhilosopherState
+  sealed trait Philosopher
+  case object Thinking extends Philosopher
+  case object Eating extends Philosopher
 
-  sealed trait ForkState
-  case object Free extends ForkState
-  case object Occupied extends ForkState
+  sealed trait Fork
+  case object Free extends Fork
+  case object Occupied extends Fork
 
-  val calcForkState = { (leftState: PhilosopherState, rightState: PhilosopherState) =>
+  val calcFork = { (leftState: Philosopher, rightState: Philosopher) =>
     if (leftState == Eating && rightState == Eating) {
       throw new Exception("Fork already in use!")
     }
@@ -38,11 +38,11 @@ object Philosophers extends App {
 
   // ============================================ Entity Creation =========================================================
 
-  case class Seating(placeNumber: Integer, philosopher: Var[PhilosopherState], leftFork: Signal[ForkState], rightFork: Signal[ForkState])
+  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork])
   def createTable(tableSize: Int): Seq[Seating] = {
-    val philosophers = 0 until tableSize map { _ => Var[PhilosopherState](Thinking) }
-    val forks = 0 until tableSize map { i => calcForkState(philosophers(i), philosophers((i + 1) % tableSize)) }
-    0 until tableSize map { i => Seating(i, philosophers(i), forks(i), forks((i - 1 + tableSize) % tableSize)) }
+    val philosophers = for(i <- 0 until tableSize) yield { Var[Philosopher](Thinking) }
+    val forks = for(i <- 0 until tableSize) yield { calcFork(philosophers(i), philosophers((i + 1) % tableSize)) }
+    for(i <- 0 until tableSize) yield { Seating(i, philosophers(i), forks(i), forks((i - 1 + tableSize) % tableSize)) }
   }
   val seatings = createTable(size)
 
