@@ -40,11 +40,19 @@ object Philosophers extends App {
 
   case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork])
   def createTable(tableSize: Int): Seq[Seating] = {
-    val philosophers = for(i <- 0 until tableSize) yield { Var[Philosopher](Thinking) }
-    val forks = for(i <- 0 until tableSize) yield { calcFork(philosophers(i), philosophers((i + 1) % tableSize)) }
-    for(i <- 0 until tableSize) yield { Seating(i, philosophers(i), forks(i), forks((i - 1 + tableSize) % tableSize)) }
+    val phils = for (i <- 0 until tableSize) yield {
+      Var[Philosopher](Thinking)
+    }
+    val forks = for (i <- 0 until tableSize) yield {
+      calcFork(phils(i), phils((i + 1) % tableSize))
+    }
+    for (i <- 0 until tableSize) yield {
+      Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize))
+    }
   }
+  
   val seatings = createTable(size)
+  val phils = seatings.map { _.philosopher }
 
   // ============================================== Logging =======================================================
 
@@ -65,10 +73,12 @@ object Philosophers extends App {
 
   // ============================================ Runtime Behavior  =========================================================
 
-  seatings.foreach { seating =>
-    val philosopher = seating.philosopher
+  phils.foreach { philosopher =>
     philosopher.single.observe { state =>
-      if (state == Eating) Future { philosopher << Thinking }
+      if (state == Eating)
+        Future {
+          philosopher << Thinking
+        }
     }
   }
 
