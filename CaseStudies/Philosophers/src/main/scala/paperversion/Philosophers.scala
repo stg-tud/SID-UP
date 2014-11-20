@@ -23,13 +23,12 @@ object Philosophers extends App {
   sealed trait Fork
   case object Free extends Fork
   case object Occupied extends Fork
+  case object DoubleUsageError extends Fork
 
   val calcFork = { (leftState: Philosopher, rightState: Philosopher) =>
     if (leftState == Eating && rightState == Eating) {
-      throw new Exception("Fork already in use!")
-    }
-
-    if (leftState == Eating || rightState == Eating) {
+      DoubleUsageError
+    } else if (leftState == Eating || rightState == Eating) {
       Occupied
     } else {
       Free
@@ -50,7 +49,7 @@ object Philosophers extends App {
       Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize))
     }
   }
-  
+
   val seatings = createTable(size)
   val phils = seatings.map { _.philosopher }
 
