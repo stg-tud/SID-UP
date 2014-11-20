@@ -1,17 +1,25 @@
 name := "sidup"
 
 lazy val root = project.in(file(".")).aggregate(
-	core, ui, log2dot, profit, whiteboard)
+	// Core
+	core,
+	// Utilities
+	ui, db,
+	// Logging or something like that
+	log2dot,
+	// Case Studies
+	profit, whiteboard, crud)
 
 lazy val core = project in file("Core")
 
 lazy val log2dot = project in file("log2dot")
 
 lazy val ui = project.in(file("Ui")).dependsOn(core)
+lazy val db = project.in(file("Database")).dependsOn(core)
 
 lazy val profit = project.in(file("CaseStudies/ProfitReact")).dependsOn(ui)
-
 lazy val whiteboard = project.in(file("CaseStudies/SharedReactiveWhiteboard")).dependsOn(ui)
+lazy val crud = project.in(file("CaseStudies/SharedCRUD")).dependsOn(ui, db)
 
 scalaVersion in ThisBuild := "2.11.2"
 
