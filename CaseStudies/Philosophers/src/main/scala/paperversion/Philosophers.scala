@@ -34,10 +34,13 @@ object Philosophers extends App {
       Free
     }
   }
+  val calcReady = { (leftState: Fork, rightState: Fork) =>
+    leftState == Free && rightState == Free
+  }
 
   // ============================================ Entity Creation =========================================================
 
-  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork])
+  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], canEat: Signal[Boolean])
   def createTable(tableSize: Int): Seq[Seating] = {
     val phils = for (i <- 0 until tableSize) yield {
       Var[Philosopher](Thinking)
@@ -45,8 +48,11 @@ object Philosophers extends App {
     val forks = for (i <- 0 until tableSize) yield {
       calcFork(phils(i), phils((i + 1) % tableSize))
     }
+    val canEat = for (i <- 0 until tableSize) yield {
+      calcReady(forks(i), forks((i - 1 + tableSize) % tableSize))
+    }
     for (i <- 0 until tableSize) yield {
-      Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize))
+      Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize), canEat(i))
     }
   }
 
@@ -86,14 +92,12 @@ object Philosophers extends App {
 
   def eatOnce(seating: Seating) = {
     repeatUntilTrue {
-      ConditionalUpdate { attempt =>
-        if (attempt.read(seating.leftFork) == Occupied) {
-          false // Try again
-        } else if (attempt.read(seating.rightFork) == Occupied) {
-          false // Try again
-        } else {
-          attempt.admit(seating.philosopher, Eating)
+      DependentUpdate(seating.canEat) { (admissions, canEat) =>
+        if (canEat) {
+          admissions += seating.philosopher -> Eating
           true // Don't try again
+        } else {
+          false // Try again
         }
       }
     }
