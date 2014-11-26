@@ -1,10 +1,10 @@
 package db
 
-import reactive.signals.Var
+import reactive.signals.{Signal, Var}
 
 class Table[A](rows: A*) {
-  def select(where: (A) => Boolean): Var[Set[A]] = {
-    Var(rows.filter(where).toSet)
+  def select(where: (A) => Signal[Boolean]): Var[Set[A]] = {
+    Var(rows.filter {where(_).now}.toSet)
   }
 }
 

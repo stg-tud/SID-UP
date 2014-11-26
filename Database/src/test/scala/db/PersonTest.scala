@@ -21,12 +21,12 @@ class PersonTest extends FunSuite {
   var table = Table[Person](karl, katie, alice, bob)
 
   test("select all") {
-    val all: Signal[Set[Person]] = table.select { p => true}
+    val all: Signal[Set[Person]] = table.select { p => Var(true)}
     assert(all.now === Set(karl, katie, alice, bob))
   }
 
   test("select a specific family") {
-    val familyY: Signal[Set[Person]] = table.select { person => person.lastName === "Y"}
+    val familyY: Signal[Set[Person]] = table.select { person => person.lastName.map {_ == "Y"}}
     assert(familyY.now === Set(katie, alice))
 
     bob.lastName << "Y"
