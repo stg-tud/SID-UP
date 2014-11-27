@@ -2,6 +2,8 @@ package reactive
 package signals
 
 import reactive.events.EventStream
+import scala.collection.generic.CanBuildFrom
+import scala.language.higherKinds
 
 trait Signal[+A] extends Reactive[A, A] {
   def now: A
@@ -13,6 +15,8 @@ trait Signal[+A] extends Reactive[A, A] {
   def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B];
   def snapshot(when: EventStream[_]): Signal[A]
   def pulse(when: EventStream[_]): EventStream[A]
+  def transposeS[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[Signal[T]], T, C[T]]): Signal[C[T]]
+  def transposeE[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[EventStream[T]], T, C[T]]): EventStream[C[T]]
 }
 
 //object Signal {

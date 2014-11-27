@@ -3,6 +3,8 @@ package signals;
 
 import reactive.events.EventStream
 import java.util.UUID
+import scala.collection.generic.CanBuildFrom
+import scala.language.higherKinds 
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -49,5 +51,7 @@ object RoutableVar {
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
+    override def transposeS[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[Signal[T]], T, C[T]]) = _output.transposeS
+    override def transposeE[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[EventStream[T]], T, C[T]]): EventStream[C[T]] = _output.transposeE
   }
 }

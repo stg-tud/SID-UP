@@ -20,7 +20,7 @@ object WhiteboardServer extends App {
   }
 
   val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
-  val allClientShapeCommandsTransposeStream = new TransposeEventStream[Command](allClientShapeCommands)
+  val allClientShapeCommandsTransposeStream = allClientShapeCommands.transposeE
   val allClientShapeCommandsHeadStream = allClientShapeCommandsTransposeStream.map { _.head }
   val persistentShapes = allClientShapeCommandsHeadStream.fold(List.empty[Shape]) { (list, cmd) => cmd match {
         case ShapeCommand(shape) => shape :: list
@@ -28,7 +28,7 @@ object WhiteboardServer extends App {
   } }
 
   val allClientsCurrentShape = Var(Seq.empty[Signal[Option[Shape]]])
-  val currentShapes = new TransposeSignal[Option[Shape]](allClientsCurrentShape).map{_.flatten}
+  val currentShapes = allClientsCurrentShape.transposeS.map{_.flatten}
 
   def ++[T] : (Iterable[T], Iterable[T]) => Iterable[T] = {(first, second) => first ++ second}
   val shapes = ++[Shape](currentShapes, persistentShapes)
