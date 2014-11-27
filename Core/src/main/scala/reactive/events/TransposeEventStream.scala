@@ -10,7 +10,7 @@ import scala.language.higherKinds
 /**
  * Takes a sequence of events and turns it into an event firing every time one of the original events changes
  */
-class TransposeEventStream[A, C[B] <: Iterable[B]](events: Signal[C[EventStream[A]]])(implicit canBuildFrom: CanBuildFrom[C[EventStream[A]], A, C[A]]) extends DependentEventStreamImpl[C[A]] with DynamicDependentReactive {
+class TransposeEventStream[A, C[B] <: Traversable[B]](events: Signal[C[EventStream[A]]])(implicit canBuildFrom: CanBuildFrom[C[_], A, C[A]]) extends DependentEventStreamImpl[C[A]] with DynamicDependentReactive {
   override protected def reevaluate(transaction: Transaction): Option[C[A]] = {
     val list = events.value(transaction)
     val builder = canBuildFrom.apply(list);

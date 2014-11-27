@@ -51,7 +51,7 @@ object RoutableVar {
     override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = _output.flatten
     override def snapshot(when: EventStream[_]): Signal[A] = _output.snapshot(when)
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
-    override def transposeS[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[Signal[T]], T, C[T]]) = _output.transposeS
-    override def transposeE[T, C[B] <: Iterable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[EventStream[T]], T, C[T]]): EventStream[C[T]] = _output.transposeE
+    override def transposeS[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = _output.transposeS
+    override def transposeE[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = _output.transposeE
   }
 }
