@@ -92,13 +92,14 @@ object Philosophers extends App {
 
   def eatOnce(seating: Seating) = {
     repeatUntilTrue {
-      DependentUpdate(seating.canEat) { (admissions, canEat) =>
-        if (canEat) {
-          admissions += seating.philosopher -> Eating
-          true // Don't try again
-        } else {
-          false // Try again
-        }
+      DependentUpdate(seating.canEat) {
+        (writes, canEat) =>
+          if (canEat) {
+            writes += seating.philosopher -> Eating
+            true // Don't try again
+          } else {
+            false // Try again
+          }
       }
     }
   }
