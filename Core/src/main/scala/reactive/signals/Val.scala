@@ -4,8 +4,9 @@ package signals
 import reactive.events.EventStream
 import reactive.events.NothingEventStream
 import scala.collection.generic.CanBuildFrom
-import scala.language.higherKinds 
+import scala.language.higherKinds
 import reactive.events.TransposeEventStream
+import scala.collection.TraversableLike
 
 class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
   override val now = value
@@ -18,8 +19,8 @@ class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
   override def flatten[B](implicit evidence: A <:< Signal[B]): Signal[B] = value
   override def snapshot(when: EventStream[_]): Signal[A] = this
   override def pulse(when: EventStream[_]): EventStream[A] = when.map { _ => value }
-  override def transposeS[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeSignal[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[Signal[T]]]])
-  override def transposeE[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeEventStream[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[EventStream[T]]]])
+  override def transposeS[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeSignal[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[Signal[T]]]])
+  override def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeEventStream[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[EventStream[T]]]])
 }
 
 object Val {

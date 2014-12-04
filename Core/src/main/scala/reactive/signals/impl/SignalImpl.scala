@@ -8,8 +8,9 @@ import reactive.events.impl.ChangesEventStream
 import reactive.events.impl.DeltaEventStream
 import reactive.events.impl.PulseEventStream
 import scala.collection.generic.CanBuildFrom
-import scala.language.higherKinds 
+import scala.language.higherKinds
 import reactive.events.TransposeEventStream
+import scala.collection.TraversableLike
 
 trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
 
@@ -22,7 +23,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   override def snapshot(when: EventStream[_]): Signal[A] = pulse(when).hold(now)
   //TODO: has same name as  `Reactive.pulse(transaction: Transaction): Option[P]` but totally different semantics
   override def pulse(when: EventStream[_]): EventStream[A] = new PulseEventStream(this, when)
-  override def transposeS[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeSignal[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[Signal[T]]]])
-  override def transposeE[T, C[B] <: Traversable[B]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = new TransposeEventStream[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[EventStream[T]]]])
+  override def transposeS[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = new TransposeSignal[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[Signal[T]]]])
+  override def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = new TransposeEventStream[T, C](/*this.map(evidence)*/ this.asInstanceOf[Signal[C[EventStream[T]]]])
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
 }
