@@ -10,49 +10,76 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import java.util.concurrent.TimeoutException
 import reactive.Reactive
+import scala.util.Random
 
 object Philosophers extends App {
+  val names = Random.shuffle(List("Agripina", "Alberto", "Alverta", "Beverlee", "Bill", "Bobby", "Brandy", "Caleb", "Cami", "Candice", "Candra", "Carter", "Cassidy", "Corene", "Danae", "Darby", "Debi", "Derrick", "Douglas", "Dung", "Edith", "Eleonor", "Eleonore", "Elvera", "Ewa", "Felisa", "Fidel", "Filiberto", "Francesco", "Georgia", "Glayds", "Hal", "Jacque", "Jeff", "Joane", "Johnny", "Lai", "Leeanne", "Lenard", "Lita", "Marc", "Marcelina", "Margret", "Maryalice", "Michale", "Mike", "Noriko", "Pete", "Regenia", "Rico", "Roderick", "Roxie", "Salena", "Scottie", "Sherill", "Sid", "Steve", "Susie", "Tyrell", "Viola", "Wilhemina", "Zenobia"))
+
   val size = 3
+
+  if (size >= names.size) throw new IllegalArgumentException("Not enough names!")
 
   // ============================================= Infrastructure ========================================================
 
   sealed trait Philosopher
-  case object Thinking extends Philosopher
-  case object Eating extends Philosopher
+  case class Thinking(name: String) extends Philosopher {
+    override def toString() = name + " is thinking..."
+  }
+  case class Hungry(name: String, food: String) extends Philosopher {
+    override def toString() = name + " is hungry for " + food
+  }
 
   sealed trait Fork
-  case object Free extends Fork
-  case object Occupied extends Fork
-  case object DoubleUsageError extends Fork
+  case object Free extends Fork {
+    override def toString() = "Fork is free"
+  }
+  case class Occupied(name: String, food: String) extends Fork {
+    override def toString() = "Fork holds " + food + " for " + name
+  }
 
-  val calcFork = { (leftState: Philosopher, rightState: Philosopher) =>
-    if (leftState == Eating && rightState == Eating) {
-      DoubleUsageError
-    } else if (leftState == Eating || rightState == Eating) {
-      Occupied
-    } else {
-      Free
+  sealed trait State
+  case object Ready extends State {
+    override def toString() = "Forks are available."
+  }
+  case class Eating(food: String) extends State {
+    override def toString() = "Eating " + food
+  }
+  case class Blocked(name: String, food: String) extends State {
+    override def toString() = "Waiting for neighbor " + name + " to finish eating " + food
+  }
+
+  def calcFork(philosophers: (Philosopher, Philosopher)): Fork =
+    philosophers match {
+      case (Thinking(_), Thinking(_)) => Free
+      case (Hungry(name, food), _) => Occupied(name, food)
+      case (_, Hungry(name, food)) => Occupied(name, food)
     }
-  }
-  val calcReady = { (leftState: Fork, rightState: Fork) =>
-    leftState == Free && rightState == Free
-  }
+
+  def calcState(forks: (Fork, Fork)): State =
+    forks match {
+      case (Free, Free) => Ready
+      case (Occupied(leftName, leftFood), Occupied(rightName, rightFood))
+        if (leftName == rightName && leftFood == rightFood) =>
+          Eating(leftFood)
+      case (Occupied(name, food), _) => Blocked(name, food)
+      case (_, Occupied(name, food)) => Blocked(name, food)
+    }
 
   // ============================================ Entity Creation =========================================================
 
-  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], canEat: Signal[Boolean])
+  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], canEat: Signal[State])
   def createTable(tableSize: Int): Seq[Seating] = {
     val phils = for (i <- 0 until tableSize) yield {
-      Var[Philosopher](Thinking)
+      Var[Philosopher](Thinking(names(i)))
     }
     val forks = for (i <- 0 until tableSize) yield {
-      calcFork(phils(i), phils((i + 1) % tableSize))
+      Function.untupled(calcFork _)(phils(i), phils((i + 1) % tableSize))
     }
-    val canEat = for (i <- 0 until tableSize) yield {
-      calcReady(forks(i), forks((i - 1 + tableSize) % tableSize))
+    val state = for (i <- 0 until tableSize) yield {
+      Function.untupled(calcState _)(forks(i), forks((i - 1 + tableSize) % tableSize))
     }
     for (i <- 0 until tableSize) yield {
-      Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize), canEat(i))
+      Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize), state(i))
     }
   }
 
@@ -66,7 +93,7 @@ object Philosophers extends App {
   }
   def log(reactive: Reactive[_, _]): Unit = {
     reactive.single.observe { value =>
-      log(reactive + " now " + value)
+      log(reactive + " now: " + value)
     }
   }
 
@@ -74,16 +101,20 @@ object Philosophers extends App {
     log(seating.philosopher)
     log(seating.leftFork)
     // right fork is the next guy's left fork
+    log(seating.canEat)
   }
 
   // ============================================ Runtime Behavior  =========================================================
 
   phils.foreach { philosopher =>
     philosopher.single.observe { state =>
-      if (state == Eating)
-        Future {
-          philosopher << Thinking
-        }
+      state match {
+        case Hungry(name, _) =>
+          Future {
+            philosopher << Thinking(name)
+          }
+        case _ => // ignore
+      }
     }
   }
 
@@ -94,8 +125,8 @@ object Philosophers extends App {
     repeatUntilTrue {
       DependentUpdate(seating.canEat) {
         (writes, canEat) =>
-          if (canEat) {
-            writes += seating.philosopher -> Eating
+          if (canEat == Ready) {
+            writes += seating.philosopher -> Hungry(names(seating.placeNumber), "Broccoli")
             true // Don't try again
           } else {
             false // Try again
