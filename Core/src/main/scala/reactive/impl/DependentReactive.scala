@@ -3,12 +3,10 @@ package impl
 
 import java.util.UUID
 
-import scala.concurrent.stm.{InTxn, Ref}
+import scala.concurrent.stm.{ InTxn, Ref }
 
 trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, P] =>
-
-  override def toString = name
 
   private val _sourceDependencies = Ref(scala.concurrent.stm.atomic { calculateSourceDependencies })
   override def sourceDependencies(tx: InTxn) = tx.synchronized(_sourceDependencies()(tx))

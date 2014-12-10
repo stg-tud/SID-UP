@@ -15,6 +15,7 @@ object Lift {
     implicit def signal1[A1, B](fun: A1 => B): Signal[A1] => Signal[B] = a => a.single.map(fun)
     implicit def signal2[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], Signal[A2]) => Signal[B] = (a1, a2) => atomic { transactional.signal2(fun)(a1, a2, _) }
     implicit def signal3[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], Signal[A3]) => Signal[B] = (a1, a2, a3) => atomic { transactional.signal3(fun)(a1, a2, a3, _) }
+    implicit def signal4[A1, A2, A3, A4, B](fun: (A1, A2, A3, A4) => B): (Signal[A1], Signal[A2], Signal[A3], Signal[A4]) => Signal[B] = (a1, a2, a3, a4) => atomic { transactional.signal4(fun)(a1, a2, a3, a4, _) }
 
     implicit def signalSink1[A](fun: A => Unit): Signal[A] => Unit = a => atomic { transactional.signalSink1(fun)(a, _) }
     implicit def signalSink2[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], Signal[A2]) => Unit = (a1, a2) => atomic { transactional.signalSink2(fun)(a1, a2, _) }
@@ -41,6 +42,7 @@ object Lift {
     implicit def signal1[A1, B](fun: A1 => B): (Signal[A1], InTxn) => Signal[B] = (a, inTxn) => a.map(fun)(inTxn)
     implicit def signal2[A1, A2, B](fun: (A1, A2) => B): (Signal[A1], Signal[A2], InTxn) => Signal[B] = (a1, a2, inTxn) => new FunctionalSignal({ t => fun(a1.now(t), a2.now(t)) }, Iterable(a1, a2), inTxn)
     implicit def signal3[A1, A2, A3, B](fun: (A1, A2, A3) => B): (Signal[A1], Signal[A2], Signal[A3], InTxn) => Signal[B] = (a1, a2, a3, inTxn) => new FunctionalSignal({ t => fun(a1.now(t), a2.now(t), a3.now(t)) }, Iterable(a1, a2, a3), inTxn)
+    implicit def signal4[A1, A2, A3, A4, B](fun: (A1, A2, A3, A4) => B): (Signal[A1], Signal[A2], Signal[A3], Signal[A4], InTxn) => Signal[B] = (a1, a2, a3, a4, inTxn) => new FunctionalSignal({ t => fun(a1.now(t), a2.now(t), a3.now(t), a4.now(t)) }, Iterable(a1, a2, a3, a4), inTxn)
 
     implicit def signalSink1[A](fun: A => Unit): (Signal[A], InTxn) => Unit = (a, inTxn) => { fun(a.now(inTxn)); a.observe(fun)(inTxn) }
     implicit def signalSink2[A1, A2](fun: (A1, A2) => Unit): (Signal[A1], Signal[A2], InTxn) => Unit = (a1, a2, inTxn) => signalSink1(fun.tupled)(new FunctionalSignal({ t => (a1.now(t), a2.now(t)) }, Iterable(a1, a2), inTxn), inTxn)

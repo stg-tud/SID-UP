@@ -2,10 +2,10 @@ package reactive
 package signals
 
 import java.util.UUID
-
 import reactive.events.EventStream
-
 import scala.concurrent.stm.InTxn
+import reactive.impl.ReactiveImpl
+import reactive.impl.ReactiveInstanceNameMutable
 
 /**
  * this type basically acts as a reroutable reactive property, that acts like
@@ -23,7 +23,7 @@ import scala.concurrent.stm.InTxn
 trait RoutableVar[A] extends Signal[A] with ReactiveSource[Signal[A]]
 
 object RoutableVar {
-  def apply[A](initialValue: Signal[A]): RoutableVar[A] = new RoutableVar[A] {
+  def apply[A](initialValue: Signal[A]): RoutableVar[A] = new RoutableVar[A] with ReactiveInstanceNameMutable {
     // a Var[Signal[A]] with delegates of all ReactiveSource[Signal[A]] input methods
     val _input = Var(initialValue)
 

@@ -14,22 +14,8 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.SynchronousQueue
 
-trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
+trait ReactiveImpl[O, P] extends Reactive[O, P] with ReactiveInstanceNameMutable with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = (transaction.sources & sourceDependencies(transaction.stmTx)).nonEmpty
-
-  private[reactive] val name = {
-    val classname = getClass.getName
-    val unqualifiedClassname = classname.substring(classname.lastIndexOf('.') + 1)
-
-    val trace = Thread.currentThread().getStackTrace();
-    var i = 0;
-    while (!trace(i).toString().startsWith("reactive.")) i += 1
-    while ((trace(i).toString.startsWith("reactive.") && !trace(i).toString().startsWith("reactive.test.")) || trace(i).toString().startsWith("scala.concurrent.stm.")) i += 1
-
-    s"$unqualifiedClassname($hashCode) from ${trace(i)}"
-  }
-
-  override def toString = name
 
   private val pulse: TxnLocal[PulsedState[P]] = TxnLocal(Pending)
 
@@ -115,7 +101,7 @@ object ReactiveImpl extends LazyLogging {
   import scala.concurrent._
 
   private implicit val myExecutionContext = ExecutionContext.fromExecutor(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
-  
+
   def runWrappingRollbackErrors[A](op: => A) = {
     try {
       op

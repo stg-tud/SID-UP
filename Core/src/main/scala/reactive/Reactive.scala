@@ -10,6 +10,8 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
   protected[reactive] def pulse(tx: InTxn): Reactive.PulsedState[P]
   protected[reactive] def hasPulsed(tx: InTxn): Boolean
 
+  def withName(name: String): this.type
+  
   def single: Reactive.View[O]
   def log(implicit inTxn: InTxn): Signal[Seq[O]]
   def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit

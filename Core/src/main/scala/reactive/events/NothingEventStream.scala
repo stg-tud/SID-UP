@@ -7,6 +7,8 @@ import scala.concurrent.stm.InTxn
 
 case object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Nothing] {
   impl =>
+  override def withName(name: String): this.type = this
+  
   override def hold[B >: Nothing](initialValue: B)(implicit inTxn: InTxn): Signal[B] = single.hold(initialValue)
   override def map[B](op: Nothing => B)(implicit inTxn: InTxn): EventStream[B] = single.map(op)
   override def collect[B](op: PartialFunction[Nothing, B])(implicit inTxn: InTxn): EventStream[B] = single.collect(op)

@@ -1,12 +1,13 @@
 package reactive
 package signals
 
-import reactive.events.{EventStream, NothingEventStream}
+import reactive.events.{ EventStream, NothingEventStream }
 
 import scala.concurrent.stm._
 
 case class Val[A](value: A) extends Signal[A] with ReactiveConstant[A, A] {
   impl =>
+  override def withName(name: String) = this
 
   override def now(implicit inTxn: InTxn) = single.now
   override def delta(implicit inTxn: InTxn): EventStream[(A, A)] = single.delta
