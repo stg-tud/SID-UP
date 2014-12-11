@@ -28,31 +28,31 @@ object Philosophers extends App {
 
   sealed trait Fork
   case object Free extends Fork
-  case class Occupied(name: String) extends Fork
+  case class Taken(name: String) extends Fork
 
-  sealed trait State
-  case object Ready extends State
-  case object Eating extends State
-  case class WaitingFor(name: String) extends State
+  sealed trait Vision
+  case object Ready extends Vision
+  case object Eating extends Vision
+  case class WaitingFor(name: String) extends Vision
 
   def calcFork(leftName: String, leftState: Philosopher, rightName: String, rightState: Philosopher): Fork =
     (leftState, rightState) match {
       case (Thinking, Thinking) => Free
-      case (Hungry, _) => Occupied(leftName)
-      case (_, Hungry) => Occupied(rightName)
+      case (Hungry, _) => Taken(leftName)
+      case (_, Hungry) => Taken(rightName)
     }
 
-  def calcState(ownName: String, leftFork: Fork, rightFork: Fork): State =
+  def calcVision(ownName: String, leftFork: Fork, rightFork: Fork): Vision =
     (leftFork, rightFork) match {
       case (Free, Free) => Ready
-      case (Occupied(`ownName`), Occupied(`ownName`)) => Eating
-      case (Occupied(name), _) => WaitingFor(name)
-      case (_, Occupied(name)) => WaitingFor(name)
+      case (Taken(`ownName`), Taken(`ownName`)) => Eating
+      case (Taken(name), _) => WaitingFor(name)
+      case (_, Taken(name)) => WaitingFor(name)
     }
 
   // ============================================ Entity Creation =========================================================
 
-  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], canEat: Signal[State])
+  case class Seating(placeNumber: Integer, philosopher: Var[Philosopher], leftFork: Signal[Fork], rightFork: Signal[Fork], vision: Signal[Vision])
   def createTable(tableSize: Int): Seq[Seating] = {
     val phils = for (i <- 0 until tableSize) yield {
       Var[Philosopher](Thinking)
@@ -64,7 +64,7 @@ object Philosophers extends App {
       .withName("Fork of " + names(i) + " and " + names(nextCircularIndex))
     }
     val state = for (i <- 0 until tableSize) yield {
-      Lift.signal3(calcState _)(names(i), forks(i), forks((i - 1 + tableSize) % tableSize))
+      Lift.signal3(calcVision _)(names(i), forks(i), forks((i - 1 + tableSize) % tableSize))
       .withName("Vision of "+names(i))
     }
     for (i <- 0 until tableSize) yield {
@@ -73,7 +73,6 @@ object Philosophers extends App {
   }
 
   val seatings = createTable(size)
-  val phils = seatings.map { _.philosopher }
 
   // ============================================== Logging =======================================================
 
@@ -90,17 +89,17 @@ object Philosophers extends App {
     log(seating.philosopher)
     log(seating.leftFork)
     // right fork is the next guy's left fork
-    log(seating.canEat)
+    log(seating.vision)
   }
 
   // ============================================ Runtime Behavior  =========================================================
 
-  phils.foreach { philosopher =>
-    philosopher.single.observe { state =>
+  seatings.foreach { seating =>
+    seating.vision.single.observe { state =>
       state match {
-        case Hungry =>
+        case Eating =>
           Future {
-            philosopher << Thinking
+            seating.philosopher << Thinking
           }
         case _ => // ignore
       }
@@ -112,10 +111,10 @@ object Philosophers extends App {
 
   def eatOnce(seating: Seating) = {
     repeatUntilTrue {
-      DependentUpdate(seating.canEat) {
-        (writes, canEat) =>
-          if (canEat == Ready) {
-            writes += seating.philosopher -> Hungry
+      DependentUpdate(seating.philosopher ) {
+        rw =>
+          if (rw.read(seating.vision) == Ready) {
+            rw += seating.philosopher -> Hungry
             true // Don't try again
           } else {
             false // Try again
