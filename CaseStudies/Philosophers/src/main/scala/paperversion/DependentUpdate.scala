@@ -16,8 +16,8 @@ object DependentUpdate {
     def +=[T](source: ReactiveSource[T], value: T): Unit = write(source, value)
     def -=[T](source: ReactiveSource[T]): Unit = unwrite(source)
   }
-  def apply[S, T](maximumSources: ReactiveSource[_]*)(op: ReadsWrites => T): T = /*apply(maximumSources.toSet, op)
-  def apply[S, T](maximumSources: Set[ReactiveSource[_]])(op: (Admissions, InTxn) => T): T =*/ {
+  def apply[T](maximumSources: ReactiveSource[_]*)(op: ReadsWrites => T): T = /*apply(maximumSources.toSet, op)
+  def apply[T](maximumSources: Set[ReactiveSource[_]])(op: (Admissions, InTxn) => T): T =*/ {
     atomic { tx =>
       val builder = new TransactionBuilder
       object rw extends ReadsWrites {
