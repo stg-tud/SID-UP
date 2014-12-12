@@ -18,7 +18,7 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
     dependency.unregisterRemoteDependant(null, this)
   }
 
-  override protected[reactive] def sourceDependencies(tx: InTxn): Set[java.util.UUID] = _sourceDependencies
+  override protected[reactive] def sourceDependencies = _sourceDependencies
 
   override def update(transaction: Transaction, pulse: Option[P], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
     val sdChanged = updatedSourceDependencies match {
@@ -34,6 +34,6 @@ class RemoteSinkImpl[P](val dependency: RemoteDependency[P])
 object RemoteSinkImpl {
   trait ViewImpl[A] extends ReactiveImpl.ViewImpl[A] {
     override protected def impl: RemoteSinkImpl[_] with ReactiveImpl[A, _]
-    override def sourceDependencies = impl._sourceDependencies
+    override protected[reactive] def sourceDependencies(implicit tx: InTxn): Set[java.util.UUID] = impl._sourceDependencies
   }
 }

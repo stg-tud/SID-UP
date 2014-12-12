@@ -9,7 +9,7 @@ trait DependentReactive[P] extends Reactive.Dependant {
   self: ReactiveImpl[_, P] =>
 
   private val _sourceDependencies = Ref(scala.concurrent.stm.atomic { calculateSourceDependencies })
-  override def sourceDependencies(tx: InTxn) = tx.synchronized(_sourceDependencies()(tx))
+  override def sourceDependencies = _sourceDependencies.single.get
 
   protected def doReevaluation(transaction: Transaction, recalculateDependencies: Boolean, recalculateValueAndPulse: Boolean): Unit = {
     val tx = transaction.stmTx
@@ -36,6 +36,6 @@ trait DependentReactive[P] extends Reactive.Dependant {
 object DependentReactive {
   trait ViewImpl[P] extends Reactive.View[P] {
     protected def impl: DependentReactive[_]
-    override protected[reactive] def sourceDependencies = impl._sourceDependencies.single.get
+    override protected[reactive] def sourceDependencies(implicit tx: InTxn) = tx.synchronized{impl._sourceDependencies.get}
   }
 }

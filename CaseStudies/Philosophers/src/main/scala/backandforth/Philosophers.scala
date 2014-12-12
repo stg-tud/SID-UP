@@ -2,7 +2,7 @@ package backandforth
 
 import java.util.concurrent.TimeoutException
 
-import reactive.Lift.single._
+import reactive.Lift._
 import reactive.signals.{Signal, TransposeSignal, Var}
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -21,11 +21,11 @@ case class Fork(id: Int) {
 
   // intermediate
   val requestStates = atomic { new TransposeSignal(in, _) }
-  val requests = requestStates.single.map(_.flatten)
+  val requests = requestStates.map(_.flatten)
 
   // output
-  val owner = requests.single.map(_.headOption)
-  val isOccupied = owner.single.map(_.isDefined)
+  val owner = requests.map(_.headOption)
+  val isOccupied = owner.map(_.isDefined)
 }
 
 // ===================== PHILOSOPHER IMPLEMENTATION =====================
@@ -40,7 +40,7 @@ case class Philosopher(id: Int) {
   val tryingToEat = Var(false)
 
   // intermediate
-  val request = tryingToEat.single.map {
+  val request = tryingToEat.map {
     case false => None
     case true => Some(this)
   }
@@ -53,14 +53,14 @@ case class Philosopher(id: Int) {
   }
 
   // connect output from forks
-  val owners = atomic { new TransposeSignal(forks.single.map(_.map(_.owner)), _) }
+  val owners = atomic { new TransposeSignal(forks.map(_.map(_.owner)), _) }
   val isEating = signal2(Philosopher.calculateEating)(this, owners)
 
   // behavior
   def eatOnce() = {
     atomic { tx =>
       // await free forks
-      if (forks.now(tx).exists(_.isOccupied.now(tx))) {
+      if (forks.transactional.now(tx).exists(_.isOccupied.transactional.now(tx))) {
         retry(tx)
       }
       Txn.afterRollback(_ => println(this + " suffered fork acquisition failure!"))(tx)
@@ -135,7 +135,7 @@ object Philosophers extends App {
     phil ->
       Future {
         Thread.currentThread().setName("p" + phil.id)
-        println(phil + ": using " + phil.forks.single.now + " on thread" + Thread.currentThread().getName)
+        println(phil + ": using " + phil.forks.now + " on thread" + Thread.currentThread().getName)
         while (!killed) {
           phil.eatOnce()
         }

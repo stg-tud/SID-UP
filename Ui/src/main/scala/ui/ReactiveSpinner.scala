@@ -5,7 +5,7 @@ import javax.swing.{JFormattedTextField, JSpinner, SpinnerNumberModel}
 import javax.swing.event.{ChangeEvent, ChangeListener}
 import javax.swing.text.DefaultFormatter
 
-import reactive.Lift.single.valueToSignal
+import reactive.Lift.valueToSignal
 import reactive.events.{EventSource, EventStream}
 import reactive.signals.{RoutableVar, Signal, Var}
 

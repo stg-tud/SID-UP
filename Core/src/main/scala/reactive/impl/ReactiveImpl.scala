@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.SynchronousQueue
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with ReactiveInstanceNameMutable with LazyLogging {
-  override def isConnectedTo(transaction: Transaction) = (transaction.sources & sourceDependencies(transaction.stmTx)).nonEmpty
+  override def isConnectedTo(transaction: Transaction) = (transaction.sources & transactional.sourceDependencies(transaction.stmTx)).nonEmpty
+  override def log: Signal[Seq[O]] = atomic { transactional.log(_) }
 
   private val pulse: TxnLocal[PulsedState[P]] = TxnLocal(Pending)
 
@@ -69,13 +70,13 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with ReactiveInstanceNameMutable
 
   private val observers = Ref(Set[O => Unit]())
 
-  def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
-    val size = inTxn.synchronized(observers.transformAndGet { _ + obs }(inTxn)).size
+  override def observe(obs: O => Unit): Unit = atomic { tx =>
+    val size = tx.synchronized(observers.transformAndGet { _ + obs }(tx)).size
     logger.trace(s"$this observers: $size")
   }
 
-  def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
-    val size = inTxn.synchronized(observers.transformAndGet { _ - obs }(inTxn)).size
+  override def unobserve(obs: O => Unit): Unit = atomic { tx =>
+    val size = tx.synchronized(observers.transformAndGet { _ - obs }(tx)).size
     logger.trace(s"$this observers: $size")
   }
 }
@@ -85,15 +86,13 @@ object ReactiveImpl extends LazyLogging {
   trait ViewImpl[O] extends Reactive.View[O] {
     protected def impl: ReactiveImpl[O, _]
 
-    override def log: Signal[Seq[O]] = atomic { impl.log(_) }
-
-    override def observe(obs: O => Unit): Unit = atomic { tx =>
-      val size = tx.synchronized(impl.observers.transformAndGet { _ + obs }(tx)).size
+    def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
+      val size = inTxn.synchronized(impl.observers.transformAndGet { _ + obs }(inTxn)).size
       logger.trace(s"$this observers: $size")
     }
 
-    override def unobserve(obs: O => Unit): Unit = atomic { tx =>
-      val size = tx.synchronized(impl.observers.transformAndGet { _ - obs }(tx)).size
+    def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit = {
+      val size = inTxn.synchronized(impl.observers.transformAndGet { _ - obs }(inTxn)).size
       logger.trace(s"$this observers: $size")
     }
   }

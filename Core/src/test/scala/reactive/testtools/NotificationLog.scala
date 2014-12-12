@@ -11,6 +11,6 @@ class NotificationLog[P](private val reactive: Signal[P]) extends mutable.Queue[
   scala.concurrent.stm.atomic { reactive.addDependant(_, this) }
 
   override def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit = {
-    this += new Notification(transaction, reactive.sourceDependencies(transaction.stmTx), sourceDependenciesChanged, reactive.now(transaction.stmTx), pulsed)
+    this += new Notification(transaction, reactive.transactional.sourceDependencies(transaction.stmTx), sourceDependenciesChanged, reactive.transactional.now(transaction.stmTx), pulsed)
   }
 }

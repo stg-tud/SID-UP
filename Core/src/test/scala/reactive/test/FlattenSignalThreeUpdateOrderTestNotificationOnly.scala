@@ -27,11 +27,11 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
     inner1Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner1", inner1, _) }
     outer = Var(inner1Buffered)
     outerBuffered = scala.concurrent.stm.atomic { new MessageBuffer("outer", outer, _) }
-    flattened = outerBuffered.single.flatten
+    flattened = outerBuffered.flatten
     log = new NotificationLog(flattened)
 
-    assertResult(123) { flattened.single.now }
-    assertResult(Set(inner1.uuid, outer.uuid)) { flattened.single.sourceDependencies }
+    assertResult(123) { flattened.now }
+    assertResult(Set(inner1.uuid, outer.uuid)) { flattened.sourceDependencies }
 
     inner2 = Var(234)
     inner2Buffered = scala.concurrent.stm.atomic { new MessageBuffer("inner2", inner2, _) }
@@ -56,8 +56,8 @@ class FlattenSignalThreeUpdateOrderTestNotificationOnly extends FunSuite with Be
       }
       assertResult(()) { Await.result(commitFuture, duration.Duration.Inf) }
       
-      assertResult(5) { flattened.single.now }
-      assertResult(Set(inner2.uuid, outer.uuid)) { flattened.single.sourceDependencies }
+      assertResult(5) { flattened.now }
+      assertResult(Set(inner2.uuid, outer.uuid)) { flattened.sourceDependencies }
       assertResult(1) { log.size }
       val notification1 = log.dequeue()
       assertResult(true) { notification1.valueChanged }

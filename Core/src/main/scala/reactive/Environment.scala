@@ -8,8 +8,8 @@ object Environment extends App {
     val thread = new Thread(new Runnable() {
       def run() = {
         while (true) {
-          while (millis.single.now < System.currentTimeMillis()) {
-            millis << millis.single.now + 1
+          while (millis.now < System.currentTimeMillis()) {
+            millis << millis.now + 1
           }
           Thread.sleep(1)
         }

@@ -58,6 +58,6 @@ abstract class MultiDependentReactive(constructionTransaction: InTxn) extends La
   }
 
   override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
-    dependencies.foldLeft(Set[UUID]())(_ ++ _.sourceDependencies(tx))
+    dependencies.foldLeft(Set[UUID]())(_ ++ _.transactional.sourceDependencies(tx))
   }
 }

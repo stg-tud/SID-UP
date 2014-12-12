@@ -9,9 +9,9 @@ class MergeTest extends FunSuite {
     val e1 = EventSource[Object]()
     val e2 = EventSource[Int]()
     val e3 = EventSource[Long]()
-    val merge = e1.single.merge[Any](e2, e3)
+    val merge = e1.merge[Any](e2, e3)
 
-    val mergeLog = merge.single.log
+    val mergeLog = merge.log
 
     e1 << "bla"
     e2 << 123
@@ -21,23 +21,23 @@ class MergeTest extends FunSuite {
     transaction.set(e2, 2)
     transaction.commit()
 
-    println(mergeLog.single.now)
+    println(mergeLog.now)
 
-    assert((List("bla", 123, 5, "x") === mergeLog.single.now) || (List("bla", 123, 5, 2) === mergeLog.single.now))
+    assert((List("bla", 123, 5, "x") === mergeLog.now) || (List("bla", 123, 5, 2) === mergeLog.now))
   }
 
   test("merge signal change streams") {
     val sx = Var(1)
     val sy = Var(2)
-    val merged = scala.concurrent.stm.atomic { implicit tx => sx.changes.merge(sy.changes) }
+    val merged = sx.changes.merge(sy.changes)
   }
 
   test("merge signal changes and eventstream") {
     val sx = Var(1)
-    assertResult(Set(sx.uuid)) { sx.single.sourceDependencies }
-    val cx = sx.single.changes
-    assertResult(Set(sx.uuid)) { cx.single.sourceDependencies }
+    assertResult(Set(sx.uuid)) { sx.sourceDependencies }
+    val cx = sx.changes
+    assertResult(Set(sx.uuid)) { cx.sourceDependencies }
     val e1 = EventSource[Int]()
-    val merged = e1.single.merge(cx)
+    val merged = e1.merge(cx)
   }
 }

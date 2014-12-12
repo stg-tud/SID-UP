@@ -2,7 +2,7 @@ package forkretry
 
 import java.util.concurrent.TimeoutException
 
-import reactive.Lift.single._
+import reactive.Lift._
 import reactive.signals.{Signal, TransposeSignal, Var}
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -25,14 +25,14 @@ case class RetryFork(id: Int) {
 
   // intermediate
   val requestStates = atomic { new TransposeSignal(in, _) }
-  val requests = requestStates.single.map(_.flatten)
+  val requests = requestStates.map(_.flatten)
 
   // output
-  val owner = requests.single.map { requests =>
+  val owner = requests.map { requests =>
     if (requests.size > 1) throw new RetryFork.MultipleRequestsException(this)
     requests.headOption
   }
-  val isOccupied = owner.single.map(_.isDefined)
+  val isOccupied = owner.map(_.isDefined)
 }
 
 // ===================== PHILOSOPHER IMPLEMENTATION =====================
@@ -49,10 +49,10 @@ case class RetryPhilosopher(id: Int) {
   val state: Var[State] = Var(Thinking)
 
   // auto-release forks whenever eating successfully
-  state.single.changes.single.filter(_ == Eating).single.observe { _ => state << Thinking }
+  state.changes.filter(_ == Eating).observe { _ => state << Thinking }
 
   // intermediate
-  val request = state.single.map {
+  val request = state.map {
     case Thinking => None
     case Eating => Some(this)
   }
@@ -149,7 +149,7 @@ object RetryPhilosophers extends App {
     phil ->
       Future {
         Thread.currentThread().setName("p" + phil.id)
-        println(phil + ": using " + phil.forks.single.now + " on thread" + Thread.currentThread().getName)
+        println(phil + ": using " + phil.forks.now + " on thread" + Thread.currentThread().getName)
         while (!killed) {
           phil.eatOnce()
         }

@@ -9,7 +9,7 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
   self: ReactiveImpl[_, P] =>
   override val uuid = UUID.randomUUID()
   protected val uuidSet = Set(uuid)
-  override def sourceDependencies(tx: InTxn) = uuidSet 
+  override def sourceDependencies = uuidSet 
   override def isConnectedTo(transaction: Transaction) = transaction.sources.contains(uuid)
   def <<(value: A): Unit = {
     set(value)
@@ -28,6 +28,6 @@ trait ReactiveSourceImpl[A, P] extends ReactiveSource[A] {
 object ReactiveSourceImpl {
   trait ViewImpl[A] extends Reactive.View[A] {
     protected def impl: ReactiveSourceImpl[A, _]
-    override protected[reactive] def sourceDependencies = impl.uuidSet
+    override protected[reactive] def sourceDependencies(implicit tx: InTxn) = impl.uuidSet
   }
 }

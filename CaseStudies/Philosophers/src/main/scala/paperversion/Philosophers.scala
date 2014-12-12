@@ -1,8 +1,8 @@
 package paperversion
 
 import reactive.signals.Var
-import reactive.Lift.{ single => Lift }
-import Lift._
+import reactive.Lift
+import reactive.Lift._
 import reactive.ReactiveSource
 import reactive.signals.Signal
 import reactive.TransactionBuilder
@@ -80,7 +80,7 @@ object Philosophers extends App {
     println("[" + Thread.currentThread().getName() + " @ " + System.currentTimeMillis() + "] " + msg)
   }
   def log(reactive: Reactive[_, _]): Unit = {
-    reactive.single.observe { value =>
+    reactive.observe { value =>
       log(reactive + " now: " + value)
     }
   }
@@ -95,7 +95,7 @@ object Philosophers extends App {
   // ============================================ Runtime Behavior  =========================================================
 
   seatings.foreach { seating =>
-    seating.vision.single.observe { state =>
+    seating.vision.observe { state =>
       state match {
         case Eating =>
           Future {

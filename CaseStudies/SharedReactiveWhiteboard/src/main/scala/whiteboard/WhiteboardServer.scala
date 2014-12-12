@@ -3,7 +3,7 @@ package whiteboard
 import java.rmi.Naming
 import java.rmi.server.UnicastRemoteObject
 
-import reactive.Lift.single._
+import reactive.Lift._
 import reactive.events.{EventStream, TransposeEventStream}
 import reactive.remote.{RemoteDependency, RemoteSignalDependency}
 import reactive.remote.impl.{RemoteEventSinkImpl, RemoteSignalSinkImpl, RemoteSignalSourceImpl}
@@ -18,9 +18,9 @@ object WhiteboardServer extends App {
   }
 
   val allClientShapeCommands = Var(Seq.empty[EventStream[Command]])
-  val allClientShapeCommandsTransposeStream = atomic { new TransposeEventStream[Command](allClientShapeCommands, _) }
-  val allClientShapeCommandsHeadStream = allClientShapeCommandsTransposeStream.single.map { _.head }
-  val persistentShapes = allClientShapeCommandsHeadStream.single.fold(List.empty[Shape]) { (list, cmd) =>
+  val allClientShapeCommandsTransposeStream = allClientShapeCommands.transposeE
+  val allClientShapeCommandsHeadStream = allClientShapeCommandsTransposeStream.map { _.head }
+  val persistentShapes = allClientShapeCommandsHeadStream.fold(List.empty[Shape]) { (list, cmd) =>
     cmd match {
       case ShapeCommand(shape) => shape :: list
       case ClearCommand => List.empty
@@ -28,7 +28,7 @@ object WhiteboardServer extends App {
   }
 
   val allClientsCurrentShape = Var(Seq.empty[Signal[Option[Shape]]])
-  val currentShapes = atomic { tx => new TransposeSignal[Option[Shape]](allClientsCurrentShape, tx).map { _.flatten }(tx) }
+  val currentShapes = allClientsCurrentShape.transposeS.map { _.flatten }
 
   def ++[T]: (Iterable[T], Iterable[T]) => Iterable[T] = { (first, second) => first ++ second }
   val shapes = ++[Shape](currentShapes, persistentShapes)

@@ -14,52 +14,52 @@ class ConcurrentTest extends FunSuite {
   test("concurrency inside one transaction with MultiDependant") {
     val (start, end) = atomic { tx =>
       val start = Var(4)
-      val intermediate = 1.to(concurrencyFactor).map(i => start.map(_ + 1)(tx))
+      val intermediate = 1.to(concurrencyFactor).map(i => start.transactional.map(_ + 1)(tx))
       val combine: InTxn => Int = txi => intermediate.map {
-        _.now(txi)
+        _.transactional.now(txi)
       }.sum
-      val end = new FunctionalSignal(combine, intermediate, tx)
+      val end = new FunctionalSignal(combine, intermediate.toSet, tx)
       (start, end)
     }
-    assert(end.single.now == 5 * concurrencyFactor)
+    assert(end.now == 5 * concurrencyFactor)
 
     start << 5
-    assert(end.single.now == 6 * concurrencyFactor)
+    assert(end.now == 6 * concurrencyFactor)
 
   }
 
   test("concurrency inside one transaction with DynamicDependant") {
     val (start, end) = atomic { tx =>
       val start = Var(4)
-      val intermediate = 1.to(concurrencyFactor).map(i => start.map(_ + 1)(tx))
+      val intermediate = 1.to(concurrencyFactor).map(i => start.transactional.map(_ + 1)(tx))
       val combine: InTxn => Int = txi => intermediate.map {
-        _.now(txi)
+        _.transactional.now(txi)
       }.sum
       val transposed = new TransposeSignal(Val(intermediate), tx)
-      val end = transposed.map(_.sum)(tx)
+      val end = transposed.transactional.map(_.sum)(tx)
       (start, end)
     }
-    assert(end.single.now == 5 * concurrencyFactor)
+    assert(end.now == 5 * concurrencyFactor)
 
     start << 5
-    assert(end.single.now == 6 * concurrencyFactor)
+    assert(end.now == 6 * concurrencyFactor)
 
   }
 
   test("independent concurrent updates") {
     val vars = Vector.fill(concurrencyFactor)(Var(4)).par
-    val results = atomic { tx => vars.map(_.map(_+1)(tx)) }
-    results.foreach { res => assert( res.single.now == 5 )}
+    val results = atomic { tx => vars.map(_.transactional.map(_+1)(tx)) }
+    results.foreach { res => assert( res.now == 5 )}
 
     vars.foreach(_ << 5)
-    results.foreach { res => assert( res.single.now == 6 )}
+    results.foreach { res => assert( res.now == 6 )}
   }
 
   test("concurrent updates on same var") {
     val v1 = Var(-1)
-    val v2 = v1.single.map(_ + 1)
+    val v2 = v1.map(_ + 1)
     val queue = new java.util.concurrent.ConcurrentLinkedQueue[Int]()
-    v2.single.observe(v => queue.add(v))
+    v2.observe(v => queue.add(v))
     assert(queue.isEmpty)
     0.until(concurrencyFactor).par.foreach(i => v1 << i)
     assert(queue.size() == concurrencyFactor)

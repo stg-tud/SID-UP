@@ -4,7 +4,7 @@ import java.awt.{BorderLayout, Window}
 import java.util.Date
 import javax.swing.{DefaultListModel, JComponent, JFrame, JLabel, JList, JScrollPane, ScrollPaneConstants, WindowConstants}
 
-import reactive.Lift.single._
+import reactive.Lift._
 import reactive.signals._
 import ui.{ReactiveButton, ReactiveCheckbox, ReactiveLabel, ReactiveSpinner}
 
@@ -57,7 +57,7 @@ object ProjectionsUI {
       sales = sales,
       purchases = purchases,
       management = management)
-    orders.single.observe { order =>
+    orders.observe { order =>
       Future { c.setOrders(order) }
     }
     m.disableTransaction << glitch
@@ -79,7 +79,7 @@ object ProjectionsUI {
       sales = s.total,
       purchases = p.total,
       management = m.difference)
-    orders.single.observe { order =>
+    orders.observe { order =>
       Future { setOrder << order }
     }
   }
@@ -92,8 +92,8 @@ object ProjectionsUI {
     val orderSpinner = new ReactiveSpinner(10)
     val clientButton = new ReactiveButton("New Order")
 
-    val orderStream = orderSpinner.value.single.pulse(clientButton.commits).single.map { Order }
-    val orders = orderStream.single.log
+    val orderStream = orderSpinner.value.pulse(clientButton.commits).map { Order }
+    val orders = orderStream.log
 
     val model = new DefaultListModel[String]()
     val managementPanic = scala.concurrent.stm.atomic { implicit tx =>
@@ -104,7 +104,7 @@ object ProjectionsUI {
 
     val managementStatus = new JList(model)
 
-    val managementDifference = new ReactiveLabel(management.single.map { d => f"Profit: $d%4d   " })
+    val managementDifference = new ReactiveLabel(management.map { d => f"Profit: $d%4d   " })
 
     //    managementDifference.foreground << managementPanic.map {
     //      case false => Color.GREEN.darker
@@ -120,18 +120,18 @@ object ProjectionsUI {
 
     makeWindow("Client", 0, +100)(
       new ReactiveLabel(
-        orders.single.map { "Current orders: " + _.map { _.value } }).asComponent -> BorderLayout.NORTH,
+        orders.map { "Current orders: " + _.map { _.value } }).asComponent -> BorderLayout.NORTH,
       clientButton.asComponent -> BorderLayout.EAST,
       orderSpinner.asComponent -> BorderLayout.WEST,
       checkBox.asComponent -> BorderLayout.SOUTH)
 
     makeWindow("Purchases", -100, 0)(
       new JLabel("Purchases Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(purchases.single.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
+      new ReactiveLabel(purchases.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
 
     makeWindow("Sales", +100, 0)(
       new JLabel("Sales Status ") -> BorderLayout.NORTH,
-      new ReactiveLabel(sales.single.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
+      new ReactiveLabel(sales.map { t => f"total: $t%5d   " }).asComponent -> BorderLayout.SOUTH)
 
     (orders, checkBox.value)
   }

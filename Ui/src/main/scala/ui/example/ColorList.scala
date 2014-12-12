@@ -3,7 +3,7 @@ package ui.example
 import java.awt.BorderLayout
 import javax.swing.{Box, BoxLayout, JFrame, JLabel, JScrollPane, WindowConstants}
 
-import reactive.Lift.single._
+import reactive.Lift.valueToSignal
 import ui.{ReactiveLabel, ReactiveList}
 
 object ColorList extends App {
@@ -25,8 +25,8 @@ object ColorList extends App {
 
   // functionality
   val list = new ReactiveList[Color](Colors)
-  val displayText = list.selectionOption.single.map(_.fold(ifEmpty = "none")(_.toString))
-  val displayColor = list.selectionOption.single.map(_.fold(ifEmpty = java.awt.Color.BLACK)(_.actualColor))
+  val displayText = list.selectionOption.map(_.fold(ifEmpty = "none")(_.toString))
+  val displayColor = list.selectionOption.map(_.fold(ifEmpty = java.awt.Color.BLACK)(_.actualColor))
   val label = new ReactiveLabel(displayText)
   label.foreground << displayColor
 

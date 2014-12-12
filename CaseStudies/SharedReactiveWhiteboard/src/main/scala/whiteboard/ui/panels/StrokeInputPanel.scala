@@ -4,7 +4,7 @@ import java.awt.{Color, FlowLayout}
 import javax.swing._
 import javax.swing.event.{ChangeEvent, ChangeListener}
 
-import reactive.Lift.single._
+import reactive.Lift._
 import reactive.signals.Var
 import ui.{ReactiveButton, ReactiveSpinner}
 
@@ -13,7 +13,7 @@ class StrokeInputPanel extends JPanel(new FlowLayout) {
   private val spinner = new ReactiveSpinner(1)
 
   private val showColorWindow = new ReactiveButton("Show Colorinput")
-  showColorWindow.commits.single.observe { _ => colorWindow.setVisible(!colorWindow.isVisible)}
+  showColorWindow.commits.observe { _ => colorWindow.setVisible(!colorWindow.isVisible)}
 
   add(new JLabel("stroke width: "))
   add(spinner.asComponent)
@@ -28,7 +28,7 @@ class ColorWindow extends JFrame("Choose Color") {
   private val model = colorChooser.getSelectionModel
 
   private val closeButton = new ReactiveButton("OK")
-  closeButton.commits.single.observe { _ =>  setVisible(false) }
+  closeButton.commits.observe { _ =>  setVisible(false) }
 
   val color: Var[Color] = Var(Color.BLACK)
 

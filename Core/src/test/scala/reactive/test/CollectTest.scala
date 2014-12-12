@@ -12,12 +12,12 @@ class CollectTest extends FunSuite {
       case x if x % 2 == 0 => x + " is even"
     }
 
-    val even = e.single.collect(isEven)
+    val even = e.collect(isEven)
 
     assertResult(List("2 is even", "4 is even", "6 is even", "8 is even", "10 is even")) {
-      val result = even.single.log
+      val result = even.log
       for (sample <- 1 to 10) e << sample
-      result.single.now
+      result.now
     }
   }
 }

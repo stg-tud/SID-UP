@@ -13,7 +13,7 @@ class VarImpl[A](initialValue: A) extends {
   protected def makePulse(tx: InTxn, newValue: A): Option[A] = {
     updateValue(tx, newValue)
   }
-  override object single extends {
+  override object transactional extends {
     override val impl = self
   } with SignalImpl.ViewImpl[A] with ReactiveSourceImpl.ViewImpl[A] 
 }

@@ -1,7 +1,7 @@
 package projections.reactives
 
 import projections.Order
-import reactive.NumericLift.single._
+import reactive.NumericLift._
 import reactive.remote.RemoteReactives
 import reactive.signals.Signal
 
@@ -11,14 +11,14 @@ abstract class Division {
 }
 
 class Purchases(perOrderCost: Signal[Int]) extends Division {
-  val orderCount: Signal[Int] = orders.single.map { _.size }
-  val total = orderCount * perOrderCost + orders.single.map(sumValues)
+  val orderCount: Signal[Int] = orders.map { _.size }
+  val total = orderCount * perOrderCost + orders.map(sumValues)
 
   RemoteReactives.rebind(projections.purchases, total)
 }
 
 class Sales(val sleep: Int = 0) extends Division {
-  val total = orders.single.map { o =>
+  val total = orders.map { o =>
     if (sleep > 0) Thread.sleep(sleep)
     sumValues(o) * 2
   }

@@ -32,5 +32,5 @@ class MessageBuffer[A](val id: String, override val dependency: Signal[A], tx: I
     log("Delivery confirmed")
   }
 
-  override protected def reevaluateValue(tx: InTxn): A = dependency.now(tx)
+  override protected def reevaluateValue(tx: InTxn): A = dependency.transactional.now(tx)
 }

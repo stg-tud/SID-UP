@@ -3,7 +3,7 @@ import java.awt.Point
 import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.JComponent
 
-import reactive.Lift.single.valueToSignal
+import reactive.Lift.valueToSignal
 import reactive.events.{EventSource, EventStream}
 import reactive.signals.{RoutableVar, Signal, Var}
 
@@ -85,11 +85,11 @@ class ReactiveComponent[T <: JComponent](val asComponent: T) {
     source
   }
 
-  lazy val wrappedMouseDowns = mouseDowns.single.map(ReactiveComponent.Down)
-  lazy val wrappedMouseUps = mouseUps.single.map(ReactiveComponent.Up)
-  lazy val wrappedMouseDrags = mouseDrags.single.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
+  lazy val wrappedMouseDowns = mouseDowns.map(ReactiveComponent.Down)
+  lazy val wrappedMouseUps = mouseUps.map(ReactiveComponent.Up)
+  lazy val wrappedMouseDrags = mouseDrags.map(pair => ReactiveComponent.Drag(pair._1, pair._2))
 
-  lazy val mouseEvents = wrappedMouseDowns.single.merge (wrappedMouseUps, wrappedMouseDrags)
+  lazy val mouseEvents = wrappedMouseDowns.merge (wrappedMouseUps, wrappedMouseDrags)
 }
 
 object ReactiveComponent {
@@ -106,7 +106,7 @@ object ReactiveComponent {
       }
     }
     def deactivate(): Unit = {
-      reactive.single.unobserve(op)
+      reactive.unobserve(op)
     }
   }
 }

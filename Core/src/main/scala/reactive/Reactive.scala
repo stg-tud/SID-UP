@@ -12,19 +12,20 @@ trait Reactive[+O, +P] extends Reactive.Dependency {
 
   def withName(name: String): this.type
   
-  def single: Reactive.View[O]
-  def log(implicit inTxn: InTxn): Signal[Seq[O]]
-  def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit
-  def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit
+  protected[reactive] def sourceDependencies: Set[UUID]
+
+  override val transactional: Reactive.View[O]
+  def log: Signal[Seq[O]]
+  def observe(obs: O => Unit): Unit
+  def unobserve(obs: O => Unit): Unit
 }
 
 object Reactive {
-  trait View[+O] {
-    protected[reactive] def sourceDependencies: Set[UUID]
+  trait View[+O] extends Dependency.View {
     
-	def log: Signal[Seq[O]]
-    def observe(obs: O => Unit): Unit
-    def unobserve(obs: O => Unit): Unit
+	def log(implicit inTxn: InTxn): Signal[Seq[O]]
+    def observe(obs: O => Unit)(implicit inTxn: InTxn): Unit
+    def unobserve(obs: O => Unit)(implicit inTxn: InTxn): Unit
   }
   
   object PulsedState {
@@ -59,10 +60,16 @@ object Reactive {
     protected[reactive] def ping(transaction: Transaction, sourceDependenciesChanged: Boolean, pulsed: Boolean): Unit
   }
   trait Dependency {
-    protected[reactive] def sourceDependencies(inTxn: InTxn): Set[UUID]
+    val transactional: Dependency.View
+    protected[reactive] def sourceDependencies: Set[UUID]
     protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
     protected[reactive] def addDependant(tx: InTxn, dependant: Dependant): Unit
     protected[reactive] def removeDependant(tx: InTxn, dependant: Dependant): Unit
+  }
+  object Dependency {
+    trait View {
+      protected[reactive] def sourceDependencies(implicit inTxn: InTxn): Set[UUID]
+    }
   }
   //  type RSeq[+A] = Reactive[Seq[A], Seq[A], Delta[A]]
   //  type Signal[+A] = Reactive[A, A, Update[A]]

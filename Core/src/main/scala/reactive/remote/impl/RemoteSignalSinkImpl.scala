@@ -16,7 +16,7 @@ class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends Rem
     super.update(transaction, pulse, updatedSourceDependencies)
   }
   
-  override object single extends SignalImpl.ViewImpl[A] with RemoteSinkImpl.ViewImpl[A] {
+  override object transactional extends SignalImpl.ViewImpl[A] with RemoteSinkImpl.ViewImpl[A] {
     override val impl = self
   }
 }

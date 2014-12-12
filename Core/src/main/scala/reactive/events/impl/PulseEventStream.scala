@@ -22,7 +22,7 @@ abstract class GeneralPulseEventStream(tx: InTxn) extends MultiDependentReactive
   }
 
   // report that this only pulses on changes of the event stream
-  override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = events.sourceDependencies(tx)
+  override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = events.transactional.sourceDependencies(tx)
 }
 
 /**
@@ -37,7 +37,7 @@ class PulseEventStream[A](private val signal: Signal[A], override protected val 
 } with GeneralPulseEventStream(tx) with DependentEventStreamImpl[A] {
   override protected def reevaluate(tx: InTxn): Option[A] = {
     events.pulse(tx).asOption.map { eventVal =>
-      signal.pulse(tx).asOption.getOrElse(signal.now(tx))
+      signal.pulse(tx).asOption.getOrElse(signal.transactional.now(tx))
     }
   }
 }
@@ -48,7 +48,7 @@ class TuplePulseEventStream1[X, A](override protected val events: EventStream[X]
   override protected def reevaluate(tx: InTxn): Option[(X, A)] = {
     events.pulse(tx).asOption.map {
       (_,
-        signal1.pulse(tx).asOption.getOrElse(signal1.now(tx)))
+        signal1.pulse(tx).asOption.getOrElse(signal1.transactional.now(tx)))
     }
   }
 }
@@ -59,8 +59,8 @@ class TuplePulseEventStream2[X, A, B](override protected val events: EventStream
   override protected def reevaluate(tx: InTxn): Option[(X, A, B)] = {
     events.pulse(tx).asOption.map {
       (_,
-        signal1.pulse(tx).asOption.getOrElse(signal1.now(tx)),
-        signal2.pulse(tx).asOption.getOrElse(signal2.now(tx)))
+        signal1.pulse(tx).asOption.getOrElse(signal1.transactional.now(tx)),
+        signal2.pulse(tx).asOption.getOrElse(signal2.transactional.now(tx)))
     }
   }
 }

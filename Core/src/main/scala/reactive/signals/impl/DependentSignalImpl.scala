@@ -14,7 +14,7 @@ trait DependentSignalImpl[A] extends SignalImpl[A] with DependentReactive[A] {
     updateValue(tx, reevaluateValue(tx))
   }
 
-  override object single extends {
+  override object transactional extends {
     override protected val impl = self
   } with SignalImpl.ViewImpl[A] with DependentReactive.ViewImpl[A]
 }

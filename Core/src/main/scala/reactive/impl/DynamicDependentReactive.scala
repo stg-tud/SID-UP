@@ -85,6 +85,6 @@ abstract class DynamicDependentReactive(constructionTransaction: InTxn) extends 
   }
 
   override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
-    dependencies(tx).flatMap(_.sourceDependencies(tx))
+    dependencies(tx).flatMap(_.transactional.sourceDependencies(tx))
   }
 }

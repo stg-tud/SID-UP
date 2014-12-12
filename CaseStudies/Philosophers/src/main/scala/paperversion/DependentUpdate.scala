@@ -22,7 +22,7 @@ object DependentUpdate {
       val builder = new TransactionBuilder
       object rw extends ReadsWrites {
         override def read[T](signal: Signal[T]): T = {
-          signal.now(tx)
+          signal.transactional.now(tx)
         }
         override def write[T](source: ReactiveSource[T], value: T): Unit = {
           assert(maximumSources.contains(source), s"$source not contained in maximumSources")

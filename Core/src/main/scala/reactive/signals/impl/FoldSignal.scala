@@ -12,8 +12,8 @@ class FoldSignal[A, B](private val initialValue: A, val dependency: EventStream[
 } with SingleDependentReactive(tx) with DependentSignalImpl[A] {
   protected override def reevaluateValue(tx: InTxn) = {
     dependency.pulse(tx) match {
-      case Reactive.Changed(v) => op(now(tx), v)
-      case _ => now(tx)
+      case Reactive.Changed(v) => op(transactional.now(tx), v)
+      case _ => transactional.now(tx)
     }
   }
 }
