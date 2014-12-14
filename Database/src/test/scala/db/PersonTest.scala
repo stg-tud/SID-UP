@@ -2,6 +2,7 @@ package db
 
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
+import reactive.events.EventSource
 import reactive.signals.{Signal, Var}
 
 class PersonTest extends FunSuite {
@@ -34,5 +35,29 @@ class PersonTest extends FunSuite {
 
     katie.lastName << "Z"
     assert(familyY.now === Set(alice, bob))
+  }
+
+  test("insert new person") {
+    val max = Person("Max", "Z")
+
+    val all = table.select { p => Var(true)}
+
+    val inserts = EventSource[Person]()
+    table.insertEvents << table.insertEvents.now + inserts
+
+    assert(!all.now.contains(max))
+    inserts << max
+    assert(all.now.contains(max))
+  }
+
+  test("remove a person") {
+    val all = table.select { p => Var(true)}
+
+    val removes = EventSource[Person]()
+    table.removeEvents << table.removeEvents.now + removes
+
+    assert(all.now.contains(bob))
+    removes << bob
+    assert(!all.now.contains(bob))
   }
 }
