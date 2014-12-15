@@ -1,13 +1,15 @@
 package db
 
-import reactive.events.EventStream
+import reactive.events.{EventSource, EventStream}
 import reactive.signals.{Signal, Var}
 
 class Table[A](rows: Var[Set[A]]) {
-  val insertEvents: Var[Set[EventStream[A]]] = Var(Set.empty[EventStream[A]])
+  val imperativeInsert = EventSource[A]
+  val insertEvents: Var[Set[EventStream[A]]] = Var(Set(imperativeInsert))
   protected val insertEventsTransposedStream: EventStream[TableDelta[A]] = insertEvents.transposeE.map { Insert(_) }
 
-  val removeEvents: Var[Set[EventStream[A]]] = Var(Set.empty[EventStream[A]])
+  val imperativeRemove = EventSource[A]
+  val removeEvents: Var[Set[EventStream[A]]] = Var(Set(imperativeRemove))
   protected val removeEventsTransposedStream: EventStream[TableDelta[A]] = removeEvents.transposeE.map { Remove(_) }
 
   protected val allEvents = insertEventsTransposedStream.merge(removeEventsTransposedStream)

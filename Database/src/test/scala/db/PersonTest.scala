@@ -42,22 +42,16 @@ class PersonTest extends FunSuite {
 
     val all = table.select { p => Var(true)}
 
-    val inserts = EventSource[Person]()
-    table.insertEvents << table.insertEvents.now + inserts
-
     assert(!all.now.contains(max))
-    inserts << max
+    table.imperativeInsert << max
     assert(all.now.contains(max))
   }
 
   test("remove a person") {
     val all = table.select { p => Var(true)}
 
-    val removes = EventSource[Person]()
-    table.removeEvents << table.removeEvents.now + removes
-
     assert(all.now.contains(bob))
-    removes << bob
+    table.imperativeRemove << bob
     assert(!all.now.contains(bob))
   }
 }
