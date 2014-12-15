@@ -22,12 +22,12 @@ class PersonTest extends FunSuite {
   var table = Table[Person](karl, katie, alice, bob)
 
   test("select all") {
-    val all: Signal[Set[Person]] = table.select { p => Var(true)}
+    val all: Signal[Iterable[Person]] = table.select { p => Var(true)}
     assert(all.now === Set(karl, katie, alice, bob))
   }
 
   test("select a specific family") {
-    val familyY: Signal[Set[Person]] = table.select { person => person.lastName.map {_ == "Y"}}
+    val familyY: Signal[Iterable[Person]] = table.select { person => person.lastName.map {_ == "Y"}}
     assert(familyY.now === Set(katie, alice))
 
     bob.lastName << "Y"
@@ -42,16 +42,17 @@ class PersonTest extends FunSuite {
 
     val all = table.select { p => Var(true)}
 
-    assert(!all.now.contains(max))
-    table.imperativeInsert << max
-    assert(all.now.contains(max))
+    assert(!all.now.exists { _ == max})
+    table.insert(max)
+    assert(all.now.exists { _ == max})
   }
 
   test("remove a person") {
     val all = table.select { p => Var(true)}
 
-    assert(all.now.contains(bob))
-    table.imperativeRemove << bob
-    assert(!all.now.contains(bob))
+    assert(all.now.exists { _ == bob})
+    table.remove(bob, katie)
+    assert(!all.now.exists { _ == bob})
+    assert(!all.now.exists { _ == katie})
   }
 }
