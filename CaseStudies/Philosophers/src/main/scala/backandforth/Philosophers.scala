@@ -20,7 +20,7 @@ case class Fork(id: Int) {
   }
 
   // intermediate
-  val requestStates = atomic { new TransposeSignal(in, _) }
+  val requestStates = in.transposeS
   val requests = requestStates.map(_.flatten)
 
   // output

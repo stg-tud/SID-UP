@@ -34,9 +34,9 @@ class MergeTest extends FunSuite {
 
   test("merge signal changes and eventstream") {
     val sx = Var(1)
-    assertResult(Set(sx.uuid)) { sx.sourceDependencies }
+    assertResult(Set(sx.uuid)) { sx.singleSourceDependencies }
     val cx = sx.changes
-    assertResult(Set(sx.uuid)) { cx.sourceDependencies }
+    assertResult(Set(sx.uuid)) { cx.singleSourceDependencies }
     val e1 = EventSource[Int]()
     val merged = e1.merge(cx)
   }

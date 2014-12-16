@@ -16,6 +16,6 @@ abstract class SingleDependentReactive(tx: InTxn) {
   }
 
   protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = {
-    dependency.transactional.sourceDependencies(tx)
+    dependency.sourceDependencies(tx)
   }
 }

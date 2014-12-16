@@ -41,7 +41,8 @@ object RoutableVar {
       val _output = _input.transactional.flatten
       protected[reactive] override def pulse(tx: InTxn): Reactive.PulsedState[A] = _output.pulse(tx)
       protected[reactive] override def hasPulsed(tx: InTxn): Boolean = _output.hasPulsed(tx)
-      protected[reactive] override def sourceDependencies: Set[UUID] = _output.sourceDependencies
+      protected[reactive] override def singleSourceDependencies: Set[UUID] = _output.singleSourceDependencies
+      protected[reactive] override def sourceDependencies(tx: InTxn): Set[UUID] = _output.sourceDependencies(tx)
       protected[reactive] override def isConnectedTo(transaction: Transaction): Boolean = _output.isConnectedTo(transaction)
 
       protected[reactive] override def addDependant(tx: InTxn, dependant: Reactive.Dependant) = _output.addDependant(tx, dependant)

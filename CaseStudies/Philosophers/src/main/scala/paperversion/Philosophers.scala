@@ -12,6 +12,7 @@ import scala.concurrent.duration._
 import java.util.concurrent.TimeoutException
 import reactive.Reactive
 import scala.util.Random
+import reactive.signals.Val
 
 object Philosophers extends App {
   val names = Random.shuffle(List("Agripina", "Alberto", "Alverta", "Beverlee", "Bill", "Bobby", "Brandy", "Caleb", "Cami", "Candice", "Candra", "Carter", "Cassidy", "Corene", "Danae", "Darby", "Debi", "Derrick", "Douglas", "Dung", "Edith", "Eleonor", "Eleonore", "Elvera", "Ewa", "Felisa", "Fidel", "Filiberto", "Francesco", "Georgia", "Glayds", "Hal", "Jacque", "Jeff", "Joane", "Johnny", "Lai", "Leeanne", "Lenard", "Lita", "Marc", "Marcelina", "Margret", "Maryalice", "Michale", "Mike", "Noriko", "Pete", "Regenia", "Rico", "Roderick", "Roxie", "Salena", "Scottie", "Sherill", "Sid", "Steve", "Susie", "Tyrell", "Viola", "Wilhemina", "Zenobia"))
@@ -35,7 +36,7 @@ object Philosophers extends App {
   case object Eating extends Vision
   case class WaitingFor(name: String) extends Vision
 
-  def calcFork(leftName: String, leftState: Philosopher, rightName: String, rightState: Philosopher): Fork =
+  def calcFork (leftName: String, leftState: Philosopher, rightName: String, rightState: Philosopher): Fork =
     (leftState, rightState) match {
       case (Thinking, Thinking) => Free
       case (Hungry, _) => Taken(leftName)
@@ -56,16 +57,16 @@ object Philosophers extends App {
   def createTable(tableSize: Int): Seq[Seating] = {
     val phils = for (i <- 0 until tableSize) yield {
       Var[Philosopher](Thinking)
-      .withName(names(i))
+        .withName(names(i))
     }
     val forks = for (i <- 0 until tableSize) yield {
       val nextCircularIndex = (i + 1) % tableSize
-      Lift.signal4(calcFork _)(names(i), phils(i), names(nextCircularIndex), phils(nextCircularIndex))
-      .withName("Fork of " + names(i) + " and " + names(nextCircularIndex))
+      Lift.signal4(calcFork)(names(i), phils(i), names(nextCircularIndex), phils(nextCircularIndex))
+        .withName("Fork of " + names(i) + " and " + names(nextCircularIndex))
     }
     val state = for (i <- 0 until tableSize) yield {
-      Lift.signal3(calcVision _)(names(i), forks(i), forks((i - 1 + tableSize) % tableSize))
-      .withName("Vision of "+names(i))
+      Lift.signal3(calcVision)(names(i), forks(i), forks((i - 1 + tableSize) % tableSize))
+        .withName("Vision of " + names(i))
     }
     for (i <- 0 until tableSize) yield {
       Seating(i, phils(i), forks(i), forks((i - 1 + tableSize) % tableSize), state(i))
@@ -111,7 +112,7 @@ object Philosophers extends App {
 
   def eatOnce(seating: Seating) = {
     repeatUntilTrue {
-      DependentUpdate(seating.philosopher ) {
+      DependentUpdate(seating.philosopher) {
         rw =>
           if (rw.read(seating.vision) == Ready) {
             rw += seating.philosopher -> Hungry
@@ -133,12 +134,17 @@ object Philosophers extends App {
     val phil = seating.philosopher
     phil ->
       Future {
-        Thread.currentThread().setName("Worker-" + names(seating.placeNumber))
-        log("Controlling hunger on " + seating)
-        while (!killed) {
-          eatOnce(seating)
+        val originalName = Thread.currentThread().getName()
+        try {
+          Thread.currentThread().setName("Worker-" + names(seating.placeNumber))
+          log("Controlling hunger on " + seating)
+          while (!killed) {
+            eatOnce(seating)
+          }
+          log(phil + " dies.")
+        } finally {
+          Thread.currentThread().setName(originalName)
         }
-        log(phil + " dies.")
       }
   }
 

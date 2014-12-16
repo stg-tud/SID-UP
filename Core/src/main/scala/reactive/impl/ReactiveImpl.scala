@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.SynchronousQueue
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with ReactiveInstanceNameMutable with LazyLogging {
-  override def isConnectedTo(transaction: Transaction) = (transaction.sources & transactional.sourceDependencies(transaction.stmTx)).nonEmpty
+  override def isConnectedTo(transaction: Transaction) = (transaction.sources & sourceDependencies(transaction.stmTx)).nonEmpty
   override def log: Signal[Seq[O]] = atomic { transactional.log(_) }
 
   private val pulse: TxnLocal[PulsedState[P]] = TxnLocal(Pending)

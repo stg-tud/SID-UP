@@ -22,7 +22,7 @@ abstract class GeneralPulseEventStream(tx: InTxn) extends MultiDependentReactive
   }
 
   // report that this only pulses on changes of the event stream
-  override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = events.transactional.sourceDependencies(tx)
+  override protected def calculateSourceDependencies(tx: InTxn): Set[UUID] = events.sourceDependencies(tx)
 }
 
 /**
