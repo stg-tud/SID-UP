@@ -4,11 +4,17 @@ import reactive.events.{EventSource, EventStream}
 import reactive.signals.{Signal, Var}
 
 class Table[A](rows: Var[Iterable[A]]) {
-  protected val insertEvents = EventSource[Iterable[A]]()
-  protected val removeEvents = EventSource[Iterable[A]]()
+  protected val imperativeInsertEvents = EventSource[Iterable[A]]()
+  protected val imperativeRemoveEvents = EventSource[Iterable[A]]()
 
-  protected val insertDeltaEvents = insertEvents.map { Insert(_) }
-  protected val removeDeltaEvents = removeEvents.map { Remove(_) }
+  val insertEvents: Var[Seq[EventStream[Iterable[A]]]] = Var(Seq(imperativeInsertEvents))
+  val removeEvents: Var[Seq[EventStream[Iterable[A]]]] = Var(Seq(imperativeRemoveEvents))
+
+  protected val transposedInsertEvents: EventStream[Iterable[A]] = insertEvents.transposeE.map { _.head }
+  protected val transposedRemoveEvents: EventStream[Iterable[A]] = removeEvents.transposeE.map { _.head }
+
+  protected val insertDeltaEvents = transposedInsertEvents.map { Insert(_) }
+  protected val removeDeltaEvents = transposedRemoveEvents.map { Remove(_) }
 
   protected val allEvents = insertDeltaEvents merge removeDeltaEvents
 
@@ -24,11 +30,11 @@ class Table[A](rows: Var[Iterable[A]]) {
   }
 
   def insert(rows: A*): Unit = {
-    insertEvents << rows
+    imperativeInsertEvents << rows
   }
 
   def remove(rows: A*): Unit = {
-    removeEvents << rows
+    imperativeRemoveEvents << rows
   }
 }
 
