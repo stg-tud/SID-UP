@@ -10,8 +10,8 @@ class Table[A](rows: Var[Iterable[A]]) {
   val insertEvents: Var[Seq[EventStream[Iterable[A]]]] = Var(Seq(imperativeInsertEvents))
   val removeEvents: Var[Seq[EventStream[Iterable[A]]]] = Var(Seq(imperativeRemoveEvents))
 
-  protected val transposedInsertEvents: EventStream[Iterable[A]] = insertEvents.transposeE.map { _.head }
-  protected val transposedRemoveEvents: EventStream[Iterable[A]] = removeEvents.transposeE.map { _.head }
+  protected val transposedInsertEvents: EventStream[Iterable[A]] = insertEvents.transposeE.map { _.flatten }
+  protected val transposedRemoveEvents: EventStream[Iterable[A]] = removeEvents.transposeE.map { _.flatten }
 
   protected val insertDeltaEvents = transposedInsertEvents.map { Insert(_) }
   protected val removeDeltaEvents = transposedRemoveEvents.map { Remove(_) }
