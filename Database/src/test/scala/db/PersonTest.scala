@@ -7,11 +7,10 @@ import reactive.signals.{Signal, Var}
 
 class PersonTest extends FunSuite {
 
-  class Person(val firstName: Var[String], val lastName: Var[String])
-
+  case class Person(firstName: Var[String], lastName: Var[String])
   object Person {
-    def apply(firstName: String, lastName: String) = {
-      new Person(Var(firstName), Var(lastName))
+    def apply(firstName: String, lastName: String): Person = {
+      Person(Var(firstName), Var(lastName))
     }
   }
 
@@ -19,10 +18,10 @@ class PersonTest extends FunSuite {
   val katie = Person("Katie", "Y")
   val alice = Person("Alice", "Y")
   val bob = Person("Bob", "Z")
-  var table = Table[Person](karl, katie, alice, bob)
+  val table = Table[Person](karl, katie, alice, bob)
 
   test("select all") {
-    val all: Signal[Iterable[Person]] = table.select { p => Var(true)}
+    val all: Signal[Iterable[Person]] = table.select()
     assert(all.now === Set(karl, katie, alice, bob))
   }
 
@@ -40,7 +39,7 @@ class PersonTest extends FunSuite {
   test("insert new person") {
     val max = Person("Max", "Z")
 
-    val all = table.select { p => Var(true)}
+    val all = table.select()
 
     assert(!all.now.exists { _ == max})
     table.insert(max)
@@ -48,7 +47,7 @@ class PersonTest extends FunSuite {
   }
 
   test("remove a person") {
-    val all = table.select { p => Var(true)}
+    val all = table.select()
 
     assert(all.now.exists { _ == bob})
     table.remove(bob, katie)
