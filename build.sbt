@@ -15,7 +15,7 @@ lazy val whiteboard = project.in(file("CaseStudies/SharedReactiveWhiteboard")).d
 
 lazy val philosophers = project.in(file("CaseStudies/Philosophers")).dependsOn(core)
 
-scalaVersion in ThisBuild := "2.11.2"
+scalaVersion in ThisBuild := "2.11.5"
 
 version in ThisBuild := "0.1.1-STM"
 
