@@ -4,7 +4,7 @@ import reactive.signals.Var
 
 case class Order(number: Var[String], date: Var[String]) {
   override def toString = {
-    number.now
+    number.now + ": " + date.now
   }
 }
 object Order {
