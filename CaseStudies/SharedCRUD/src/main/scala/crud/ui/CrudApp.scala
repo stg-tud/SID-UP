@@ -5,7 +5,6 @@ import javax.swing._
 
 import crud.data.Order
 import db.Table
-import ui.ReactiveLabel
 
 object CrudApp extends App {
   // Setup Table
@@ -17,26 +16,18 @@ object CrudApp extends App {
 
   val orderAddPanel = new OrderAddPanel()
   val orderListPanel = new OrderListPanel(table)
+  val orderRemovePanel = new OrderRemovePanel(orderListPanel.selectedOrder)
   
-  // Connect addOrderPanel to table
+  // Connect orderAddPanel and orderRemovePanel to table
   table.insertEvents << table.insertEvents.now + orderAddPanel.nextOrders
-
-  // Map selected order number to a label
-  val selectedOrderNumber = orderListPanel.selectedOrder.map {
-    case Some(order) => order.number.now
-    case None => "none"
-  }
-  val selectedOrderNumberLabel = new ReactiveLabel(selectedOrderNumber)
+  table.removeEvents << table.removeEvents.now + orderRemovePanel.removeOrders
 
   // Setup application window
   val window = new JFrame("SharedCRUD Orders")
   window.setLayout(new BorderLayout())
   window.add(orderAddPanel, BorderLayout.NORTH)
   window.add(orderListPanel, BorderLayout.CENTER)
-  val output = new Box(BoxLayout.X_AXIS)
-  output.add(new JLabel("You have selected: "))
-  output.add(selectedOrderNumberLabel.asComponent)
-  window.add(output, BorderLayout.SOUTH)
+  window.add(orderRemovePanel, BorderLayout.SOUTH)
   // window configuration
   window.pack()
   window.setLocationRelativeTo(null)
