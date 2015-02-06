@@ -1,10 +1,10 @@
 package crud.ui
 
-import javax.swing.{ JOptionPane, BoxLayout, JLabel, JPanel }
+import java.awt.GridLayout
+import javax.swing.{JLabel, JOptionPane, JPanel}
 
 import crud.data.Order
 import reactive.Lift._
-import reactive.events.EventSource
 import reactive.signals.Signal
 import ui.{ ReactiveLabel, ReactiveButton }
 
@@ -31,8 +31,9 @@ class OrderRemovePanel(order: Signal[Option[Order]]) extends JPanel {
   }
   val orderNumberLabel = new ReactiveLabel(orderNumber)
 
-  setLayout(new BoxLayout(this, BoxLayout.X_AXIS))
+  setLayout(new GridLayout(2, 2))
   add(new JLabel("You have selected: "))
   add(orderNumberLabel.asComponent)
+  add(new JLabel())
   add(removeOrderButton.asComponent)
 }
