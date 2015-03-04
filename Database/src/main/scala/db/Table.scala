@@ -5,33 +5,37 @@ import reactive.signals.{ Signal, Var }
 import reactive.signals.Val
 
 class Table[A](rows: Var[Set[A]]) {
-  protected val imperativeInsertEvents = EventSource[Set[A]]()
-  protected val imperativeRemoveEvents = EventSource[Set[A]]()
+  type Elements = Set[A]
+  type Where = A => Boolean
+  type RWhere = A => Signal[Boolean]
 
-  val insertEvents: Var[Set[EventStream[Set[A]]]] = Var(Set(imperativeInsertEvents))
-  val removeEvents: Var[Set[EventStream[Set[A]]]] = Var(Set(imperativeRemoveEvents))
+  protected val imperativeInsertEvents = EventSource[Elements]()
+  protected val imperativeRemoveWhereEvents = EventSource[Where]()
 
-  protected val transposedInsertEvents: EventStream[Set[A]] = insertEvents.transposeE.map { _.flatten }
-  protected val transposedRemoveEvents: EventStream[Set[A]] = removeEvents.transposeE.map { _.flatten }
+  val insertEvents: Var[Set[EventStream[Elements]]] = Var(Set(imperativeInsertEvents))
+  val removeEvents: Var[Set[EventStream[Where]]] = Var(Set(imperativeRemoveWhereEvents))
 
-  protected val insertDeltaEvents = transposedInsertEvents.map { Insert(_) }
-  protected val removeDeltaEvents = transposedRemoveEvents.map { Remove(_) }
+  protected val transposedInsertEvents: EventStream[Elements] = insertEvents.transposeE.map { _.flatten }
+  protected val transposedRemoveWhereEvents: EventStream[Where] = removeEvents.transposeE.map(wheres =>
+    if (wheres.size == 1) {
+      wheres.head
+    } else {
+      { element: A => wheres.find(_(element)).isDefined }
+    })
+
+  protected val insertDeltaEvents = transposedInsertEvents.map { elements => { inserts: Elements => elements ++ inserts } }
+  protected val removeDeltaEvents = transposedRemoveWhereEvents.map { where => { elements: Elements => elements.filterNot(where) } }
 
   protected val allEvents = insertDeltaEvents merge removeDeltaEvents
 
-  protected val internalRows = allEvents.fold[Set[A]](rows.now) { (rows, delta) =>
-    delta match {
-      case Insert(insertRows) => rows ++ insertRows
-      case Remove(removeRows) => rows.filterNot(removeRows.toSet)
-    }
-  }
+  protected val internalRows = allEvents.fold[Elements](rows.now) { (rows, delta) => delta(rows) }
 
-  def select(where: A => Signal[Boolean] = Table.all): Signal[Set[A]] = {
+  def select(where: RWhere = Table.all): Signal[Elements] = {
     if (where eq Table.all) {
       internalRows
     } else {
       internalRows.map(_.map(row => where(row).map(_ -> row))).transposeS.map {
-        set => set.filter(_._1).map(_._2)
+        _.filter(_._1).map(_._2)
       }
     }
   }
@@ -41,7 +45,11 @@ class Table[A](rows: Var[Set[A]]) {
   }
 
   def remove(rows: A*): Unit = {
-    imperativeRemoveEvents << rows.toSet
+    remove(rows.toSet)
+  }
+
+  def remove(where: Where): Unit = {
+    imperativeRemoveWhereEvents << where
   }
 }
 

@@ -3,11 +3,13 @@ package db
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
 import reactive.events.EventSource
-import reactive.signals.{Signal, Var}
+import reactive.signals.{ Signal, Var }
 
 class PersonTest extends FunSuite {
 
-  case class Person(firstName: Var[String], lastName: Var[String])
+  case class Person(firstName: Var[String], lastName: Var[String]) {
+    override def toString() = firstName.now.toString
+  }
   object Person {
     def apply(firstName: String, lastName: String): Person = {
       Person(Var(firstName), Var(lastName))
@@ -26,7 +28,7 @@ class PersonTest extends FunSuite {
   }
 
   test("select a specific family") {
-    val familyY: Signal[Iterable[Person]] = table.select { person => person.lastName.map {_ == "Y"}}
+    val familyY: Signal[Iterable[Person]] = table.select { person => person.lastName.map { _ == "Y" } }
     assert(familyY.now === Set(katie, alice))
 
     bob.lastName << "Y"
@@ -41,17 +43,24 @@ class PersonTest extends FunSuite {
 
     val all = table.select()
 
-    assert(!all.now.exists { _ == max})
+    assert(!all.now.exists { _ == max })
     table.insert(max)
-    assert(all.now.exists { _ == max})
+    assert(all.now.exists { _ == max })
   }
 
   test("remove a person") {
     val all = table.select()
 
-    assert(all.now.exists { _ == bob})
+    assert(all.now.exists { _ == bob })
     table.remove(bob, katie)
-    assert(!all.now.exists { _ == bob})
-    assert(!all.now.exists { _ == katie})
+    assert(!all.now.exists { _ == bob })
+    assert(!all.now.exists { _ == katie })
+  }
+
+  test("remove range query") {
+    val all = table.select()
+
+    table.remove(_.firstName.now.charAt(0) > 'B')
+    assert(all.now.toSet == Set(alice))
   }
 }
