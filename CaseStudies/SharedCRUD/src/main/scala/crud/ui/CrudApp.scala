@@ -14,7 +14,7 @@ object CrudApp extends App {
     Order("3", "2015-01-03")
   )
 
-  val orderAddPanel = new OrderAddPanel()
+  val orderAddPanel = new OrderAddPanel(table)
   val orderListPanel = new OrderListPanel(table)
   val orderRemovePanel = new OrderRemovePanel(orderListPanel.selectedOrder)
   

@@ -3,11 +3,12 @@ package crud.ui
 import javax.swing.{BoxLayout, JPanel}
 
 import crud.data.Order
+import db.Table
 import reactive.Lift._
 import reactive.events.EventSource
 import ui.{ReactiveButton, ReactiveTextField}
 
-class OrderAddPanel extends JPanel {
+class OrderAddPanel(table: Table[Order]) extends JPanel {
   protected val numberTextField = new ReactiveTextField()
   protected val dateTextField = new ReactiveTextField()
   protected val addOrderButton = new ReactiveButton("Add")
@@ -16,6 +17,11 @@ class OrderAddPanel extends JPanel {
   dateTextField.setValue("Date")
 
   val nextOrders = EventSource[Set[Order]]()
+
+  // Prevent duplicate numbers
+  numberTextField.value.flatMap {
+    number => table.select { order => order.number.now == number } map { elements => !elements.nonEmpty }
+  } observe { addOrderButton.enabled << _ }
 
   // Assign new order to nextOrders when the add button is pressed
   addOrderButton.commits.observe { _ => nextOrders << Set(Order(numberTextField.value.now, dateTextField.value.now)) }

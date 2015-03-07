@@ -1,8 +1,8 @@
 package crud.data
 
-import reactive.signals.Var
+import reactive.signals.{Signal, Var}
 
-case class Order(number: Var[String], date: Var[String]) {
+case class Order(number: Signal[String], date: Signal[String]) {
   override def toString = {
     number.now + ": " + date.now
   }
