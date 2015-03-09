@@ -3,12 +3,12 @@ package crud.ui
 import java.awt.BorderLayout
 import javax.swing.{JScrollPane, JPanel}
 
-import crud.data.Order
+import crud.data.{OrderNumberOrdering, Order}
 import db.Table
 import ui.ReactiveList
 
 class OrderListPanel(table: Table[Order]) extends JPanel {
-  protected val orderList = new ReactiveList[Order](table.select().map(_.toList))
+  protected val orderList = new ReactiveList[Order](table.orderBy(new OrderNumberOrdering()) )
   val selectedOrder = orderList.selectionOption
 
   // Span list over whole panel

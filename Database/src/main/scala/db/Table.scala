@@ -40,6 +40,12 @@ class Table[A](rows: Var[Set[A]]) {
     }
   }
 
+  def orderBy(ordering: Ordering[A], where: RWhere = Table.all): Signal[List[A]] = {
+    select(where).map {
+      elements => elements.toList.sorted(ordering)
+    }
+  }
+
   def insert(rows: A*): Unit = {
     imperativeInsertEvents << rows.toSet
   }
