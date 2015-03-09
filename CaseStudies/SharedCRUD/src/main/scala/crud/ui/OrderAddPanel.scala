@@ -9,12 +9,17 @@ import reactive.events.EventSource
 import ui.{ReactiveButton, ReactiveTextField}
 
 class OrderAddPanel(table: Table[Order]) extends JPanel {
+  protected val initialNumber = "Number"
+  protected val initialDate = "Date"
   protected val numberTextField = new ReactiveTextField()
   protected val dateTextField = new ReactiveTextField()
   protected val addOrderButton = new ReactiveButton("Add")
 
-  numberTextField.setValue("Number")
-  dateTextField.setValue("Date")
+  numberTextField.setValue(initialNumber)
+  dateTextField.setValue(initialDate)
+
+  numberTextField.asComponent.addFocusListener(new HintFocusListener[String](numberTextField.asComponent, initialNumber))
+  dateTextField.asComponent.addFocusListener(new HintFocusListener[String](dateTextField.asComponent, initialDate))
 
   val nextOrders = EventSource[Set[Order]]()
 
