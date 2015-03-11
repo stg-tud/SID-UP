@@ -1,7 +1,7 @@
 package projections.observer
 
 import reactive.signals.RoutableVar
-import reactive.Lift._
+import reactive.lifting.Lift._
 import projections.Participant
 
 class Management extends Observable[Int](projections.management) {

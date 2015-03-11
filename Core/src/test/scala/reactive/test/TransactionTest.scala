@@ -1,8 +1,8 @@
 package reactive.test
 import reactive.signals.Var
 import reactive.TransactionBuilder
-import reactive.Lift._
-import reactive.LiftableWrappers._
+import reactive.lifting.Lift._
+import reactive.lifting.NumericLift._
 import org.scalatest.FunSuite
 
 class TransactionTest extends FunSuite {
@@ -10,7 +10,7 @@ class TransactionTest extends FunSuite {
     val var1 = Var(1);
     val var2 = Var(5);
 
-    val sum = add(var1, var2)
+    val sum = var1 + var2
     val sumLog = sum.log
 
     var1 << 4;

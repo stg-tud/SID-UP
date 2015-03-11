@@ -30,6 +30,7 @@ class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
       if (value.isEmpty) None else Some(pulses)
     }
   }
+  override def ===(other: Signal[_]): Signal[Boolean] = other.map(_ == value)
 }
 
 object Val {

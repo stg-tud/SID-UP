@@ -8,7 +8,7 @@ import reactive.signals.{ TransposeSignal, Signal, Var }
 import reactive.remote.impl.{ RemoteSignalSinkImpl, RemoteEventSinkImpl, RemoteSignalSourceImpl }
 import reactive.remote.RemoteDependency
 import reactive.remote.RemoteSignalDependency
-import reactive.Lift._
+import reactive.lifting.Lift._
 import reactive.mutex.{TransactionLock, TransactionLockImpl}
 import java.util.UUID
 import javax.swing.JOptionPane

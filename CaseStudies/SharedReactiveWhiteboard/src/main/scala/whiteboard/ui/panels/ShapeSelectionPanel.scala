@@ -2,7 +2,7 @@ package whiteboard.ui.panels
 
 import javax.swing.{BoxLayout, JPanel}
 import ui.ReactiveButton
-import reactive.Lift._
+import reactive.lifting.Lift._
 import whiteboard.figures.factories._
 import whiteboard.{Command, ClearCommand}
 

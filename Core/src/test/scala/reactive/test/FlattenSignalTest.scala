@@ -6,7 +6,7 @@ import reactive.signals.Val
 import reactive.Reactive
 import reactive.testtools.NotificationLog
 import reactive.signals.Signal
-import reactive.Lift._
+import reactive.lifting.Lift._
 import reactive.Transaction
 import reactive.TransactionBuilder
 

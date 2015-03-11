@@ -7,8 +7,7 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.WindowConstants
-import reactive.Lift._
-import reactive.LiftableWrappers._
+import reactive.lifting.Lift._
 import reactive.signals._
 import ui.ReactiveButton
 import ui.ReactiveLabel

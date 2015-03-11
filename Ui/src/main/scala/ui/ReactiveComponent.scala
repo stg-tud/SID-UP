@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent
 import reactive.signals.Var
 import java.awt.event.MouseAdapter
 import reactive.signals.RoutableVar
-import reactive.Lift.valueToSignal
+import reactive.lifting.Lift.valueToSignal
 import reactive.events.EventStream
 import reactive.events.EventSource
 

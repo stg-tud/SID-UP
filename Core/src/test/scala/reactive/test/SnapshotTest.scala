@@ -2,8 +2,8 @@ package reactive.test
 import reactive.signals.Var
 import reactive.events.EventSource
 import reactive.TransactionBuilder
-import reactive.Lift._
-import reactive.LiftableWrappers._
+import reactive.lifting.Lift._
+import reactive.lifting.NumericLift._
 import org.scalatest.FunSuite
 
 class SnapshotTest extends FunSuite {
@@ -11,7 +11,7 @@ class SnapshotTest extends FunSuite {
     val var1 = Var(1);
     val events = EventSource[Object]
     val snapshot = var1.snapshot(events);
-    val merged = add(var1, snapshot);
+    val merged = var1 + snapshot;
 
     val snapshotLog = snapshot.log
     val mergedLog = merged.log

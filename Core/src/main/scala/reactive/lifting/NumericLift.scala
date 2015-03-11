@@ -1,7 +1,7 @@
-package reactive
+package reactive.lifting
 
 import reactive.signals.Signal
-import reactive.Lift._
+import reactive.lifting.Lift._
 
 object NumericLift {
   implicit class NumericSignal[N](x: Signal[N])(implicit num: Numeric[N]) {

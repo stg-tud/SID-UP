@@ -2,7 +2,7 @@
 //
 //import org.scalatest.FunSuite
 //import reactive.signals._
-//import reactive.Lift._
+//import reactive.lifting.Lift._
 //
 //class SomeTest extends FunSuite {
 //  test("some basic functionality") {

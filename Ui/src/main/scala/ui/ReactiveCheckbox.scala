@@ -8,7 +8,7 @@ import reactive.Reactive
 import reactive.signals.Var
 import reactive.signals.Signal
 import reactive.signals.RoutableVar
-import reactive.Lift.valueToSignal
+import reactive.lifting.Lift.valueToSignal
 
 class ReactiveCheckbox(initialText: Signal[String]) extends ReactiveComponent(new JCheckBox()) with ReactiveInput[Boolean] {
   val text = RoutableVar(initialText)

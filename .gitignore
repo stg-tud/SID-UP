@@ -1,10 +1,6 @@
 *.log
-*.md
-*.pdf
 *.sublime-project
 *.sublime-workspace
-*.tags
-*.txt
 .cache
 .classpath
 .idea/

@@ -2,8 +2,7 @@ package ui.example
 
 import javax.swing.JFrame
 import java.awt.BorderLayout
-import reactive.Lift._
-import reactive.LiftableWrappers._
+import reactive.lifting.Lift._
 import ui.ReactiveLabel
 import ui.ReactiveList
 import javax.swing.WindowConstants

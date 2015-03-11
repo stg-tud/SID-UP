@@ -4,7 +4,8 @@ import javax.swing.{BoxLayout, JPanel}
 
 import crud.data.Order
 import db.Table
-import reactive.Lift._
+import reactive.lifting.Lift._
+import reactive.lifting.BooleanLift._
 import reactive.events.EventSource
 import ui.{ReactiveButton, ReactiveTextField}
 
@@ -21,15 +22,12 @@ class OrderAddPanel(table: Table[Order]) extends JPanel {
   numberTextField.asComponent.addFocusListener(new HintFocusListener(numberTextField.asComponent, initialNumber))
   dateTextField.asComponent.addFocusListener(new HintFocusListener(dateTextField.asComponent, initialDate))
 
-  val nextOrders = EventSource[Set[Order]]()
-
   // Prevent duplicate numbers
-  numberTextField.value.flatMap {
-    number => table.select { order => order.number.now == number } map { elements => !elements.nonEmpty }
-  } observe { addOrderButton.enabled << _ }
+  addOrderButton.enabled << table.count(order => order.number === numberTextField.value && order.date === dateTextField.value).map(_ == 0)
 
   // Assign new order to nextOrders when the add button is pressed
-  addOrderButton.commits.observe { _ => nextOrders << Set(Order(numberTextField.value.now, dateTextField.value.now)) }
+  def makeOrder: (String, String) => Order = {(a: String, b: String) => Order(a, b)}
+  val nextOrders = makeOrder(numberTextField.value, dateTextField.value).map(Set(_)).pulse(addOrderButton.commits)
 
   // Configure panel
   setLayout(new BoxLayout(this, BoxLayout.X_AXIS))

@@ -18,6 +18,7 @@ trait Signal[+A] extends Reactive[A, A] {
   def pulse(when: EventStream[_]): EventStream[A]
   def transposeS[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): Signal[C[T]]
   def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]]
+  def ===(other: Signal[_]): Signal[Boolean]
 }
 
 //object Signal {

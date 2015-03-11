@@ -1,9 +1,10 @@
-package reactive
+package reactive.lifting
 
 import reactive.signals.Val
 import reactive.signals.impl.FunctionalSignal
 import reactive.events.EventStream
 import reactive.signals.Signal
+import scala.language.implicitConversions
 
 object Lift {
   import scala.language.implicitConversions

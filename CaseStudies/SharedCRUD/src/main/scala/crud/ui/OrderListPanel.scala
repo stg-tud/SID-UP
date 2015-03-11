@@ -8,7 +8,7 @@ import db.Table
 import ui.ReactiveList
 
 class OrderListPanel(table: Table[Order]) extends JPanel {
-  protected val orderList = new ReactiveList[Order](table.orderBy(new OrderNumberOrdering()) )
+  protected val orderList = new ReactiveList[Order](table.select().map(_.toList.sorted(new OrderNumberOrdering())) )
   val selectedOrder = orderList.selectionOption
 
   // Span list over whole panel

@@ -8,7 +8,7 @@ import reactive.signals.Signal
 import reactive.events.EventSource
 import reactive.events.EventStream
 import reactive.signals.RoutableVar
-import reactive.Lift.valueToSignal
+import reactive.lifting.Lift.valueToSignal
 
 class ReactiveButton(initialText: Signal[String]) extends ReactiveComponent(new JButton()) with ReactiveCommittable {
   val text = RoutableVar(initialText)

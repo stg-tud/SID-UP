@@ -4,7 +4,7 @@ import java.awt.GridLayout
 import javax.swing.{JLabel, JOptionPane, JPanel}
 
 import crud.data.Order
-import reactive.Lift._
+import reactive.lifting.Lift._
 import reactive.signals.Signal
 import ui.{ ReactiveLabel, ReactiveButton }
 

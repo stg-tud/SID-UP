@@ -54,5 +54,6 @@ object RoutableVar {
     override def pulse(when: EventStream[_]): EventStream[A] = _output.pulse(when)
     override def transposeS[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = _output.transposeS
     override def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = _output.transposeE
+    override def ===(other: Signal[_]): Signal[Boolean] = _output.===(other)
   }
 }

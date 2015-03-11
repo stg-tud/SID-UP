@@ -2,9 +2,8 @@ package projections.reactives
 
 import Numeric.Implicits._
 import projections.Order
-import reactive.Lift._
-import reactive.LiftableWrappers._
-import reactive.NumericLift._
+import reactive.lifting.Lift._
+import reactive.lifting.NumericLift._
 import reactive.signals.Signal
 import reactive.remote.RemoteReactives
 

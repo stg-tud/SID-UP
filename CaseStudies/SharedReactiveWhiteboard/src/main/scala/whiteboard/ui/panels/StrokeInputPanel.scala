@@ -2,7 +2,7 @@ package whiteboard.ui.panels
 
 import javax.swing._
 import java.awt.{Color, FlowLayout}
-import reactive.Lift._
+import reactive.lifting.Lift._
 import ui.ReactiveButton
 import ui.ReactiveSpinner
 import javax.swing.event.{ChangeEvent, ChangeListener}

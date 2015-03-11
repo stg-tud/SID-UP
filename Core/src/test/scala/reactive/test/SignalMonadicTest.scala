@@ -5,7 +5,7 @@ import reactive.signals.Var
 import reactive.signals.Val
 import reactive.signals.RoutableVar
 import reactive.TransactionBuilder
-import reactive.Lift._
+import reactive.lifting.Lift._
 
 class SignalMonadicTest extends FunSuite {
   test("explicit usage: changing inner and outer values") {
