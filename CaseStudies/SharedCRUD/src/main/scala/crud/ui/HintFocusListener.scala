@@ -3,7 +3,7 @@ package crud.ui
 import java.awt.event.{FocusEvent, FocusListener}
 import javax.swing.JTextField
 
-class HintFocusListener[A](
+class HintFocusListener(
     val textField: JTextField,
     val initial: String
 ) extends FocusListener {

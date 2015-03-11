@@ -18,8 +18,8 @@ class OrderAddPanel(table: Table[Order]) extends JPanel {
   numberTextField.setValue(initialNumber)
   dateTextField.setValue(initialDate)
 
-  numberTextField.asComponent.addFocusListener(new HintFocusListener[String](numberTextField.asComponent, initialNumber))
-  dateTextField.asComponent.addFocusListener(new HintFocusListener[String](dateTextField.asComponent, initialDate))
+  numberTextField.asComponent.addFocusListener(new HintFocusListener(numberTextField.asComponent, initialNumber))
+  dateTextField.asComponent.addFocusListener(new HintFocusListener(dateTextField.asComponent, initialDate))
 
   val nextOrders = EventSource[Set[Order]]()
 
