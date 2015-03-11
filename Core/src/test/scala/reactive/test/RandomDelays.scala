@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 import reactive.signals.Signal
-import reactive.Lift._
+import reactive.lifting.Lift._
 import reactive.signals.Var
 
 class RandomDelays extends FunSuite {
