@@ -26,7 +26,7 @@ class OrderRemovePanel(order: Signal[Option[Order]]) extends JPanel {
 
   // Map selected order number to a label
   val orderNumber = order.map {
-    case Some(o) => o.number.now
+    case Some(o) => o.number.now.toString
     case None => "none"
   }
   val orderNumberLabel = new ReactiveLabel(orderNumber)

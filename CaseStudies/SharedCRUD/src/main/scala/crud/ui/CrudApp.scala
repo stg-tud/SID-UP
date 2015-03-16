@@ -1,6 +1,7 @@
 package crud.ui
 
 import java.awt.BorderLayout
+import java.text.SimpleDateFormat
 import javax.swing._
 
 import crud.data.Order
@@ -8,10 +9,11 @@ import db.Table
 
 object CrudApp extends App {
   // Setup Table
+  val format = new SimpleDateFormat("yyy-MM-dd")
   val table = Table[Order](
-    Order("1", "2015-01-01"),
-    Order("2", "2015-01-02"),
-    Order("3", "2015-01-03")
+    Order(1, format.parse("2015-01-01")),
+    Order(2, format.parse("2015-01-02")),
+    Order(3, format.parse("2015-01-03"))
   )
 
   val orderAddPanel = new OrderAddPanel(table)
