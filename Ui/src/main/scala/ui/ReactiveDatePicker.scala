@@ -20,6 +20,10 @@ import org.jdesktop.swingx.JXDatePicker
 import java.util.Date
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
+import javax.swing.KeyStroke
+import java.awt.event.KeyEvent
+import javax.swing.Action
+import javax.swing.AbstractAction
 
 class ReactiveDatePicker(initialValue: Date) extends {
   private val picker = new JXDatePicker(initialValue)
@@ -34,13 +38,11 @@ class ReactiveDatePicker(initialValue: Date) extends {
   def setValue(value: Date) = picker.setDate(value)
 
   private val _commits = EventSource[ActionEvent]
-  private val editor = asComponent.getEditor().getComponent(0).asInstanceOf[JFormattedTextField]
-    editor.addActionListener(new ActionListener() {
-      override def actionPerformed(event: ActionEvent): Unit = {
-        _commits << event;
-      }
-    })
-    val commits: EventStream[ActionEvent] = _commits
-
-  editor.getFormatter().asInstanceOf[DefaultFormatter].setCommitsOnValidEdit(true);
+  private val editor: JFormattedTextField = asComponent.getEditor()
+  editor.getKeymap().addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), new AbstractAction() {
+    override def actionPerformed(event: ActionEvent): Unit = {
+      _commits << event;
+    }
+  })
+  val commits: EventStream[ActionEvent] = _commits
 }
