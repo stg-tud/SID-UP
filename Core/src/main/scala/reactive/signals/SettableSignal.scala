@@ -7,13 +7,16 @@ import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds 
 import scala.collection.TraversableLike
 
-trait SettableSignal[A] extends Signal[A]
+trait SettableSignal[A] extends Signal[A] {
+    def <<+(setEvents: EventStream[A]): Unit
+    def <<-(setEvents: EventStream[A]): Unit
+}
 
 object SettableSignal {
   def apply[A](initialValue: A): SettableSignal[A] = new SettableSignal[A] {
     val _input = Var(Set[EventStream[A]]());
-    def <<+(setEvents: EventStream[A]) = _input << _input.now + setEvents
-    def <<-(setEvents: EventStream[A]) = _input << _input.now - setEvents
+    override def <<+(setEvents: EventStream[A]) = _input << _input.now + setEvents
+    override def <<-(setEvents: EventStream[A]) = _input << _input.now - setEvents
 
     val _output = _input.transposeE.map(_.head).hold(initialValue)
     protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
