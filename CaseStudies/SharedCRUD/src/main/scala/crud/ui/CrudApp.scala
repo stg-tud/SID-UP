@@ -16,18 +16,18 @@ object CrudApp extends App {
     Order(3, format.parse("2015-01-03"))
   )
 
-  val orderAddPanel = new OrderAddPanel(table)
   val orderListPanel = new OrderListPanel(table)
+  val orderAddEditPanel = new OrderAddEditPanel(table, orderListPanel.selectedOrder)
   val orderRemovePanel = new OrderRemovePanel(orderListPanel.selectedOrder)
   
   // Connect orderAddPanel and orderRemovePanel to table
-  table.insertEvents << table.insertEvents.now + orderAddPanel.nextOrders
+  table.insertEvents << table.insertEvents.now + orderAddEditPanel.nextOrders
   table.removeEvents << table.removeEvents.now + orderRemovePanel.removeOrders
 
   // Setup application window
   val window = new JFrame("SharedCRUD Orders")
   window.setLayout(new BorderLayout())
-  window.add(orderAddPanel, BorderLayout.NORTH)
+  window.add(orderAddEditPanel, BorderLayout.NORTH)
   window.add(orderListPanel, BorderLayout.CENTER)
   window.add(orderRemovePanel, BorderLayout.SOUTH)
   // window configuration

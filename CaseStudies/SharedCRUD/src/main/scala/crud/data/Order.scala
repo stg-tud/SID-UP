@@ -2,9 +2,10 @@ package crud.data
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import reactive.signals.{Signal, Var}
 
-case class Order(number: Signal[Int], date: Signal[Date]) {
+import reactive.signals.SettableSignal
+
+case class Order(number: SettableSignal[Int], date: SettableSignal[Date]) {
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
   override def toString = {
@@ -13,6 +14,6 @@ case class Order(number: Signal[Int], date: Signal[Date]) {
 }
 object Order {
   def apply(number: Int, date: Date): Order = {
-    Order(Var(number), Var(date))
+    new Order(SettableSignal(number), SettableSignal(date))
   }
 }
