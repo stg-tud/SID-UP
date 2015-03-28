@@ -28,13 +28,15 @@ class OrderAddEditPanel(table: Table[Order], order: Signal[Option[Order]]) exten
   addOrderButton.enabled << (duplicateExists && !orderSelected)
   editOrderButton.enabled << (duplicateExists && orderSelected)
 
-  val oldOrder = order.delta.mapOption { op => op._1 } observe { order =>
-    order.number <<- nextNumber
-    order.date <<- nextDate
-  }
-  val newOrder = order.delta.mapOption { op => op._2 } observe { order =>
-    order.number <<+ nextNumber
-    order.date <<+ nextDate
+  order.delta.observe { op =>
+    op._1 match {
+      case Some(o) => o.number <<- nextNumber ; o.date <<- nextDate
+      case None =>
+    }
+    op._2 match {
+      case Some(o) => o.number <<+ nextNumber ; o.date <<+ nextDate
+      case None =>
+    }
   }
 
   // Assign new order to nextOrders when the add button is pressed
