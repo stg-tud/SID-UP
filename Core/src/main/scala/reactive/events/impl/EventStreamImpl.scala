@@ -5,8 +5,16 @@ package impl
 import reactive.impl.ReactiveImpl
 import reactive.signals.Signal
 import reactive.signals.impl.FoldSignal
+import java.io.IOException
+import java.io.ObjectOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectStreamException
+import reactive.remote.impl.RemoteEventSourceImpl
+import reactive.remote.impl.RemoteEventSinkImpl
+import reactive.remote.RemoteDependency
 
-trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
+@SerialVersionUID(1321321321L)
+trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] with Serializable {
   override def hold[B >: A](initialValue: B): Signal[B] = fold(initialValue) { (_, value) => value }
   override def map[B](op: A => B): EventStream[B] = new TransformEventStream[B, A](this, _.map(op));
   override def collect[B](op: PartialFunction[A, B]): EventStream[B] = new TransformEventStream[B, A](this, _.collect(op));
@@ -18,4 +26,17 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] {
   override def log = fold(List[A]())((list, elem) => list :+ elem)
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
+  
+  private lazy val remote = new RemoteEventSourceImpl(this)
+  @throws(classOf[ObjectStreamException])
+  protected def writeReplace(): Any = EventStreamImpl.AutoRemoteEventStream(remote)
+}
+
+object EventStreamImpl {
+  case class AutoRemoteEventStream[A](wrapped: RemoteDependency[A]) {
+    @throws(classOf[ObjectStreamException])
+    def readResolve(): Any = {
+      new RemoteEventSinkImpl(wrapped)
+    }
+  }
 }

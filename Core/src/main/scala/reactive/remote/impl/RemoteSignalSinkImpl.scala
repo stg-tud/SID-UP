@@ -3,6 +3,7 @@ package reactive.remote.impl
 import reactive.remote.RemoteSignalDependency
 import reactive.signals.impl.SignalImpl
 import reactive.Transaction
+import java.io.ObjectStreamException
 
 class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends RemoteSinkImpl[A](dependency) with SignalImpl[A] {
 
@@ -14,4 +15,7 @@ class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends Rem
     pulse.foreach(now = _)
     super.update(transaction, pulse, updatedSourceDependencies)
   }
+  
+  @throws(classOf[ObjectStreamException])
+  override protected def writeReplace(): Any = this
 }

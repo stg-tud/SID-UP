@@ -37,9 +37,7 @@ object Whiteboard {
     case None => drawingPanel.constructingShape
   }
 
-  val shapesRemote = new RemoteSignalSinkImpl(remoteWhiteboard.connectShapes(
-    new RemoteEventSourceImpl(remoteShapeCommands),
-    Some(new RemoteSignalSourceImpl(remoteCurrentShape)))
+  val shapesRemote = remoteWhiteboard.connectShapes(remoteShapeCommands, Some(remoteCurrentShape)
   )
   drawingPanel.shapes << shapesRemote
 
@@ -50,7 +48,8 @@ object Whiteboard {
       shapeSelectionPanel -> BorderLayout.WEST
     ).addWindowListener(new WindowAdapter {
       override def windowClosing(e: WindowEvent) = {
-        shapesRemote.disconnect()
+        // TODO memory management =)
+//        shapesRemote.disconnect()
       }
     })
   }

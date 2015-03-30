@@ -12,8 +12,13 @@ import scala.language.higherKinds
 import reactive.events.TransposeEventStream
 import scala.collection.TraversableLike
 import reactive.lifting.Lift
+import java.io.ObjectStreamException
+import reactive.remote.RemoteSignalDependency
+import reactive.remote.impl.RemoteSignalSinkImpl
+import reactive.remote.impl.RemoteSignalSourceImpl
 
-trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
+@SerialVersionUID(4093495L)
+trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] with Serializable {
 
   override lazy val changes: EventStream[A] = new ChangesEventStream(this)
   override lazy val delta = new DeltaEventStream(this)
@@ -28,4 +33,17 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] {
   override def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = new TransposeEventStream[T, C]( /*this.map(evidence)*/ this.asInstanceOf[Signal[C[EventStream[T]]]])
   override def ===(other: Signal[_]): Signal[Boolean] = Lift.signal2((_: Any) == (_: Any))(this, other)
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
+  
+  private lazy val remote = new RemoteSignalSourceImpl(this)
+  @throws(classOf[ObjectStreamException])
+  protected def writeReplace(): Any = SignalImpl.AutoRemoteEventStream(remote)
+}
+
+object SignalImpl {
+  case class AutoRemoteEventStream[A](wrapped: RemoteSignalDependency[A]) {
+    @throws(classOf[ObjectStreamException])
+    def readResolve(): Any = {
+      new RemoteSignalSinkImpl(wrapped)
+    }
+  }
 }

@@ -15,7 +15,7 @@ import javax.swing.JOptionPane
 
 object WhiteboardServer extends App {
   @remote trait RemoteWhiteboard {
-    def connectShapes(shapeStream: RemoteDependency[Command], currentShape: Option[RemoteSignalDependency[Option[Shape]]] = None): RemoteSignalDependency[Iterable[Shape]]
+    def connectShapes(shapeStream: EventStream[Command], currentShape: Option[Signal[Option[Shape]]] = None): Signal[Iterable[Shape]]
     def lock(): Option[TransactionLock]
   }
 
@@ -33,25 +33,21 @@ object WhiteboardServer extends App {
   def ++[T] : (Iterable[T], Iterable[T]) => Iterable[T] = {(first, second) => first ++ second}
   val shapes = ++[Shape](currentShapes, persistentShapes)
 
-  val shapesRemote = new RemoteSignalSourceImpl(shapes)
-
   object remoteImpl extends UnicastRemoteObject with RemoteWhiteboard {
-    override def connectShapes(shapeStream: RemoteDependency[Command], currentShape: Option[RemoteSignalDependency[Option[Shape]]] = None) = {
+    override def connectShapes(shapeStream: EventStream[Command], currentShape: Option[Signal[Option[Shape]]] = None) = {
       println("new client connecting: " + shapeStream)
       val uuid = UUID.randomUUID()
 
       if (transactionLock.isDefined)
         transactionLock.get.acquire(uuid)
-      val newClientShapeStream = new RemoteEventSinkImpl(shapeStream)
-      allClientShapeCommands << allClientShapeCommands.now :+ newClientShapeStream
+      allClientShapeCommands << allClientShapeCommands.now :+ shapeStream
       currentShape.foreach { currentShapeSignal =>
-        val newClientCurrentShapeSignal = new RemoteSignalSinkImpl(currentShapeSignal)
-        allClientsCurrentShape << allClientsCurrentShape.now :+ newClientCurrentShapeSignal
+        allClientsCurrentShape << allClientsCurrentShape.now :+ currentShapeSignal
       }
       if (transactionLock.isDefined)
         transactionLock.get.release(uuid)
 
-      shapesRemote
+      shapes
     }
 
     override def lock(): Option[TransactionLock] = {
