@@ -9,6 +9,7 @@ import scala.util.Try
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.Executor
 
 trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   override def isConnectedTo(transaction: Transaction) = !(transaction.sources & sourceDependencies(transaction)).isEmpty
@@ -76,6 +77,11 @@ object ReactiveImpl extends LazyLogging {
   import scala.concurrent._
 
   private implicit val myExecutionContext = ExecutionContext.fromExecutor(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new SynchronousQueue[Runnable]()))
+//  private implicit val myExecutionContext = ExecutionContext.fromExecutor(new Executor{
+//    override def execute(runnable: Runnable): Unit = {
+//      runnable.run()
+//    }
+//  })
 
   def parallelForeach[A, B](elements: Iterable[A])(op: A => B) = {
     if (elements.isEmpty) {
