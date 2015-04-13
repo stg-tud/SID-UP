@@ -11,7 +11,8 @@ import reactive.signals.impl.FunctionalSignal
 import reactive.events.impl.DependentEventStreamImpl
 import reactive.impl.MultiDependentReactive
 
-class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] {
+@SerialVersionUID(1234837843483487L)
+class Val[A](val value: A) extends Signal[A] with ReactiveConstant[A, A] with Serializable {
   override val now = value
   override val delta = NothingEventStream
   override def value(t: Transaction) = value

@@ -4,7 +4,8 @@ package events
 import reactive.signals.Val
 import reactive.signals.Signal
 
-object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Nothing] {
+@SerialVersionUID(123483712387L)
+object NothingEventStream extends EventStream[Nothing] with ReactiveConstant[Nothing, Nothing] with Serializable {
   override def hold[B >: Nothing](initialValue: B): Signal[B] = new Val(initialValue)
   override def map[B](op: Nothing => B): EventStream[B] = this
   override def mapOption[B](op: Nothing => Option[B]): EventStream[B] = this
