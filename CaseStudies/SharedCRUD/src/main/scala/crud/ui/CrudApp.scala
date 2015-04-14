@@ -1,28 +1,23 @@
 package crud.ui
 
 import java.awt.BorderLayout
-import java.text.SimpleDateFormat
+import java.rmi.Naming
 import javax.swing._
 
-import crud.data.Order
-import db.Table
+import crud.server.RemoteCrud
 
 object CrudApp extends App {
-  // Setup Table
-  val format = new SimpleDateFormat("yyy-MM-dd")
-  val table = Table[Order](
-    Order(1, format.parse("2015-01-01")),
-    Order(2, format.parse("2015-01-02")),
-    Order(3, format.parse("2015-01-03"))
-  )
+  val serverHostName =
+    JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
+  val remoteCrud = Naming.lookup("//"+serverHostName+"/remoteCrud").asInstanceOf[RemoteCrud]
 
-  val orderListPanel = new OrderListPanel(table)
-  val orderAddEditPanel = new OrderAddEditPanel(table, orderListPanel.selectedOrder)
+  val orderListPanel = new OrderListPanel(remoteCrud.select())
+  val orderAddEditPanel = new OrderAddEditPanel(remoteCrud, orderListPanel.selectedOrder)
   val orderRemovePanel = new OrderRemovePanel(orderListPanel.selectedOrder)
   
   // Connect orderAddPanel and orderRemovePanel to table
-  table.insertEvents << table.insertEvents.now + orderAddEditPanel.nextOrders
-  table.removeEvents << table.removeEvents.now + orderRemovePanel.removeOrders
+  remoteCrud.connectInsert(orderAddEditPanel.nextOrders)
+  remoteCrud.connectRemove(orderRemovePanel.removeOrders)
 
   // Setup application window
   val window = new JFrame("SharedCRUD Orders")

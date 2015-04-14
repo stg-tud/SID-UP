@@ -4,13 +4,13 @@ import java.util.Date
 import javax.swing.{BoxLayout, JPanel}
 
 import crud.data.Order
-import db.Table
+import crud.server.RemoteCrud
 import reactive.lifting.BooleanLift._
 import reactive.lifting.Lift._
 import reactive.signals.Signal
 import ui.{ReactiveButton, ReactiveDatePicker, ReactiveSpinner}
 
-class OrderAddEditPanel(table: Table[Order], order: Signal[Option[Order]]) extends JPanel {
+class OrderAddEditPanel(remoteCrud: RemoteCrud, order: Signal[Option[Order]]) extends JPanel {
   protected val numberInput = new ReactiveSpinner(0)
   protected val dateInput = new ReactiveDatePicker(new Date())
   protected val addOrderButton = new ReactiveButton("Add")
@@ -23,8 +23,9 @@ class OrderAddEditPanel(table: Table[Order], order: Signal[Option[Order]]) exten
   numberInput.min << 0
 
   // Enable/Disable add and edit buttons
-  val duplicateExists = table.count(order => order.number === numberInput.value && order.date === dateInput.value).map(_ == 0)
-  val orderSelected = order.map { _.isDefined }
+  protected val selectQuery = remoteCrud.select(order => order.number === numberInput.value && order.date === dateInput.value)
+  protected val duplicateExists = selectQuery.map(_.toSet.size == 0)
+  protected val orderSelected = order.map { _.isDefined }
   addOrderButton.enabled << (duplicateExists && !orderSelected)
   editOrderButton.enabled << (duplicateExists && orderSelected)
 
