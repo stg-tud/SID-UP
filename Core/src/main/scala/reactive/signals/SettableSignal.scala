@@ -4,19 +4,31 @@ package signals;
 import reactive.events.EventStream
 import java.util.UUID
 import scala.collection.generic.CanBuildFrom
-import scala.language.higherKinds 
+import scala.language.higherKinds
 import scala.collection.TraversableLike
+import reactive.remote.impl.RemoteSignalPublisher
+import reactive.remote.RemoteSignalDependency
+import reactive.remote.impl.RemoteSignalSubscriber
+import java.io.ObjectStreamException
 
-trait SettableSignal[A] extends Signal[A] {
-    def <<+(setEvents: EventStream[A]): Unit
-    def <<-(setEvents: EventStream[A]): Unit
+@remote trait RemoteIncrementalSource[B] {
+  def <<+(value: B): Unit
+  def <<-(value: B): Unit
+  def swap(out: B, in: B): Unit
 }
+trait IncrementalSource[B] {
+  def <<+(value: B): Unit
+  def <<-(value: B): Unit
+  def swap(out: B, in: B): Unit
+}
+trait SettableSignal[A] extends Signal[A] with IncrementalSource[EventStream[A]]
 
 object SettableSignal {
-  def apply[A](initialValue: A): SettableSignal[A] = new SettableSignal[A] {
+  def apply[A](initialValue: A): SettableSignal[A] = new SettableSignal[A] with Serializable {
     val _input = Var(Set[EventStream[A]]());
-    override def <<+(setEvents: EventStream[A]) = _input << _input.now + setEvents
-    override def <<-(setEvents: EventStream[A]) = _input << _input.now - setEvents
+    override def <<+(event: EventStream[A]) = _input << _input.now + event
+    override def <<-(event: EventStream[A]) = _input << _input.now - event
+    override def swap(out: EventStream[A], in: EventStream[A]): Unit = _input << _input.now - out + in
 
     val _output = _input.transposeE.map(_.head).hold(initialValue)
     protected[reactive] override def value(transaction: Transaction): A = _output.value(transaction)
@@ -40,5 +52,30 @@ object SettableSignal {
     override def transposeS[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[Signal[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]) = _output.transposeS
     override def transposeE[T, C[B] <: TraversableLike[B, C[B]]](implicit evidence: A <:< C[EventStream[T]], canBuildFrom: CanBuildFrom[C[_], T, C[T]]): EventStream[C[T]] = _output.transposeE
     override def ===(other: Signal[_]): Signal[Boolean] = _output.===(other)
+
+    private lazy val remote = new RemoteSettableSignalPublisher(this)
+    @throws(classOf[ObjectStreamException])
+    protected def writeReplace(): Any = AutoRemoteSettableSignal(remote)
   }
+
+  case class AutoRemoteSettableSignal[A](wrapped: RemoteSettableSignalDependency[A]) {
+    @throws(classOf[ObjectStreamException])
+    def readResolve(): Any = {
+      new RemoteSettableSignalSubscriber(wrapped)
+    }
+  }
+}
+
+@remote trait RemoteSettableSignalDependency[A] extends RemoteSignalDependency[A] with RemoteIncrementalSource[EventStream[A]]
+
+class RemoteSettableSignalPublisher[A](val local: SettableSignal[A]) extends RemoteSignalPublisher[A](local) with RemoteSettableSignalDependency[A] {
+  override def <<+(value: EventStream[A]): Unit = local <<+ value
+  override def <<-(value: EventStream[A]): Unit = local <<- value
+  override def swap(out: EventStream[A], in: EventStream[A]): Unit = local.swap(out, in)
+}
+
+class RemoteSettableSignalSubscriber[A](val remote: RemoteSettableSignalDependency[A]) extends RemoteSignalSubscriber[A](remote) with SettableSignal[A] {
+  override def <<+(value: EventStream[A]): Unit = remote <<+ value
+  override def <<-(value: EventStream[A]): Unit = remote <<- value
+  override def swap(out: EventStream[A], in: EventStream[A]): Unit = remote.swap(out, in)
 }

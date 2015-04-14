@@ -5,11 +5,11 @@ import reactive.signals.impl.SignalImpl
 import reactive.Transaction
 import java.io.ObjectStreamException
 
-class RemoteSignalSinkImpl[A](dependency: RemoteSignalDependency[A]) extends RemoteSinkImpl[A](dependency) with SignalImpl[A] {
+class RemoteSignalSubscriber[A](dependency: RemoteSignalDependency[A]) extends RemoteSubscriber[A](dependency) with SignalImpl[A] {
 
   var now = dependency.value(null)
 
-  protected[reactive] def value(transaction: reactive.Transaction): A = now
+  override def value(transaction: reactive.Transaction): A = now
 
   override def update(transaction: Transaction, pulse: Option[A], updatedSourceDependencies: Option[Set[java.util.UUID]]): Unit = synchronized {
     pulse.foreach(now = _)

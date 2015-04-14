@@ -7,7 +7,7 @@ import java.util.UUID
 import reactive.remote.{RemoteDependency, RemoteDependant}
 import java.rmi.server.UnicastRemoteObject
 
-abstract class RemoteSourceImpl[P] extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[P] {
+abstract class RemotePublisher[P] extends UnicastRemoteObject with Reactive.Dependant with RemoteDependency[P] {
   def dependency: Reactive[_, P]
 
   var dependants: Set[RemoteDependant[P]] = Set()

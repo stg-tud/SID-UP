@@ -14,8 +14,8 @@ import scala.collection.TraversableLike
 import reactive.lifting.Lift
 import java.io.ObjectStreamException
 import reactive.remote.RemoteSignalDependency
-import reactive.remote.impl.RemoteSignalSinkImpl
-import reactive.remote.impl.RemoteSignalSourceImpl
+import reactive.remote.impl.RemoteSignalPublisher
+import reactive.remote.impl.RemoteSignalSubscriber
 
 @SerialVersionUID(4093495L)
 trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] with Serializable {
@@ -34,7 +34,7 @@ trait SignalImpl[A] extends ReactiveImpl[A, A] with Signal[A] with Serializable 
   override def ===(other: Signal[_]): Signal[Boolean] = Lift.signal2((_: Any) == (_: Any))(this, other)
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
   
-  private lazy val remote = new RemoteSignalSourceImpl(this)
+  private lazy val remote = new RemoteSignalPublisher(this)
   @throws(classOf[ObjectStreamException])
   protected def writeReplace(): Any = SignalImpl.AutoRemoteEventStream(remote)
 }
@@ -43,7 +43,7 @@ object SignalImpl {
   case class AutoRemoteEventStream[A](wrapped: RemoteSignalDependency[A]) {
     @throws(classOf[ObjectStreamException])
     def readResolve(): Any = {
-      new RemoteSignalSinkImpl(wrapped)
+      new RemoteSignalSubscriber(wrapped)
     }
   }
 }

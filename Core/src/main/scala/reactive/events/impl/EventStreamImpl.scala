@@ -9,9 +9,9 @@ import java.io.IOException
 import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectStreamException
-import reactive.remote.impl.RemoteEventSourceImpl
-import reactive.remote.impl.RemoteEventSinkImpl
 import reactive.remote.RemoteDependency
+import reactive.remote.impl.RemoteEventStreamSubscriber
+import reactive.remote.impl.RemoteEventStreamPublisher
 
 @SerialVersionUID(1321321321L)
 trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] with Serializable {
@@ -27,7 +27,7 @@ trait EventStreamImpl[A] extends ReactiveImpl[A, A] with EventStream[A] with Ser
 
   protected override def getObserverValue(transaction: Transaction, pulseValue: A) = pulseValue
   
-  private lazy val remote = new RemoteEventSourceImpl(this)
+  private lazy val remote = new RemoteEventStreamPublisher(this)
   @throws(classOf[ObjectStreamException])
   protected def writeReplace(): Any = EventStreamImpl.AutoRemoteEventStream(remote)
 }
@@ -36,7 +36,7 @@ object EventStreamImpl {
   case class AutoRemoteEventStream[A](wrapped: RemoteDependency[A]) {
     @throws(classOf[ObjectStreamException])
     def readResolve(): Any = {
-      new RemoteEventSinkImpl(wrapped)
+      new RemoteEventStreamSubscriber(wrapped)
     }
   }
 }
