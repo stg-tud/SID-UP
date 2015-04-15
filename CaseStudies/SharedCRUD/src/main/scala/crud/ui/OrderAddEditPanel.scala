@@ -23,7 +23,9 @@ class OrderAddEditPanel(remoteCrud: RemoteCrud, order: Signal[Option[Order]]) ex
   numberInput.min << 0
 
   // Enable/Disable add and edit buttons
-  protected val selectQuery = remoteCrud.select(order => order.number === numberInput.value && order.date === dateInput.value)
+  protected def createSelect(selectedNumber: Signal[Int], selectedDate: Signal[Date]) =
+    (order: Order) => order.number === selectedNumber && order.date === selectedDate
+  protected val selectQuery = remoteCrud.select(createSelect(numberInput.value, dateInput.value))
   protected val duplicateExists = selectQuery.map(_.toSet.size == 0)
   protected val orderSelected = order.map { _.isDefined }
   addOrderButton.enabled << (duplicateExists && !orderSelected)
