@@ -12,7 +12,7 @@ import javax.swing.event.ListSelectionEvent
 import reactive.signals.Var
 import scala.collection.JavaConversions._
 
-class ReactiveList[T](initialElements: Signal[List[T]]) extends {
+class ReactiveList[T](initialElements: Signal[Seq[T]]) extends {
   val model = new DefaultListModel[T]()
 } with ReactiveComponent(new JList(model)) with ReactiveInput[Option[T]] {
   asComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)

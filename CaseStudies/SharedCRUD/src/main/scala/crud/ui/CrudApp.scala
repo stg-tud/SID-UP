@@ -8,7 +8,7 @@ import crud.server.RemoteCrud
 
 object CrudApp extends App {
   val serverHostName =
-    JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE)
+    JOptionPane.showInputDialog(null, "Please enter server host name:", "Connect", JOptionPane.QUESTION_MESSAGE, null, null, "localhost")
   val remoteCrud = Naming.lookup("//"+serverHostName+"/remoteCrud").asInstanceOf[RemoteCrud]
 
   val orderListPanel = new OrderListPanel(remoteCrud.select())
