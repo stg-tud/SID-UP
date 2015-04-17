@@ -139,8 +139,77 @@ class RemoteSettableSignalTest extends FunSuite {
       }
     }
 
+    test("settable signal double transfer") {
+      @remote trait Provider {
+        def get(): SettableSignal[Int]
+      }
+
+      object myProviderImpl extends UnicastRemoteObject with Provider {
+        val settable = SettableSignal[Int](5)
+        def get: SettableSignal[Int] = settable
+      }
+
+      @remote trait Consumer {
+        def receive(settable: SettableSignal[Int]): Unit
+      }
+
+      object myConsumerImpl extends UnicastRemoteObject with Consumer {
+        var set: Option[SettableSignal[Int]] = None
+        def receive(settable: SettableSignal[Int]): Unit = {
+          set = Some(settable)
+        }
+      }
+
+      Naming.rebind("provider", myProviderImpl)
+      try {
+        Naming.rebind("consumer", myConsumerImpl)
+        try {
+
+          val providerSettable = myProviderImpl.settable
+          val providerSetter = EventSource[Int]
+          providerSettable <<+ providerSetter
+
+          val remoteProvider = Naming.lookup("provider").asInstanceOf[Provider]
+          val remoteConsumer = Naming.lookup("consumer").asInstanceOf[Consumer]
+
+          assert(myConsumerImpl.set.isEmpty)
+          remoteConsumer.receive(remoteProvider.get())
+          assert(myConsumerImpl.set.isDefined)
+          val consumerSettable = myConsumerImpl.set.get
+          assertResult(5) { consumerSettable.now }
+
+          providerSetter << 6
+          assertResult(6) { providerSettable.now }
+          assertResult(6) { consumerSettable.now }
+
+          val consumerSetter = EventSource[Int]
+          consumerSettable <<+ consumerSetter
+
+          consumerSetter << 7
+          assertResult(7) { consumerSettable.now }
+          assertResult(7) { providerSettable.now }
+
+          providerSettable <<- providerSetter
+          providerSetter << 234
+          assertResult(7) { consumerSettable.now }
+          assertResult(7) { providerSettable.now }
+
+          consumerSettable <<- consumerSetter
+          consumerSetter << 123
+          assertResult(7) { consumerSettable.now }
+          assertResult(7) { providerSettable.now }
+
+        } finally {
+          Naming.unbind("consumer")
+        }
+      } finally {
+        Naming.unbind("provider")
+      }
+    }
+
   } catch {
-    case _: Exception =>
-      println("registry already initialised")
+    case ex: Exception =>
+      System.err.println("registry already initialised?")
+      ex.printStackTrace()
   }
 }

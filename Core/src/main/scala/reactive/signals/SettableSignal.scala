@@ -78,4 +78,7 @@ class RemoteSettableSignalSubscriber[A](val remote: RemoteSettableSignalDependen
   override def <<+(value: EventStream[A]): Unit = remote <<+ value
   override def <<-(value: EventStream[A]): Unit = remote <<- value
   override def swap(out: EventStream[A], in: EventStream[A]): Unit = remote.swap(out, in)
+
+  @throws(classOf[ObjectStreamException])
+  override protected def writeReplace(): Any = SettableSignal.AutoRemoteSettableSignal(remote) 
 }
