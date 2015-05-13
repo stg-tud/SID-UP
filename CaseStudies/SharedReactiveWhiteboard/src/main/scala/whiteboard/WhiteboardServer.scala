@@ -5,7 +5,6 @@ import whiteboard.figures.Shape
 import java.rmi.Naming
 import reactive.events.{ EventStream, TransposeEventStream }
 import reactive.signals.{ TransposeSignal, Signal, Var }
-import reactive.remote.impl.{ RemoteSignalSinkImpl, RemoteEventSinkImpl, RemoteSignalSourceImpl }
 import reactive.remote.RemoteDependency
 import reactive.remote.RemoteSignalDependency
 import reactive.lifting.Lift._

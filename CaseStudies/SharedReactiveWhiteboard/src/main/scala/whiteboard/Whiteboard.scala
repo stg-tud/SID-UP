@@ -7,7 +7,6 @@ import java.awt.event.{WindowEvent, WindowAdapter}
 import java.rmi.Naming
 import whiteboard.WhiteboardServer.RemoteWhiteboard
 import reactive.events.EventStream
-import reactive.remote.impl.{RemoteSignalSourceImpl, RemoteEventSourceImpl, RemoteSignalSinkImpl}
 import reactive.mutex.{LockSignal, LockEventStream, TransactionLock}
 
 
