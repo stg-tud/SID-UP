@@ -5,6 +5,7 @@ import reactive.events.EventStream
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 import scala.collection.TraversableLike
+import reactive.signals.impl.FunctionalSignal
 
 trait Signal[+A] extends Reactive[A, A] {
   def now: A
@@ -21,6 +22,14 @@ trait Signal[+A] extends Reactive[A, A] {
   def ===(other: Signal[_]): Signal[Boolean]
 }
 
+object Signal{
+  // TODO generalize for all collections?
+  implicit class ListTransform[T](list: List[Signal[T]]) {
+    def signalTranspose(): Signal[List[T]] = {
+      new FunctionalSignal({ tx: Transaction => list.map(_.value(tx)) }, list.toSet)
+    }
+  } 
+}
 //object Signal {
 //  def opWithCatch[A](op: => A): Either[A, Throwable] = try {
 //    Left(op)

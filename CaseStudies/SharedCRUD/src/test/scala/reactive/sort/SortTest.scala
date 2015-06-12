@@ -1,4 +1,4 @@
-package sort
+package reactive.sort
 
 import org.scalatest.FunSuite
 import reactive.signals.Var
