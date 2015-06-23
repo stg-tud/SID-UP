@@ -27,27 +27,57 @@ trait ReactiveImpl[O, P] extends Reactive[O, P] with LazyLogging {
   }
   override def toString = name
 
-  @volatile private var currentTransaction: Transaction = _
-  @volatile private var pulse: Option[P] = None
+  private var currentTransaction: Transaction = _
+  private var pulse: Option[P] = None
+  // =============================================================================================
+  // Trade-off: better speed for worse memory footprint:
+  // Never drop pulse values.
   def pulse(transaction: Transaction): Option[P] = if (hasPulsed(transaction)) pulse else None
   def hasPulsed(transaction: Transaction): Boolean = currentTransaction == transaction
+  // ---------------------------------------------------------------------------------------------
+  // Trade-off: better memory footprint for worse speed:
+  // Drop (outdated) pulse value when new transaction is observed
+  //  def pulse(transaction: Transaction): Option[P] = {
+  //    hasPulsed(transaction)
+  //    pulse
+  //  }
+  //  def hasPulsed(transaction: Transaction): Boolean = {
+  //    synchronized {
+  //      if (currentTransaction == transaction) {
+  //        true
+  //      } else {
+  //        pulse = None
+  //        false
+  //      }
+  //    }
+  //  }
+  // =============================================================================================
 
-  @volatile private var dependants = Set[Reactive.Dependant]()
-  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
-    dependants += dependant
+  private var dependants = Set[Reactive.Dependant]()
+  override def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean = {
+    synchronized {
+      logger.trace(s"$dependant <~ $this [${Option(transaction).map { _.uuid }}]")
+      dependants += dependant
+      transaction != null && isPulseUpcoming(transaction)
+    }
   }
-  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit = {
-    logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
-    dependants -= dependant
+  override def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean = {
+    synchronized {
+      logger.trace(s"$dependant <!~ $this [${Option(transaction).map { _.uuid }}]")
+      dependants -= dependant
+      transaction != null && isPulseUpcoming(transaction)
+    }
   }
 
   protected[reactive] def doPulse(transaction: Transaction, sourceDependenciesChanged: Boolean, pulse: Option[P]) = {
     val pulsed = pulse.isDefined
     logger.trace(s"$this => Pulse($pulse, $sourceDependenciesChanged) [${Option(transaction).map { _.uuid }}]")
-    this.pulse = pulse
-    this.currentTransaction = transaction
-    ReactiveImpl.parallelForeach(dependants) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
+    val deptsToNotify = synchronized {
+      this.pulse = pulse
+      this.currentTransaction = transaction
+      dependants
+    }
+    ReactiveImpl.parallelForeach(deptsToNotify) { _.ping(transaction, sourceDependenciesChanged, pulsed) }
     if (pulsed) {
       val value = getObserverValue(transaction, pulse.get)
       notifyObservers(transaction, value)

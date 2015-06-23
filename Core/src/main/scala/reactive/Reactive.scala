@@ -7,8 +7,8 @@ trait Reactive[+O, +P] {
 
   protected[reactive] def sourceDependencies(transaction: Transaction): Set[UUID]
   protected[reactive] def isConnectedTo(transaction: Transaction): Boolean
-  protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit
-  protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Unit
+  protected[reactive] def addDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean
+  protected[reactive] def removeDependant(transaction: Transaction, dependant: Reactive.Dependant): Boolean
   protected[reactive] def pulse(transaction: Transaction): Option[P]
   protected[reactive] def hasPulsed(transaction: Transaction): Boolean
   protected[reactive] def isPulseUpcoming(transaction: Transaction): Boolean = !hasPulsed(transaction) && isConnectedTo(transaction)
