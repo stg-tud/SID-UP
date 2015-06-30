@@ -1,8 +1,7 @@
 package reactive.sort
 
 import reactive.lifting.Lift
-import reactive.signals.{Var, Signal}
-import reactive.signals.Val
+import reactive.signals.{Signal, Val}
 
 class Sort[T](implicit ordering: Ordering[T]) {
   def min(x: Signal[T], y: Signal[T]): Signal[T] = {
@@ -56,17 +55,6 @@ class RSort[T](implicit ordering: ROrdering[T]) {
 
   def rsort1(list: List[T]): List[Signal[T]] = {
     rssort1(list.map(Val(_)))
-//    // Bring the minimum element to the front of the list
-//    def bubbleUp(list: List[Signal[T]]): List[Signal[T]] = list.tail.foldLeft(List(list.head)) { (l, x) =>
-//      rrmin(l.head, x) :: rrmax(l.head, x) :: l.tail
-//    }
-//
-//    val signalList = list.map(Var(_))
-//    signalList.size match {
-//      case 0 => signalList
-//      case 1 => signalList
-//      case _ => val l = bubbleUp(signalList); l.head :: rsort1(l.tail.map(_.now))
-//    }
   }
 
 
@@ -76,7 +64,16 @@ class RSort[T](implicit ordering: ROrdering[T]) {
   }
 
   def rssort1(list: List[Signal[T]]): List[Signal[T]] = {
-    ???
+    // Bring the minimum element to the front of the list
+    def bubbleUp(list: List[Signal[T]]): List[Signal[T]] = list.tail.foldLeft(List(list.head)) { (l, x) =>
+      rrmin(l.head, x) :: rrmax(l.head, x) :: l.tail
+    }
+
+    list.size match {
+      case 0 => list
+      case 1 => list
+      case _ => val l = bubbleUp(list); l.head :: rssort1(l.tail)
+    }
   }
 
   def rssort2(list: List[Signal[T]]): Signal[List[T]] = {
