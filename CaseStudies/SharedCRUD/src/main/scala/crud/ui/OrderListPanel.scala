@@ -5,10 +5,15 @@ import javax.swing.{JPanel, JScrollPane}
 
 import crud.data.{Order, OrderNumberOrdering}
 import reactive.signals.Signal
+import reactive.sort.RSort
 import ui.ReactiveList
 
 class OrderListPanel(selectQuery: Signal[Set[Order]]) extends JPanel {
-  protected val orderList = new ReactiveList[Order](selectQuery.map { _.toList.sorted(new OrderNumberOrdering()) })
+  implicit val ordering = new OrderNumberOrdering
+  val sort = new RSort[Order]()
+  
+  val sortedList = sort.rrsort(selectQuery.map(_.toList))
+  protected val orderList = new ReactiveList[Order](sortedList)
   val selectedOrder = orderList.selectionOption
 
   // Span list over whole panel
