@@ -17,7 +17,9 @@ class ReactiveRenderedList[T](initialElements: Signal[Seq[T]], renderer: Option[
     val underlyingRender = new DefaultListCellRenderer
 
     override def getListCellRendererComponent(list: JList[_ <: T], value: T, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component = {
-      underlyingRender.getListCellRendererComponent(list, renderer.apply(value), index, isSelected, cellHasFocus)
+      renderer(value).map { rendered =>
+        underlyingRender.getListCellRendererComponent(list, rendered, index, isSelected, cellHasFocus)
+      }.now
     }
   }
 }

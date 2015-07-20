@@ -23,7 +23,7 @@ class OrderListPanel(selectQuery: Signal[Set[Order]]) extends JPanel {
 }
 
 class OrderCellRenderer extends RCellRenderer[Order] {
-  override def apply(element: Order): String = {
-    element.toString
+  override def apply(element: Order): Signal[String] = {
+    (element.date.changes merge element.number.changes).map(_ => element.toString).hold(element.toString)
   }
 }
